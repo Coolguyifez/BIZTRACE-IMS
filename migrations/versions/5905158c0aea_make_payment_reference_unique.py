@@ -9,35 +9,36 @@ Create Date: 2026-09-12 21:50:31.035802
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
+
 revision = "5905158c0aea"
 down_revision = "f3d84c86eff6"
 branch_labels = None
 depends_on = None
 
-
 def upgrade():
 
-    with op.batch_alter_table(
-        "payments",
-        schema=None
-    ) as batch_op:
 
-        batch_op.create_unique_constraint(
-            "uq_payments_reference",
-            ["reference"]
-        )
+# PostgreSQL-safe unique constraint creation.
+#
+# The Render database is initially empty, so the constraint
+# should simply be created on the payments.reference column.
 
+op.create_unique_constraint(
+    "uq_payments_reference",
+    "payments",
+    ["reference"]
+)
+```
 
 def downgrade():
 
-    with op.batch_alter_table(
-        "payments",
-        schema=None
-    ) as batch_op:
+```
+# Remove the constraint if the migration is rolled back.
 
-        batch_op.drop_constraint(
-            "uq_payments_reference",
-            type_="unique"
-        )
+op.drop_constraint(
+    "uq_payments_reference",
+    "payments",
+    type_="unique"
+)
+
