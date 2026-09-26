@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                INVENTORY MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                {{ title }}
+            </h1>
+
+            <p class="page-subtitle">
+                Add product information, pricing and stock settings.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a
+                href="{{ url_for('products.products') }}"
+                class="btn btn-light border rounded-pill px-4"
+            >
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Products
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FORM
+    ====================================================== -->
+
+    <form method="POST">
+
+        {{ form.hidden_tag() }}
+
+
+        <div class="row g-4">
+
+
+            <!-- =================================================
+                 LEFT COLUMN
+            ================================================== -->
+
+            <div class="col-xl-8">
+
+
+                <!-- =============================================
+                     BASIC INFORMATION
+                ============================================== -->
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-header bg-transparent border-0 p-4">
+
+                        <h5 class="mb-1 fw-semibold">
+                            Basic Information
+                        </h5>
+
+                        <small class="text-muted">
+                            General information about this product.
+                        </small>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <div class="row g-4">
+
+
+                            <!-- NAME -->
+
+                            <div class="col-md-8">
+
+                                {{ form.name.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.name(
+                                    class="form-control",
+                                    placeholder="e.g. HP Laptop 15"
+                                ) }}
+
+                                {% for error in form.name.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- UNIT -->
+
+                            <div class="col-md-4">
+
+                                {{ form.unit.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.unit(
+                                    class="form-control",
+                                    placeholder="piece"
+                                ) }}
+
+                                {% for error in form.unit.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- SKU -->
+
+                            <div class="col-md-6">
+
+                                {{ form.sku.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.sku(
+                                    class="form-control",
+                                    placeholder="e.g. LAP-HP-001"
+                                ) }}
+
+                                <div class="form-text text-muted">
+                                    A unique product identification code.
+                                </div>
+
+                                {% for error in form.sku.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- BARCODE -->
+
+                            <div class="col-md-6">
+
+                                {{ form.barcode.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.barcode(
+                                    class="form-control",
+                                    placeholder="Optional barcode"
+                                ) }}
+
+                                {% for error in form.barcode.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- CATEGORY -->
+
+                            <div class="col-md-6">
+
+                                {{ form.category_id.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.category_id(
+                                    class="form-select"
+                                ) }}
+
+                                {% for error in form.category_id.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- DESCRIPTION -->
+
+                            <div class="col-12">
+
+                                {{ form.description.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.description(
+                                    class="form-control",
+                                    rows="4",
+                                    placeholder="Describe this product..."
+                                ) }}
+
+                                {% for error in form.description.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     PRICING
+                ============================================== -->
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-header bg-transparent border-0 p-4">
+
+                        <h5 class="mb-1 fw-semibold">
+                            Pricing
+                        </h5>
+
+                        <small class="text-muted">
+                            Set the purchase and selling prices.
+                        </small>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <div class="row g-4">
+
+
+                            <!-- PURCHASE PRICE -->
+
+                            <div class="col-md-6">
+
+                                {{ form.purchase_price.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        {{ get_currency_symbol() }}
+                                    </span>
+
+                                    {{ form.purchase_price(
+                                        class="form-control",
+                                        placeholder="0.00",
+                                        inputmode="decimal"
+                                    ) }}
+
+                                </div>
+
+                                <div class="form-text text-muted">
+                                    Purchase cost per {{ form.unit.data or "unit" }}.
+                                </div>
+
+                                {% for error in form.purchase_price.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- SELLING PRICE -->
+
+                            <div class="col-md-6">
+
+                                {{ form.selling_price.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        {{ get_currency_symbol() }}
+                                    </span>
+
+                                    {{ form.selling_price(
+                                        class="form-control",
+                                        placeholder="0.00",
+                                        inputmode="decimal"
+                                    ) }}
+
+                                </div>
+
+                                <div class="form-text text-muted">
+                                    Selling price per {{ form.unit.data or "unit" }}.
+                                </div>
+
+                                {% for error in form.selling_price.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RIGHT COLUMN
+            ================================================== -->
+
+            <div class="col-xl-4">
+
+
+                <!-- =============================================
+                     INVENTORY
+                ============================================== -->
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-header bg-transparent border-0 p-4">
+
+                        <h5 class="mb-1 fw-semibold">
+                            Inventory
+                        </h5>
+
+                        <small class="text-muted">
+                            Configure stock levels.
+                        </small>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+
+                        <!-- OPENING STOCK -->
+
+                        <div class="mb-4">
+
+                            {{ form.quantity.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.quantity(
+                                class="form-control",
+                                placeholder="0",
+                                min="0",
+                                step="any",
+                                inputmode="decimal"
+                            ) }}
+
+                            <div class="form-text text-muted">
+                                Opening stock quantity.
+                            </div>
+
+                            {% for error in form.quantity.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- MINIMUM STOCK -->
+
+                        <div class="mb-2">
+
+                            {{ form.minimum_stock.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.minimum_stock(
+                                class="form-control",
+                                placeholder="0",
+                                min="0",
+                                step="any",
+                                inputmode="decimal"
+                            ) }}
+
+                            <div class="form-text text-muted">
+                                You'll be notified when stock reaches this level.
+                            </div>
+
+                            {% for error in form.minimum_stock.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     ACTIONS
+                ============================================== -->
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body p-4">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100 rounded-pill py-2 mb-2"
+                        >
+
+                            <i class="bi bi-check2-circle me-2"></i>
+
+                            {{ form.submit.label.text }}
+
+                        </button>
+
+
+                        <a
+                            href="{{ url_for('products.products') }}"
+                            class="btn btn-light border w-100 rounded-pill"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

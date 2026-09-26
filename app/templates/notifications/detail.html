@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ notification.title }} | Notifications
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4 notification-detail-page">
+
+    <!-- ======================================================
+         BACK
+    ======================================================= -->
+
+    <div class="mb-4">
+
+        <a
+            href="{{ url_for('notifications.index') }}"
+            class="notification-back-link"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back to notifications
+        </a>
+
+    </div>
+
+
+    <!-- ======================================================
+         DETAIL CARD
+    ======================================================= -->
+
+    <div class="notification-detail-card">
+
+        <!-- ==================================================
+             HEADER
+        =================================================== -->
+
+        <div class="notification-detail-header">
+
+            <!-- ICON -->
+
+            <div
+                class="notification-detail-icon
+                {{ notification.category }}"
+            >
+
+                {% if notification.category == "sale" %}
+
+                    <i class="bi bi-cart-check-fill"></i>
+
+                {% elif notification.category == "payment" %}
+
+                    <i class="bi bi-credit-card-fill"></i>
+
+                {% elif notification.category == "purchase" %}
+
+                    <i class="bi bi-bag-fill"></i>
+
+                {% elif notification.category == "inventory" %}
+
+                    <i class="bi bi-box-seam-fill"></i>
+
+                {% elif notification.category == "expense" %}
+
+                    <i class="bi bi-wallet2"></i>
+
+                {% elif notification.category == "cash_deposit" %}
+
+                    <i class="bi bi-bank2"></i>
+
+                {% elif notification.category == "receivable" %}
+
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+
+                {% elif notification.category == "payable" %}
+
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+
+                {% elif notification.category == "financial" %}
+
+                    <i class="bi bi-graph-up-arrow"></i>
+
+                {% elif notification.category == "security" %}
+
+                    <i class="bi bi-shield-lock-fill"></i>
+
+                {% else %}
+
+                    <i class="bi bi-info-circle-fill"></i>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- META -->
+
+            <div class="notification-detail-meta">
+
+                <div class="d-flex flex-wrap gap-2 mb-2">
+
+                    <!-- PRIORITY -->
+
+                    {% if notification.priority == "critical" %}
+
+                        <span class="badge text-bg-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            Critical
+                        </span>
+
+                    {% elif notification.priority == "high" %}
+
+                        <span class="badge text-bg-warning">
+                            <i class="bi bi-exclamation-circle-fill me-1"></i>
+                            Important
+                        </span>
+
+                    {% endif %}
+
+
+                    <!-- DELIVERY CATEGORY -->
+
+                    <span class="notification-category-badge">
+
+                        {% if notification.category == "cash_deposit" %}
+
+                            Cash Deposits
+
+                        {% else %}
+
+                            {{ notification.category
+                                |replace("_", " ")
+                                |title }}
+
+                        {% endif %}
+
+                    </span>
+
+
+                    <!-- READ STATUS -->
+
+                    <span class="notification-read-badge">
+
+                        {% if recipient and recipient.is_read %}
+
+                            <i class="bi bi-check-circle"></i>
+                            Read
+
+                        {% else %}
+
+                            <i class="bi bi-circle"></i>
+                            Unread
+
+                        {% endif %}
+
+                    </span>
+
+                </div>
+
+
+                <!-- COMPANY-AWARE DATE/TIME -->
+
+                <small class="text-secondary">
+
+                    <i class="bi bi-clock me-1"></i>
+
+                    {{ format_company_datetime(notification.created_at) }}
+
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             BODY
+        =================================================== -->
+
+        <div class="notification-detail-body">
+
+            <!-- TITLE -->
+
+            <h1>
+                {{ notification.title }}
+            </h1>
+
+
+            <!-- MESSAGE -->
+
+            <div class="notification-detail-message">
+
+                {{ notification.message }}
+
+            </div>
+
+
+            <!-- ==================================================
+                 SOUND
+            =================================================== -->
+
+            {% if notification.sound %}
+
+                <div class="notification-detail-section">
+
+                    <h6>
+
+                        <i class="bi bi-volume-up"></i>
+
+                        Notification sound
+
+                    </h6>
+
+
+                    <div class="notification-reference-card">
+
+                        <div>
+
+                            <span>
+                                Sound type
+                            </span>
+
+                            <strong>
+
+                                {% if notification.sound == "success" %}
+
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Success
+
+                                {% elif notification.sound == "system" %}
+
+                                    <i class="bi bi-gear-fill me-1"></i>
+                                    System
+
+                                {% elif notification.sound == "error" %}
+
+                                    <i class="bi bi-x-circle-fill me-1"></i>
+                                    Error
+
+                                {% elif notification.sound == "low-stock" %}
+
+                                    <i class="bi bi-box-seam-fill me-1"></i>
+                                    Low Stock
+
+                                {% elif notification.sound == "gross-loss" %}
+
+                                    <i class="bi bi-graph-down-arrow me-1"></i>
+                                    Gross Loss
+
+                                {% elif notification.sound == "net-loss" %}
+
+                                    <i class="bi bi-graph-down me-1"></i>
+                                    Net Loss
+
+                                {% else %}
+
+                                    {{ notification.sound
+                                        |replace("_", " ")
+                                        |replace("-", " ")
+                                        |title }}
+
+                                {% endif %}
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- ==================================================
+                 REFERENCE
+            =================================================== -->
+
+            {% if notification.reference_type %}
+
+                <div class="notification-detail-section">
+
+                    <h6>
+
+                        <i class="bi bi-link-45deg"></i>
+
+                        Related record
+
+                    </h6>
+
+
+                    <div class="notification-reference-card">
+
+                        <div>
+
+                            <span>
+                                Type
+                            </span>
+
+                            <strong>
+                                {{ notification.reference_type
+                                    |replace("_", " ")
+                                    |title }}
+                            </strong>
+
+                        </div>
+
+
+                        {% if notification.reference_id %}
+
+                            <div>
+
+                                <span>
+                                    ID
+                                </span>
+
+                                <strong>
+                                    #{{ notification.reference_id }}
+                                </strong>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- ==================================================
+                 DELIVERY INFORMATION
+            =================================================== -->
+
+            <div class="notification-detail-section">
+
+                <h6>
+
+                    <i class="bi bi-bell"></i>
+
+                    Delivery
+
+                </h6>
+
+
+                <div class="notification-reference-card">
+
+                    <!-- BROWSER -->
+
+                    <div>
+
+                        <span>
+                            Browser notification
+                        </span>
+
+                        <strong>
+
+                            {% if notification.browser_sent %}
+
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Sent
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-secondary">
+                                    <i class="bi bi-dash-circle me-1"></i>
+                                    Not sent
+                                </span>
+
+                            {% endif %}
+
+                        </strong>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div>
+
+                        <span>
+                            Email notification
+                        </span>
+
+                        <strong>
+
+                            {% if notification.email_sent %}
+
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Sent
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-secondary">
+                                    <i class="bi bi-dash-circle me-1"></i>
+                                    Not sent
+                                </span>
+
+                            {% endif %}
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 ACTIONS
+            =================================================== -->
+
+            <div class="notification-detail-actions">
+
+                {% if notification.link and notification.link != "#" %}
+
+                    <!-- OPEN RELATED RECORD -->
+
+                    <a
+                        href="{{ notification.link }}"
+                        class="btn btn-primary notification-related-link"
+                    >
+                        <i class="bi bi-box-arrow-up-right me-1"></i>
+                        Open related record
+                    </a>
+
+                {% endif %}
+
+
+                <!-- DELETE -->
+
+                <button
+                    type="button"
+                    class="btn btn-danger"
+                    id="deleteNotification"
+                    data-notification-id="{{ notification.id }}"
+                >
+                    <i class="bi bi-trash3 me-1"></i>
+                    Delete notification
+                </button>
+
+
+                <!-- BACK -->
+
+                <a
+                    href="{{ url_for('notifications.index') }}"
+                    class="btn btn-light"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back to notifications
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================================
+     PAGE JAVASCRIPT
+=========================================================== -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    /* =========================================================
+       DELETE NOTIFICATION
+    ========================================================== */
+
+    async function deleteNotification(notificationId) {
+
+        if (!notificationId) {
+            return;
+        }
+
+
+        const confirmed = window.confirm(
+            "Delete this notification?\n\n" +
+            "This action cannot be undone."
+        );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `/notifications/api/${notificationId}/delete`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+
+                    credentials: "same-origin"
+                }
+            );
+
+
+            let data = {};
+
+            try {
+
+                data = await response.json();
+
+            } catch (jsonError) {
+
+                data = {};
+
+            }
+
+
+            if (!response.ok || !data.success) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to delete notification."
+                );
+
+            }
+
+
+            window.location.href =
+                "{{ url_for('notifications.index') }}";
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete notification error:",
+                error
+            );
+
+
+            window.alert(
+                error.message ||
+                "Unable to delete notification."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       DELETE BUTTON
+    ========================================================== */
+
+    const deleteButton =
+        document.getElementById(
+            "deleteNotification"
+        );
+
+
+    if (deleteButton) {
+
+        deleteButton.addEventListener(
+            "click",
+            function () {
+
+                const notificationId =
+                    this.dataset.notificationId;
+
+                deleteNotification(notificationId);
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       CHECK RELATED RECORD
+    ========================================================== */
+
+    async function openRelatedRecord(link) {
+
+        if (!link || !link.href) {
+            return;
+        }
+
+
+        /*
+         * Prevent multiple clicks.
+         */
+
+        if (link.dataset.opening === "true") {
+            return;
+        }
+
+
+        link.dataset.opening = "true";
+
+
+        const originalHTML =
+            link.innerHTML;
+
+
+        link.innerHTML = `
+            <span
+                class="spinner-border spinner-border-sm me-1"
+                aria-hidden="true"
+            ></span>
+            Checking...
+        `;
+
+
+        try {
+
+            /*
+             * Request the related page first.
+             *
+             * redirect: "manual" prevents fetch from silently
+             * following redirects such as a login redirect.
+             */
+
+            const response = await fetch(
+                link.href,
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    redirect: "manual",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                }
+            );
+
+
+            /*
+             * PAGE DOES NOT EXIST
+             */
+
+            if (response.status === 404) {
+
+                throw new Error(
+                    "This related page is no longer available."
+                );
+
+            }
+
+
+            /*
+             * ACCESS DENIED
+             */
+
+            if (response.status === 403) {
+
+                throw new Error(
+                    "You do not have permission to open this page."
+                );
+
+            }
+
+
+            /*
+             * SERVER ERROR
+             */
+
+            if (response.status >= 500) {
+
+                throw new Error(
+                    "The related page could not be loaded because of a server error."
+                );
+
+            }
+
+
+            /*
+             * Redirect response.
+             *
+             * A redirect can happen when authentication or
+             * another Flask route redirects the request.
+             */
+
+            if (
+                response.type === "opaqueredirect" ||
+                response.status >= 300 &&
+                response.status < 400
+            ) {
+
+                /*
+                 * We allow normal navigation here. The destination
+                 * route will handle authentication/redirects.
+                 */
+
+                link.innerHTML = `
+                    <span
+                        class="spinner-border spinner-border-sm me-1"
+                        aria-hidden="true"
+                    ></span>
+                    Opening...
+                `;
+
+
+                window.location.href =
+                    link.href;
+
+                return;
+
+            }
+
+
+            /*
+             * Any other failed response.
+             */
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "The related page could not be opened."
+                );
+
+            }
+
+
+            /*
+             * PAGE EXISTS
+             */
+
+            link.innerHTML = `
+                <span
+                    class="spinner-border spinner-border-sm me-1"
+                    aria-hidden="true"
+                ></span>
+                Opening...
+            `;
+
+
+            window.location.href =
+                link.href;
+
+
+        } catch (error) {
+
+            console.error(
+                "Related record error:",
+                error
+            );
+
+
+            /*
+             * Restore button.
+             */
+
+            link.innerHTML =
+                originalHTML;
+
+
+            link.dataset.opening =
+                "false";
+
+
+            /*
+             * SHOW ALERT
+             */
+
+            window.alert(
+                error.message ||
+                "This related page is not available."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       RELATED RECORD LINK
+    ========================================================== */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const link =
+                event.target.closest(
+                    ".notification-related-link"
+                );
+
+
+            if (!link) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            openRelatedRecord(link);
+
+        }
+    );
+
+})();
+
+</script>
+
+{% endblock %}

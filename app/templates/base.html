@@ -1,0 +1,3351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta name="theme-color" content="#0a84ff">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+>
+
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/1.png') }}">
+
+<meta
+    name="apple-mobile-web-app-title"
+    content="BizTrace IMS"
+>
+
+<link
+    rel="manifest"
+    href="{{ url_for('static', filename='manifest.json') }}"
+>
+
+<link
+    rel="apple-touch-icon"
+    href="{{ url_for('static', filename='icons/7.png') }}"
+>
+
+    <title>
+        {% block title %}BizTrace IMS{% endblock %}
+    </title>
+
+
+    <!-- =========================================================
+         BOOTSTRAP
+    ========================================================== -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
+         BOOTSTRAP ICONS
+    ========================================================== -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
+         FONT
+    ========================================================== -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
+         CUSTOM CSS
+    ========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+
+    <!-- =========================================================
+         OVERLAY STYLES
+    ========================================================== -->
+
+    <style>
+
+        /* =====================================================
+           NOTIFICATION BACKDROP
+        ===================================================== */
+
+        #notificationBackdrop {
+
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(0, 0, 0, .10);
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            z-index: 2000;
+
+            transition:
+                opacity .2s ease,
+                visibility .2s ease;
+        }
+
+
+        #notificationBackdrop.active {
+
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: auto;
+        }
+
+
+        /* =====================================================
+           NOTIFICATION PANEL
+        ===================================================== */
+
+        #notificationPanel {
+
+            position: fixed !important;
+
+            width: 410px;
+
+            max-width:
+                calc(100vw - 24px);
+
+            margin: 0 !important;
+
+            top: 0;
+
+            left: 0;
+
+            display: none;
+
+            z-index: 2010 !important;
+
+            transform: none !important;
+
+            filter: none !important;
+
+            backdrop-filter: none !important;
+
+            -webkit-backdrop-filter: none !important;
+
+            isolation: isolate;
+        }
+
+
+        #notificationPanel.show {
+
+            display: block !important;
+        }
+
+
+        #notificationPanel,
+        #notificationPanel * {
+
+            filter: none !important;
+        }
+
+
+        @media (max-width: 576px) {
+
+            #notificationPanel {
+
+                width:
+                    calc(100vw - 20px);
+
+                max-width:
+                    calc(100vw - 20px);
+            }
+        }
+
+
+        .notification-dropdown-wrapper {
+
+            position: relative;
+        }
+
+
+        /* =====================================================
+           GLOBAL SEARCH
+        ===================================================== */
+
+        #searchBackdrop {
+
+            position: fixed;
+
+            inset: 0;
+
+            background:
+                rgba(0, 0, 0, .32);
+
+            backdrop-filter:
+                blur(7px);
+
+            -webkit-backdrop-filter:
+                blur(7px);
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            z-index: 3000;
+
+            transition:
+                opacity .25s ease,
+                visibility .25s ease;
+        }
+
+
+        #searchBackdrop.active {
+
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: auto;
+        }
+
+
+        /* =====================================================
+           SEARCH DRAWER
+        ===================================================== */
+
+        #globalSearchDrawer {
+
+            position: fixed;
+
+            top: 0;
+
+            right: 0;
+
+            width: 470px;
+
+            max-width: 100vw;
+
+            height: 100vh;
+
+            height: 100dvh;
+
+            display: flex;
+
+            flex-direction: column;
+
+            background:
+                var(--search-bg);
+
+            border-left:
+                1px solid var(--search-border);
+
+            box-shadow:
+                -20px 0 60px rgba(0, 0, 0, .12);
+
+            transform:
+                translateX(105%);
+
+            visibility: hidden;
+
+            z-index: 3010;
+
+            transition:
+                transform .3s cubic-bezier(.4, 0, .2, 1),
+                visibility .3s ease;
+
+            color:
+                var(--search-text);
+        }
+
+
+        #globalSearchDrawer.active {
+
+            transform:
+                translateX(0);
+
+            visibility:
+                visible;
+        }
+
+
+        /* =====================================================
+           LIGHT THEME
+        ===================================================== */
+
+        :root {
+
+            --search-bg: #ffffff;
+
+            --search-surface: #f5f5f7;
+
+            --search-surface-hover: #eeeeef;
+
+            --search-border: #e5e5e7;
+
+            --search-text: #1d1d1f;
+
+            --search-secondary: #6e6e73;
+
+            --search-placeholder: #8e8e93;
+        }
+
+
+        /* =====================================================
+           DARK THEME
+        ===================================================== */
+
+        [data-theme="dark"] {
+
+            --search-bg: #161618;
+
+            --search-surface: #242426;
+
+            --search-surface-hover: #2d2d30;
+
+            --search-border: #38383a;
+
+            --search-text: #f5f5f7;
+
+            --search-secondary: #a1a1a6;
+
+            --search-placeholder: #8e8e93;
+        }
+
+
+        /* =====================================================
+           SEARCH HEADER
+        ===================================================== */
+
+        .global-search-header {
+
+            padding:
+                22px 22px 18px;
+
+            border-bottom:
+                1px solid var(--search-border);
+        }
+
+
+        .global-search-title-row {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+
+            gap: 15px;
+
+            margin-bottom: 18px;
+        }
+
+
+        .global-search-title {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+        }
+
+
+        .global-search-title-icon {
+
+            width: 38px;
+
+            height: 38px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background:
+                rgba(10,132,255,.10);
+
+            color:
+                #0a84ff;
+
+            font-size: 17px;
+        }
+
+
+        .global-search-title h5 {
+
+            margin: 0;
+
+            color:
+                var(--search-text);
+
+            font-size: 16px;
+
+            font-weight: 700;
+        }
+
+
+        .global-search-title span {
+
+            display: block;
+
+            margin-top: 2px;
+
+            color:
+                var(--search-secondary);
+
+            font-size: 11px;
+        }
+
+
+        /* =====================================================
+           CLOSE BUTTON
+        ===================================================== */
+
+        .global-search-close {
+
+            width: 36px;
+
+            height: 36px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border: 0;
+
+            border-radius: 10px;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-secondary);
+
+            cursor: pointer;
+
+            transition:
+                background .2s ease,
+                color .2s ease;
+        }
+
+
+        .global-search-close:hover {
+
+            background:
+                var(--search-surface-hover);
+
+            color:
+                var(--search-text);
+        }
+
+
+        /* =====================================================
+           SEARCH INPUT
+        ===================================================== */
+
+        .global-search-input-wrapper {
+
+            position: relative;
+        }
+
+
+        .global-search-input-icon {
+
+            position: absolute;
+
+            left: 15px;
+
+            top: 50%;
+
+            transform:
+                translateY(-50%);
+
+            color:
+                var(--search-secondary);
+
+            pointer-events: none;
+
+            font-size: 17px;
+        }
+
+
+        #globalSearchInput {
+
+            width: 100%;
+
+            min-height: 52px;
+
+            padding:
+                0 75px 0 44px;
+
+            border:
+                1px solid var(--search-border);
+
+            border-radius: 14px;
+
+            outline: none;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-text);
+
+            font-family:
+                inherit;
+
+            font-size: 14px;
+
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease,
+                background .2s ease;
+        }
+
+
+        #globalSearchInput::placeholder {
+
+            color:
+                var(--search-placeholder);
+        }
+
+
+        #globalSearchInput:focus {
+
+            background:
+                var(--search-bg);
+
+            border-color:
+                rgba(10,132,255,.55);
+
+            box-shadow:
+                0 0 0 4px
+                rgba(10,132,255,.10);
+        }
+
+
+        .global-search-shortcut {
+
+            position: absolute;
+
+            right: 11px;
+
+            top: 50%;
+
+            transform:
+                translateY(-50%);
+
+            padding:
+                4px 7px;
+
+            border:
+                1px solid var(--search-border);
+
+            border-radius: 6px;
+
+            background:
+                var(--search-bg);
+
+            color:
+                var(--search-secondary);
+
+            font-size: 10px;
+
+            pointer-events: none;
+        }
+
+
+        /* =====================================================
+           SEARCH CONTENT
+        ===================================================== */
+
+        .global-search-content {
+
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 20px 14px 30px;
+        }
+
+
+        .global-search-section-label {
+
+            padding:
+                0 10px 9px;
+
+            color:
+                var(--search-secondary);
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            letter-spacing:
+                1.1px;
+        }
+
+
+        /* =====================================================
+           QUICK SEARCH ITEMS
+        ===================================================== */
+
+        .global-search-quick {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 3px;
+
+            margin-bottom: 24px;
+        }
+
+
+        .global-search-quick-item {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            width: 100%;
+
+            padding:
+                11px 10px;
+
+            border: 0;
+
+            border-radius: 12px;
+
+            background:
+                transparent;
+
+            color:
+                var(--search-text);
+
+            text-decoration: none;
+
+            text-align: left;
+
+            cursor: pointer;
+
+            transition:
+                background .15s ease;
+        }
+
+
+        .global-search-quick-item:hover {
+
+            background:
+                var(--search-surface);
+        }
+
+
+        .global-search-quick-icon {
+
+            width: 38px;
+
+            height: 38px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-secondary);
+
+            font-size: 16px;
+        }
+
+
+        .global-search-quick-item:hover
+        .global-search-quick-icon {
+
+            background:
+                rgba(10,132,255,.10);
+
+            color:
+                #0a84ff;
+        }
+
+
+        .global-search-quick-text {
+
+            min-width: 0;
+        }
+
+
+        .global-search-quick-text strong {
+
+            display: block;
+
+            color:
+                var(--search-text);
+
+            font-size: 13px;
+
+            font-weight: 600;
+        }
+
+
+        .global-search-quick-text span {
+
+            display: block;
+
+            margin-top: 2px;
+
+            color:
+                var(--search-secondary);
+
+            font-size: 11px;
+        }
+
+
+        /* =====================================================
+           RESULTS
+        ===================================================== */
+
+        #globalSearchResults {
+
+            display: none;
+        }
+
+
+        #globalSearchResults.active {
+
+            display: block;
+        }
+
+
+        .global-search-result {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            width: 100%;
+
+            padding:
+                12px 10px;
+
+            border-radius: 13px;
+
+            text-decoration: none;
+
+            color:
+                var(--search-text);
+
+            transition:
+                background .15s ease;
+        }
+
+
+        .global-search-result:hover {
+
+            background:
+                var(--search-surface);
+        }
+
+
+        .global-search-result-icon {
+
+            width: 40px;
+
+            height: 40px;
+
+            min-width: 40px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 11px;
+
+            background:
+                rgba(10,132,255,.10);
+
+            color:
+                #0a84ff;
+        }
+
+
+        .global-search-result-content {
+
+            min-width: 0;
+
+            flex: 1;
+        }
+
+
+        .global-search-result-title {
+
+            display: block;
+
+            overflow: hidden;
+
+            color:
+                var(--search-text);
+
+            font-size: 13px;
+
+            font-weight: 650;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .global-search-result-subtitle {
+
+            display: block;
+
+            overflow: hidden;
+
+            margin-top: 2px;
+
+            color:
+                var(--search-secondary);
+
+            font-size: 11px;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .global-search-result-type {
+
+            padding:
+                4px 7px;
+
+            border-radius: 6px;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-secondary);
+
+            font-size: 9px;
+
+            white-space: nowrap;
+        }
+
+
+        /* =====================================================
+           EMPTY / LOADING
+        ===================================================== */
+
+        .global-search-state {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 260px;
+
+            padding: 30px;
+
+            text-align: center;
+        }
+
+
+        .global-search-state-icon {
+
+            width: 52px;
+
+            height: 52px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin-bottom: 14px;
+
+            border-radius: 15px;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-secondary);
+
+            font-size: 21px;
+        }
+
+
+        .global-search-state strong {
+
+            color:
+                var(--search-text);
+
+            font-size: 14px;
+        }
+
+
+        .global-search-state span {
+
+            max-width: 300px;
+
+            margin-top: 5px;
+
+            color:
+                var(--search-secondary);
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =====================================================
+           SEARCH FOOTER
+        ===================================================== */
+
+        .global-search-footer {
+
+            padding:
+                12px 18px;
+
+            border-top:
+                1px solid var(--search-border);
+
+            color:
+                var(--search-secondary);
+
+            font-size: 10px;
+        }
+
+
+        .global-search-footer kbd {
+
+            padding:
+                3px 6px;
+
+            margin-right: 4px;
+
+            border:
+                1px solid var(--search-border);
+
+            border-radius: 5px;
+
+            background:
+                var(--search-surface);
+
+            color:
+                var(--search-secondary);
+
+            font-family:
+                inherit;
+
+            font-size: 9px;
+        }
+
+
+        /* =====================================================
+           MOBILE SEARCH
+        ===================================================== */
+
+        @media (max-width: 600px) {
+
+            #globalSearchDrawer {
+
+                width: 100vw;
+
+                border-left: 0;
+            }
+
+
+            .global-search-header {
+
+                padding:
+                    18px 16px 15px;
+            }
+
+
+            .global-search-content {
+
+                padding:
+                    18px 10px 25px;
+            }
+
+
+            .global-search-footer {
+
+                display: none;
+            }
+        }
+
+    </style>
+
+
+    {% block head %}{% endblock %}
+
+</head>
+
+
+<body>
+
+
+<div class="app-shell">
+
+
+    <!-- =========================================================
+         SIDEBAR
+    ========================================================== -->
+
+    <aside
+        id="sidebar"
+        class="sidebar d-print-none"
+    >
+
+        <div class="sidebar-inner d-print-none">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+
+                    <i class="bi bi-bar-chart-fill"></i>
+
+                </div>
+
+                <div class="brand-text">
+
+                    <span class="brand-name">
+                        BizTrace
+                    </span>
+
+                    <span class="brand-subtitle">
+                        IMS
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <nav class="sidebar-nav d-print-none">
+
+
+                <!-- =================================================
+                     OVERVIEW
+                ================================================== -->
+
+                {% if current_user.has_permission("view_dashboard") %}
+
+                <div class="nav-section d-print-none">
+
+                    <span class="nav-section-title">
+                        Overview
+                    </span>
+
+                    <a
+                        href="{{ url_for('dashboard.dashboard') }}"
+                        class="nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-grid-1x2-fill"></i>
+
+                        <span>
+                            Dashboard
+                        </span>
+
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     BUSINESS
+                ================================================== -->
+
+                {% if
+                    current_user.has_permission("view_sales")
+                    or current_user.has_permission("view_purchases")
+                    or current_user.has_permission("view_inventory")
+                    or current_user.has_permission("view_customers")
+                    or current_user.has_permission("view_suppliers")
+                    or current_user.has_permission("view_products")
+                    or current_user.has_permission("view_categories")
+                %}
+
+                <div class="nav-section">
+
+                    <span class="nav-section-title">
+                        Business
+                    </span>
+
+
+                    {% if current_user.has_permission("view_sales") %}
+
+                    <a
+                        href="{{ url_for('sales.sales') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('sales.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-cart3"></i>
+
+                        <span>
+                            Sales
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_purchases") %}
+
+                    <a
+                        href="{{ url_for('purchases.purchases') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('purchases.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-bag-check"></i>
+
+                        <span>
+                            Purchases
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_inventory") %}
+
+                    <a
+                        href="{{ url_for('inventory.inventory') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('inventory.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-boxes"></i>
+
+                        <span>
+                            Inventory
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_customers") %}
+
+                    <a
+                        href="{{ url_for('products.customers') }}"
+                        class="nav-item {% if request.endpoint in [
+                            'products.customers',
+                            'products.new_customer',
+                            'products.edit_customer'
+                        ] %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-people"></i>
+
+                        <span>
+                            Customers
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_suppliers") %}
+
+                    <a
+                        href="{{ url_for('products.suppliers') }}"
+                        class="nav-item {% if request.endpoint in [
+                            'products.suppliers',
+                            'products.new_supplier',
+                            'products.edit_supplier'
+                        ] %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-truck"></i>
+
+                        <span>
+                            Suppliers
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_products") %}
+
+                    <a
+                        href="{{ url_for('products.products') }}"
+                        class="nav-item {% if request.endpoint in [
+                            'products.products',
+                            'products.new_product',
+                            'products.edit_product'
+                        ] %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-box-seam-fill"></i>
+
+                        <span>
+                            Products
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     FINANCE
+                ================================================== -->
+
+                {% if
+                    current_user.has_permission("view_payments")
+                    or current_user.has_permission("view_cash_deposits")
+                    or current_user.has_permission("view_payables")
+                    or current_user.has_permission("view_expenses")
+                %}
+
+                <div class="nav-section">
+
+                    <span class="nav-section-title">
+                        Finance
+                    </span>
+
+
+                    {% if current_user.has_permission("view_payments") %}
+
+                    <a
+                        href="{{ url_for('payments.payments') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('payments.') and request.endpoint != 'payments.cash_deposits' %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-credit-card-fill"></i>
+
+                        <span>
+                            Payments
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_cash_deposits") %}
+
+                    <a
+                        href="{{ url_for('payments.cash_deposits') }}"
+                        class="nav-item {% if request.endpoint == 'payments.cash_deposits' %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-bank"></i>
+
+                        <span>
+                            Cash Deposits
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_payables") %}
+
+                    <a
+                        href="{{ url_for('payables.payables') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('payables.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-arrow-up-right-circle"></i>
+
+                        <span>
+                            Payables
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_expenses") %}
+
+                    <a
+                        href="{{ url_for('expenses.expenses') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('expenses.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-wallet2"></i>
+
+                        <span>
+                            Expenses
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     REPORTS
+                ================================================== -->
+
+                {% if current_user.has_permission("view_reports") %}
+
+                <div class="nav-section">
+
+                    <span class="nav-section-title">
+                        Reports
+                    </span>
+
+                    <a
+                        href="{{ url_for('reports.report_dashboard') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-bar-chart-line"></i>
+
+                        <span>
+                            Reports
+                        </span>
+
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     SYSTEM
+                ================================================== -->
+
+                <div class="nav-section">
+
+                    <span class="nav-section-title">
+                        System
+                    </span>
+
+
+                    {% if current_user.has_permission("view_users") %}
+
+                    <a
+                        href="{{ url_for('company_admin.users') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('company_admin.users') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-person-lines-fill"></i>
+
+                        <span>
+                            Users
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="{{ url_for('company_admin.roles') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('company_admin.roles') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-shield-lock-fill"></i>
+
+                        <span>
+                            Roles
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_sales") %}
+
+                    <a
+                        href="{{ url_for('notifications.index') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('notifications.') %}active{% endif %}"
+                        id="sidebarNotificationLink"
+                    >
+
+                        <i class="bi bi-bell"></i>
+
+                        <span>
+                            Notifications
+                        </span>
+
+                        <span
+                            id="sidebarNotificationBadge"
+                            class="notification-badge"
+                            style="display:none;"
+                        >
+                            0
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="{{ url_for('support.index') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('support.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-headset"></i>
+
+                        <span>
+                            Support
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("manage_company") %}
+
+                    <a
+                        href="{{ url_for('settings.index') }}"
+                        class="nav-item {% if request.endpoint and request.endpoint.startswith('settings.') %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-gear"></i>
+
+                        <span>
+                            Settings
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </nav>
+
+
+            <!-- =================================================
+                 SIDEBAR BOTTOM
+            ================================================== -->
+
+            <div class="sidebar-bottom">
+
+                <div class="sidebar-user">
+
+                    <div class="user-avatar">
+
+                        {{ current_user.username[0]|upper }}
+
+                    </div>
+
+                    <div class="user-info">
+
+                        <span class="user-name">
+
+                            {{ current_user.username }}
+
+                        </span>
+
+                        <span class="user-role">
+
+                            {{ current_user.role }}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <a
+                    href="{{ url_for('auth.logout') }}"
+                    class="logout-button"
+                >
+
+                    <i class="bi bi-box-arrow-right"></i>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         MAIN AREA
+    ========================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- =====================================================
+             TOPBAR
+        ====================================================== -->
+
+        <header class="topbar d-print-none">
+
+            <div class="topbar-left">
+
+                <button
+                    type="button"
+                    class="icon-button sidebar-toggle"
+                    id="sidebarToggle"
+                    aria-label="Toggle sidebar"
+                >
+
+                    <i class="bi bi-list"></i>
+
+                </button>
+
+
+                <div class="page-context">
+
+                    <h1>
+
+                        {% block page_title %}
+
+                            {{ current_user.company.name }}
+
+                        {% endblock %}
+
+                    </h1>
+
+                </div>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+
+                <!-- =================================================
+                     SEARCH
+                     ================================================== -->
+
+                <button
+                    id="globalSearchButton"
+                    class="icon-button desktop-search"
+                    type="button"
+                    title="Search"
+                    aria-label="Search"
+                    aria-controls="globalSearchDrawer"
+                    aria-expanded="false"
+                >
+
+                    <i class="bi bi-search"></i>
+
+                </button>
+
+
+                <!-- =================================================
+                     NOTIFICATIONS
+                ================================================== -->
+
+                <div class="notification-dropdown-wrapper">
+
+                    <button
+                        id="notificationDropdownButton"
+                        class="notification-topbar-button"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="notificationPanel"
+                        title="Notifications"
+                    >
+
+                        <i class="bi bi-bell"></i>
+
+                        <span
+                            id="topNotificationBadge"
+                            class="notification-topbar-badge"
+                            style="display:none;"
+                        >
+                            0
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                     THEME
+                ================================================== -->
+
+                <button
+                    id="themeToggle"
+                    class="icon-button"
+                    type="button"
+                    title="Change theme"
+                    aria-label="Change theme"
+                >
+
+                    <i class="bi bi-circle-half"></i>
+
+                </button>
+
+
+                <!-- =================================================
+                     USER PROFILE
+                ================================================== -->
+
+                <div class="dropdown">
+
+                    <button
+                        class="profile-button dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                        type="button"
+                        aria-expanded="false"
+                    >
+
+                        <div class="profile-avatar">
+
+                            {{ current_user.username[0]|upper }}
+
+                        </div>
+
+                        <span class="profile-name">
+
+                            {{ current_user.username }}
+
+                        </span>
+
+                    </button>
+
+
+                    <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                    >
+
+                        <li>
+
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('auth.profile') }}"
+                            >
+
+                                <i class="bi bi-person me-2"></i>
+
+                                Profile
+
+                            </a>
+
+                        </li>
+
+
+                        {% if current_user.has_permission("manage_company") %}
+
+                        <li>
+
+                            <a
+                                class="dropdown-item"
+                                href="{{ url_for('settings.index') }}"
+                            >
+
+                                <i class="bi bi-gear me-2"></i>
+
+                                Settings
+
+                            </a>
+
+                        </li>
+
+                        {% endif %}
+
+
+                        <li>
+
+                            <hr class="dropdown-divider">
+
+                        </li>
+
+
+                        <li>
+
+                            <a
+                                class="dropdown-item text-danger"
+                                href="{{ url_for('auth.logout') }}"
+                            >
+
+                                <i class="bi bi-box-arrow-right me-2"></i>
+
+                                Logout
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             PAGE CONTENT
+        ====================================================== -->
+
+        <section class="page-content">
+
+            {% with messages = get_flashed_messages(
+                with_categories=true
+            ) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div
+                            class="alert alert-{{ category }} alert-dismissible fade show app-alert"
+                            role="alert"
+                        >
+
+                            {{ message }}
+
+                            <button
+                                type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close"
+                            ></button>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <div class="page-animation">
+
+                {% block content %}{% endblock %}
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     NOTIFICATION BACKDROP
+========================================================== -->
+
+<div
+    id="notificationBackdrop"
+    class="notification-backdrop"
+    aria-hidden="true"
+></div>
+
+
+<!-- =========================================================
+     NOTIFICATION PANEL
+========================================================== -->
+
+<div
+    id="notificationPanel"
+    class="
+        dropdown-menu
+        dropdown-menu-end
+        notification-dropdown-menu
+    "
+    aria-hidden="true"
+>
+
+    <div class="notification-dropdown-header">
+
+        <div class="notification-dropdown-heading">
+
+            <div class="notification-dropdown-icon-title">
+
+                <div class="notification-dropdown-bell">
+
+                    <i class="bi bi-bell-fill"></i>
+
+                </div>
+
+                <div>
+
+                    <h6 class="notification-dropdown-title">
+                        Notifications
+                    </h6>
+
+                    <div
+                        id="notificationUnreadText"
+                        class="notification-dropdown-unread"
+                    >
+                        0 unread
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="notification-dropdown-mark mark-all-notifications"
+            >
+                Mark all
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="notificationList"
+        class="notification-dropdown-list"
+    >
+
+        <div class="notification-dropdown-empty">
+
+            <div class="notification-dropdown-empty-icon">
+
+                <i class="bi bi-hourglass-split"></i>
+
+            </div>
+
+            <strong>
+                Loading notifications
+            </strong>
+
+            <span>
+                Please wait...
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="notification-dropdown-footer">
+
+        <a
+            href="{{ url_for('notifications.index') }}"
+        >
+
+            <span>
+                View all notifications
+            </span>
+
+            <i class="bi bi-arrow-right"></i>
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SEARCH BACKDROP
+========================================================== -->
+
+<div
+    id="searchBackdrop"
+    aria-hidden="true"
+></div>
+
+
+<!-- =========================================================
+     GLOBAL SEARCH DRAWER
+========================================================== -->
+
+<aside
+    id="globalSearchDrawer"
+    aria-hidden="true"
+    aria-label="Global application search"
+>
+
+
+    <!-- =====================================================
+         SEARCH HEADER
+    ====================================================== -->
+
+    <div class="global-search-header">
+
+        <div class="global-search-title-row">
+
+            <div class="global-search-title">
+
+                <div class="global-search-title-icon">
+
+                    <i class="bi bi-search"></i>
+
+                </div>
+
+                <div>
+
+                    <h5>
+                        Search
+                    </h5>
+
+                    <span>
+                        Search across BizTrace IMS
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="globalSearchClose"
+                class="global-search-close"
+                aria-label="Close search"
+            >
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             SEARCH INPUT
+        ================================================== -->
+
+        <div class="global-search-input-wrapper">
+
+            <i
+                class="bi bi-search global-search-input-icon"
+            ></i>
+
+
+            <input
+                type="search"
+                id="globalSearchInput"
+                autocomplete="off"
+                placeholder="Search products, customers, sales..."
+                aria-label="Search application"
+            >
+
+
+            <span
+                class="global-search-shortcut"
+            >
+                ESC
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH CONTENT
+    ====================================================== -->
+
+    <div class="global-search-content">
+
+
+        <!-- =================================================
+             QUICK ACCESS
+        ================================================== -->
+
+        <div id="globalSearchQuick">
+
+            <div class="global-search-section-label">
+                QUICK ACCESS
+            </div>
+
+
+            <div class="global-search-quick">
+
+
+                {% if current_user.has_permission("view_dashboard") %}
+
+                <a
+                    href="{{ url_for('dashboard.dashboard') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-grid-1x2-fill"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Dashboard
+                        </strong>
+
+                        <span>
+                            Overview and business activity
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+                {% if current_user.has_permission("view_products") %}
+
+                <a
+                    href="{{ url_for('products.products') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-box-seam"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Products
+                        </strong>
+
+                        <span>
+                            Search and manage products
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+                {% if current_user.has_permission("view_customers") %}
+
+                <a
+                    href="{{ url_for('products.customers') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-people"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Customers
+                        </strong>
+
+                        <span>
+                            Customers and customer records
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+                {% if current_user.has_permission("view_sales") %}
+
+                <a
+                    href="{{ url_for('sales.sales') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-cart3"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Sales
+                        </strong>
+
+                        <span>
+                            Sales and transactions
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+                {% if current_user.has_permission("view_purchases") %}
+
+                <a
+                    href="{{ url_for('purchases.purchases') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-bag-check"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Purchases
+                        </strong>
+
+                        <span>
+                            Purchase records and suppliers
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+                {% if current_user.has_permission("view_reports") %}
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="global-search-quick-item"
+                >
+
+                    <div class="global-search-quick-icon">
+
+                        <i class="bi bi-bar-chart-line"></i>
+
+                    </div>
+
+                    <div class="global-search-quick-text">
+
+                        <strong>
+                            Reports
+                        </strong>
+
+                        <span>
+                            Business reports and analytics
+                        </span>
+
+                    </div>
+
+                </a>
+
+                {% endif %}
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RESULTS
+        ================================================== -->
+
+        <div id="globalSearchResults">
+
+            <div class="global-search-section-label">
+                SEARCH RESULTS
+            </div>
+
+
+            <div id="globalSearchResultList"></div>
+
+        </div>
+
+
+        <!-- =================================================
+             SEARCH STATE
+        ================================================== -->
+
+        <div
+            id="globalSearchState"
+            class="global-search-state"
+            style="display:none;"
+        >
+
+            <div class="global-search-state-icon">
+
+                <i class="bi bi-search"></i>
+
+            </div>
+
+            <strong id="globalSearchStateTitle">
+                No results
+            </strong>
+
+            <span id="globalSearchStateText">
+                Try another search term.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH FOOTER
+    ====================================================== -->
+
+    <div class="global-search-footer">
+
+        <kbd>ESC</kbd>
+        Close
+
+        &nbsp;&nbsp;
+
+        <kbd>CTRL</kbd>
+        <kbd>K</kbd>
+        Open search
+
+    </div>
+
+</aside>
+
+
+<!-- =========================================================
+     MOBILE SIDEBAR OVERLAY
+========================================================== -->
+
+<div
+    id="sidebarOverlay"
+    class="sidebar-overlay"
+></div>
+
+
+<script>
+
+window.BizFlowSettings = {
+
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+
+};
+
+</script>
+
+
+<!-- =========================================================
+     BOOTSTRAP
+========================================================== -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+<!-- =========================================================
+     APP JS
+     
+     IMPORTANT:
+     Load this ONCE only.
+========================================================== -->
+
+<script
+    src="{{ url_for('static', filename='js/app.js') }}"
+></script>
+
+
+<!-- =========================================================
+     GLOBAL SEARCH JAVASCRIPT
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const searchButton =
+            document.getElementById(
+                "globalSearchButton"
+            );
+
+        const searchDrawer =
+            document.getElementById(
+                "globalSearchDrawer"
+            );
+
+        const searchBackdrop =
+            document.getElementById(
+                "searchBackdrop"
+            );
+
+        const searchClose =
+            document.getElementById(
+                "globalSearchClose"
+            );
+
+        const searchInput =
+            document.getElementById(
+                "globalSearchInput"
+            );
+
+        const searchQuick =
+            document.getElementById(
+                "globalSearchQuick"
+            );
+
+        const searchResults =
+            document.getElementById(
+                "globalSearchResults"
+            );
+
+        const searchResultList =
+            document.getElementById(
+                "globalSearchResultList"
+            );
+
+        const searchState =
+            document.getElementById(
+                "globalSearchState"
+            );
+
+        const searchStateTitle =
+            document.getElementById(
+                "globalSearchStateTitle"
+            );
+
+        const searchStateText =
+            document.getElementById(
+                "globalSearchStateText"
+            );
+
+
+        if (
+            !searchButton ||
+            !searchDrawer ||
+            !searchBackdrop ||
+            !searchInput
+        ) {
+
+            return;
+
+        }
+
+
+        let searchTimer = null;
+
+        let searchRequest = null;
+
+
+        /* =====================================================
+           OPEN SEARCH
+        ====================================================== */
+
+        function openSearch() {
+
+            searchDrawer.classList.add(
+                "active"
+            );
+
+            searchBackdrop.classList.add(
+                "active"
+            );
+
+            searchDrawer.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            searchBackdrop.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            searchButton.setAttribute(
+                "aria-expanded",
+                "true"
+            );
+
+
+            document.body.classList.add(
+                "search-open"
+            );
+
+
+            setTimeout(
+                function () {
+
+                    searchInput.focus();
+
+                    searchInput.select();
+
+                },
+                220
+            );
+
+        }
+
+
+        /* =====================================================
+           CLOSE SEARCH
+        ====================================================== */
+
+        function closeSearch() {
+
+            searchDrawer.classList.remove(
+                "active"
+            );
+
+            searchBackdrop.classList.remove(
+                "active"
+            );
+
+            searchDrawer.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            searchBackdrop.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            searchButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+
+            document.body.classList.remove(
+                "search-open"
+            );
+
+
+            searchInput.value = "";
+
+
+            clearSearchResults();
+
+        }
+
+
+        /* =====================================================
+           CLEAR RESULTS
+        ====================================================== */
+
+        function clearSearchResults() {
+
+            searchQuick.style.display =
+                "block";
+
+
+            searchResults.classList.remove(
+                "active"
+            );
+
+
+            searchResultList.innerHTML =
+                "";
+
+
+            searchState.style.display =
+                "none";
+
+        }
+
+
+        /* =====================================================
+           SHOW STATE
+        ====================================================== */
+
+        function showState(
+            title,
+            message,
+            icon = "bi-search"
+        ) {
+
+            searchQuick.style.display =
+                "none";
+
+
+            searchResults.classList.remove(
+                "active"
+            );
+
+
+            searchState.style.display =
+                "flex";
+
+
+            searchStateTitle.textContent =
+                title;
+
+
+            searchStateText.textContent =
+                message;
+
+
+            const iconElement =
+                searchState.querySelector(
+                    ".global-search-state-icon i"
+                );
+
+
+            if (iconElement) {
+
+                iconElement.className =
+                    "bi " + icon;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           RENDER RESULTS
+        ====================================================== */
+
+        function renderResults(
+            results
+        ) {
+
+            searchQuick.style.display =
+                "none";
+
+
+            searchState.style.display =
+                "none";
+
+
+            searchResults.classList.add(
+                "active"
+            );
+
+
+            searchResultList.innerHTML =
+                "";
+
+
+            results.forEach(
+                function (result) {
+
+                    const link =
+                        document.createElement(
+                            "a"
+                        );
+
+
+                    link.className =
+                        "global-search-result";
+
+
+                    link.href =
+                        result.url || "#";
+
+
+                    const icon =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    icon.className =
+                        "global-search-result-icon";
+
+
+                    icon.innerHTML =
+                        `<i class="bi ${
+                            result.icon ||
+                            "bi-search"
+                        }"></i>`;
+
+
+                    const content =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    content.className =
+                        "global-search-result-content";
+
+
+                    const title =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    title.className =
+                        "global-search-result-title";
+
+
+                    title.textContent =
+                        result.title || "Result";
+
+
+                    const subtitle =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    subtitle.className =
+                        "global-search-result-subtitle";
+
+
+                    subtitle.textContent =
+                        result.subtitle || "";
+
+
+                    content.appendChild(
+                        title
+                    );
+
+
+                    content.appendChild(
+                        subtitle
+                    );
+
+
+                    const type =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    type.className =
+                        "global-search-result-type";
+
+
+                    type.textContent =
+                        result.type || "";
+
+
+                    link.appendChild(
+                        icon
+                    );
+
+
+                    link.appendChild(
+                        content
+                    );
+
+
+                    link.appendChild(
+                        type
+                    );
+
+
+                    searchResultList.appendChild(
+                        link
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           PERFORM SEARCH
+        ====================================================== */
+
+        async function performSearch(
+            value
+        ) {
+
+            const query =
+                value.trim();
+
+
+            if (query.length < 2) {
+
+                clearSearchResults();
+
+                return;
+
+            }
+
+
+            showState(
+                "Searching...",
+                "Looking across your application.",
+                "bi-hourglass-split"
+            );
+
+
+            try {
+
+                if (searchRequest) {
+
+                    searchRequest.abort();
+
+                }
+
+
+                searchRequest =
+                    new AbortController();
+
+
+                const response =
+                    await fetch(
+                        `/search/api?q=${encodeURIComponent(query)}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "X-Requested-With":
+                                    "XMLHttpRequest"
+                            },
+                            signal:
+                                searchRequest.signal
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Search request failed."
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !data.success ||
+                    !Array.isArray(
+                        data.results
+                    )
+                ) {
+
+                    throw new Error(
+                        "Invalid search response."
+                    );
+
+                }
+
+
+                if (
+                    data.results.length === 0
+                ) {
+
+                    showState(
+                        "No results found",
+                        `Nothing matched "${query}". Try a different keyword.`,
+                        "bi-search"
+                    );
+
+                    return;
+
+                }
+
+
+                renderResults(
+                    data.results
+                );
+
+            }
+            catch (error) {
+
+                if (
+                    error.name ===
+                    "AbortError"
+                ) {
+
+                    return;
+
+                }
+
+
+                console.error(
+                    "Global search error:",
+                    error
+                );
+
+
+                showState(
+                    "Search unavailable",
+                    "Something went wrong while searching. Please try again.",
+                    "bi-exclamation-circle"
+                );
+
+            }
+
+        }
+
+
+        /* =====================================================
+           SEARCH INPUT
+        ====================================================== */
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+
+                const value =
+                    this.value;
+
+
+                clearTimeout(
+                    searchTimer
+                );
+
+
+                searchTimer =
+                    setTimeout(
+                        function () {
+
+                            performSearch(
+                                value
+                            );
+
+                        },
+                        220
+                    );
+
+            }
+        );
+
+
+        /* =====================================================
+           OPEN BUTTON
+        ====================================================== */
+
+        searchButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                openSearch();
+
+            }
+        );
+
+
+        /* =====================================================
+           CLOSE BUTTON
+        ====================================================== */
+
+        searchClose.addEventListener(
+            "click",
+            function () {
+
+                closeSearch();
+
+            }
+        );
+
+
+        /* =====================================================
+           BACKDROP
+        ====================================================== */
+
+        searchBackdrop.addEventListener(
+            "click",
+            function () {
+
+                closeSearch();
+
+            }
+        );
+
+
+        /* =====================================================
+           KEYBOARD
+        ====================================================== */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                const modifier =
+                    event.ctrlKey ||
+                    event.metaKey;
+
+
+                /*
+                 * CTRL + K
+                 */
+
+                if (
+                    modifier &&
+                    event.key.toLowerCase() === "k"
+                ) {
+
+                    event.preventDefault();
+
+                    openSearch();
+
+                    return;
+
+                }
+
+
+                /*
+                 * ESC
+                 */
+
+                if (
+                    event.key === "Escape" &&
+                    searchDrawer.classList.contains(
+                        "active"
+                    )
+                ) {
+
+                    event.preventDefault();
+
+                    closeSearch();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           PREVENT SEARCH RESULT "#" NAVIGATION
+        ====================================================== */
+
+        searchResultList.addEventListener(
+            "click",
+            function (event) {
+
+                const link =
+                    event.target.closest(
+                        ".global-search-result"
+                    );
+
+
+                if (
+                    link &&
+                    link.getAttribute("href") === "#"
+                ) {
+
+                    event.preventDefault();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+
+<!-- =========================================================
+     NOTIFICATION OVERLAY CONTROLLER
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const notificationButton =
+            document.getElementById(
+                "notificationDropdownButton"
+            );
+
+        const notificationPanel =
+            document.getElementById(
+                "notificationPanel"
+            );
+
+        const notificationBackdrop =
+            document.getElementById(
+                "notificationBackdrop"
+            );
+
+
+        if (
+            !notificationButton ||
+            !notificationPanel ||
+            !notificationBackdrop
+        ) {
+
+            return;
+
+        }
+
+
+        let notificationOpen = false;
+
+
+        function positionNotificationPanel() {
+
+            if (!notificationOpen) {
+
+                return;
+
+            }
+
+
+            const buttonRect =
+                notificationButton.getBoundingClientRect();
+
+
+            const panelWidth =
+                Math.min(
+                    410,
+                    window.innerWidth - 24
+                );
+
+
+            let left =
+                buttonRect.right -
+                panelWidth;
+
+
+            let top =
+                buttonRect.bottom + 10;
+
+
+            if (left < 12) {
+
+                left = 12;
+
+            }
+
+
+            if (
+                left + panelWidth >
+                window.innerWidth - 12
+            ) {
+
+                left =
+                    window.innerWidth -
+                    panelWidth -
+                    12;
+
+            }
+
+
+            const panelHeight =
+                notificationPanel.offsetHeight;
+
+
+            if (
+                top + panelHeight >
+                window.innerHeight - 12
+            ) {
+
+                const aboveTop =
+                    buttonRect.top -
+                    panelHeight -
+                    10;
+
+
+                if (aboveTop >= 12) {
+
+                    top = aboveTop;
+
+                }
+
+            }
+
+
+            notificationPanel.style.width =
+                panelWidth + "px";
+
+
+            notificationPanel.style.left =
+                left + "px";
+
+
+            notificationPanel.style.top =
+                top + "px";
+
+        }
+
+
+        function openNotifications() {
+
+            notificationOpen = true;
+
+
+            notificationBackdrop.classList.add(
+                "active"
+            );
+
+
+            notificationPanel.classList.add(
+                "show"
+            );
+
+
+            notificationPanel.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+
+            notificationBackdrop.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+
+            notificationButton.setAttribute(
+                "aria-expanded",
+                "true"
+            );
+
+
+            requestAnimationFrame(
+                positionNotificationPanel
+            );
+
+        }
+
+
+        function closeNotifications() {
+
+            notificationOpen = false;
+
+
+            notificationPanel.classList.remove(
+                "show"
+            );
+
+
+            notificationBackdrop.classList.remove(
+                "active"
+            );
+
+
+            notificationPanel.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+
+            notificationBackdrop.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+
+            notificationButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+        }
+
+
+        notificationButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+
+                if (notificationOpen) {
+
+                    closeNotifications();
+
+                } else {
+
+                    openNotifications();
+
+                }
+
+            }
+        );
+
+
+        notificationBackdrop.addEventListener(
+            "click",
+            function () {
+
+                closeNotifications();
+
+            }
+        );
+
+
+        notificationPanel.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+            }
+        );
+
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape" &&
+                    notificationOpen
+                ) {
+
+                    closeNotifications();
+
+                }
+
+            }
+        );
+
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                if (notificationOpen) {
+
+                    positionNotificationPanel();
+
+                }
+
+            }
+        );
+
+
+        window.addEventListener(
+            "scroll",
+            function () {
+
+                if (notificationOpen) {
+
+                    positionNotificationPanel();
+
+                }
+
+            },
+            true
+        );
+
+
+        notificationButton.removeAttribute(
+            "data-bs-toggle"
+        );
+
+        notificationButton.removeAttribute(
+            "data-bs-auto-close"
+        );
+
+    }
+);
+
+</script>
+
+
+{% block scripts %}{% endblock %}
+
+
+</body>
+
+</html>

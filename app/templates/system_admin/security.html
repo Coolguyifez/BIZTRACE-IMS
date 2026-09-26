@@ -1,0 +1,634 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Security Info
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+
+<!-- HEADER -->
+<div class="mb-4">
+
+    <div class="d-flex align-items-center gap-2 mb-2">
+
+        <div class="page-icon">
+            <i class="bi bi-shield-lock"></i>
+        </div>
+
+        <span class="text-muted small">
+            System Administration
+        </span>
+
+        <i class="bi bi-chevron-right text-muted small"></i>
+
+        <span class="text-muted small">
+            Security
+        </span>
+
+    </div>
+
+    <h1 class="fw-bold mb-1">
+        Security
+    </h1>
+
+    <p class="text-muted mb-0">
+        Manage platform security settings and review account protection
+        controls.
+    </p>
+
+</div>
+
+
+<!-- SECURITY STATUS -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+
+    <div class="card-body p-4">
+
+        <div class="d-flex flex-wrap align-items-center gap-3">
+
+            <div class="security-status-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+
+            <div class="flex-grow-1">
+
+                <h5 class="fw-bold mb-1">
+                    Platform Security
+                </h5>
+
+                <p class="text-muted mb-0">
+                    BizTrace IMS security controls are active.
+                </p>
+
+            </div>
+
+            <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                Protected
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- SECURITY CARDS -->
+<div class="row g-4">
+
+    <!-- PASSWORD POLICY -->
+    <div class="col-12 col-lg-6">
+
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start gap-3 mb-4">
+
+                    <div class="security-icon">
+                        <i class="bi bi-key"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            Password Policy
+                        </h5>
+
+                        <p class="text-muted small mb-0">
+                            Password requirements used for BizTrace
+                            user accounts.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Minimum password length
+                    </div>
+
+                    <strong>
+                        8 characters
+                    </strong>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Password hashing
+                    </div>
+
+                    <strong>
+                        Enabled
+                    </strong>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Password confirmation
+                    </div>
+
+                    <strong>
+                        Required
+                    </strong>
+
+                </div>
+
+
+                <div class="mt-4">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary rounded-3"
+                        disabled
+                    >
+                        <i class="bi bi-sliders me-1"></i>
+                        Configure Policy
+                    </button>
+
+                    <div class="small text-muted mt-2">
+                        Advanced password policy configuration will be
+                        available in a future security update.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACCOUNT PROTECTION -->
+    <div class="col-12 col-lg-6">
+
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start gap-3 mb-4">
+
+                    <div class="security-icon">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            Account Protection
+                        </h5>
+
+                        <p class="text-muted small mb-0">
+                            Controls that protect user accounts and
+                            platform access.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Active user verification
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Company status enforcement
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-check2"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        System Administrator protection
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+
+                <div class="mt-4">
+
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Inactive users and users belonging to inactive
+                        companies are prevented from accessing the system.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SESSION SECURITY -->
+    <div class="col-12 col-lg-6">
+
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start gap-3 mb-4">
+
+                    <div class="security-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            Session Security
+                        </h5>
+
+                        <p class="text-muted small mb-0">
+                            Session-related security information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Authentication required
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Secure logout
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-building-x"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Inactive company enforcement
+                    </div>
+
+                    <span class="status-text active">
+                        Enabled
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SYSTEM ADMIN SECURITY -->
+    <div class="col-12 col-lg-6">
+
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start gap-3 mb-4">
+
+                    <div class="security-icon admin">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+                            System Administrator
+                        </h5>
+
+                        <p class="text-muted small mb-0">
+                            Additional protection for platform-level
+                            administration.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-lock-fill"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Platform access
+                    </div>
+
+                    <span class="status-text active">
+                        Protected
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-building-slash"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Company assignment
+                    </div>
+
+                    <span class="status-text">
+                        Restricted
+                    </span>
+
+                </div>
+
+
+                <div class="security-item">
+
+                    <div class="item-icon">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        Self-deactivation
+                    </div>
+
+                    <span class="status-text">
+                        Restricted
+                    </span>
+
+                </div>
+
+
+                <div class="mt-4">
+
+                    <a
+                        href="{{ url_for(
+                            'system_admin.user_view',
+                            user_id=current_user.id
+                        ) }}"
+                        class="btn btn-outline-primary rounded-3"
+                    >
+                        <i class="bi bi-person-gear me-1"></i>
+                        View My Account
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SECURITY INFORMATION -->
+    <div class="col-12">
+
+        <div class="card border-0 shadow-sm rounded-4">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start gap-3">
+
+                    <div class="info-icon">
+                        <i class="bi bi-info-circle"></i>
+                    </div>
+
+                    <div>
+
+                        <h5 class="fw-bold mb-2">
+                            Security Information
+                        </h5>
+
+                        <p class="text-muted mb-2">
+                            BizTrace IMS uses authenticated accounts,
+                            role-based access control, password hashing,
+                            company-level access isolation, and account
+                            status enforcement.
+                        </p>
+
+                        <p class="text-muted mb-0">
+                            Security-sensitive configuration should be
+                            changed carefully because it can affect access
+                            to the entire platform.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<style>
+
+    .page-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .security-status-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .security-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .security-icon.admin {
+        background: rgba(111, 66, 193, 0.10);
+        color: #6f42c1;
+    }
+
+    .security-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .security-item:last-of-type {
+        border-bottom: 0;
+    }
+
+    .item-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        background: rgba(25, 135, 84, 0.10);
+        color: #198754;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color);
+    }
+
+    .status-text.active {
+        color: #198754;
+    }
+
+    .info-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+    html[data-theme="dark"] .security-item {
+        border-color: rgba(255, 255, 255, 0.10);
+    }
+
+    @media (max-width: 575.98px) {
+
+        .container-fluid {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+        }
+
+        .card-body {
+            padding: 18px !important;
+        }
+
+        .security-status-icon {
+            width: 46px;
+            height: 46px;
+            font-size: 20px;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

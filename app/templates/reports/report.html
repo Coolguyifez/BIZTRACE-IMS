@@ -1,0 +1,1897 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reports
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+         Hidden during printing
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-bar-chart-line fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Reports
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Business performance and financial overview
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-light border rounded-pill px-4"
+                onclick="window.print()"
+            >
+                <i class="bi bi-printer me-1"></i>
+                Print Report
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT REPORT HEADER
+         Visible only when printing
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+                    &nbsp; | &nbsp;
+                {% endif %}
+
+                {% if current_user.company.email %}
+                    {{ current_user.company.email }}
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Business Performance Report
+            </h2>
+
+            <div>
+                Reporting Period:
+                <strong>
+                    {{ format_company_date(start_date) }}
+                    –
+                    {{ format_company_date(end_date) }}
+                </strong>
+            </div>
+
+            <div class="small mt-1">
+                Generated
+                {{ format_company_datetime(company_now()) }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+         Hidden during printing
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.report_dashboard') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.report_dashboard') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ format_company_date(start_date) }}
+                    to
+                    {{ format_company_date(end_date) }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN FINANCIAL SUMMARY
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- SALES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_sales) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-primary">
+                                    {{ total_sales_count }}
+                                </span>
+                                transaction{{ "" if total_sales_count == 1 else "s" }}
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COGS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cost of Goods Sold
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_cost_of_goods_sold) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Cost of products sold
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- EXPENSES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Expenses
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_expenses) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-danger">
+                                    {{ total_expense_count }}
+                                </span>
+
+                                expense{{ "" if total_expense_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-receipt"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- NET PROFIT -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Net Profit
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(net_profit) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Gross Profit − Expenses
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon
+                            {% if net_profit >= 0 %}
+                                bg-success-subtle text-success
+                            {% else %}
+                                bg-danger-subtle text-danger
+                            {% endif %}"
+                        >
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PROFIT ANALYSIS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- GROSS PROFIT -->
+
+        <div class="col-12 col-md-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Gross Profit
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(gross_profit) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Sales − Cost of Goods Sold
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon
+                            {% if gross_profit >= 0 %}
+                                bg-success-subtle text-success
+                            {% else %}
+                                bg-danger-subtle text-danger
+                            {% endif %}"
+                        >
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL PURCHASES -->
+
+        <div class="col-12 col-md-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Purchases
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_purchases) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+
+                                <span style="color: #6f42c1;">
+                                    {{ total_purchase_count }}
+                                </span>
+
+                                purchase{{ "" if total_purchase_count == 1 else "s" }}
+                                during period
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon"
+                            style="
+                                background: rgba(111,66,193,.12);
+                                color: #6f42c1;
+                            "
+                        >
+                            <i class="bi bi-bag-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECEIVABLES / PAYABLES
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- RECEIVABLES -->
+
+        <div class="col-12 col-md-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Receivables
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_receivables) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Outstanding customer balances
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-arrow-down-left-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYABLES -->
+
+        <div class="col-12 col-md-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Payables
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_payables) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Outstanding supplier balances
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-arrow-up-right-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT STATUS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- SALES PAYMENT STATUS -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Sales Payment Status
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales payment status for the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4 pt-3">
+
+                    <div class="row g-3">
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-success">
+                                    {{ sales_paid_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Paid
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-warning">
+                                    {{ sales_partial_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Partial
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-danger">
+                                    {{ sales_unpaid_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Unpaid
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PURCHASE PAYMENT STATUS -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Purchase Payment Status
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Purchase payment status for the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4 pt-3">
+
+                    <div class="row g-3">
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-success">
+                                    {{ purchases_paid_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Paid
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-warning">
+                                    {{ purchases_partial_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Partial
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-4">
+
+                            <div class="border rounded-3 p-3 text-center h-100">
+
+                                <div class="fs-4 fw-bold text-danger">
+                                    {{ purchases_unpaid_count }}
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Unpaid
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DAILY PERFORMANCE
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- DAILY SALES -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Daily Sales
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales performance during the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if daily_sales %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Date
+                                        </th>
+
+                                        <th class="text-end">
+                                            Sales
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for row in daily_sales %}
+
+                                        <tr>
+
+                                            <td class="text-dark">
+                                                {{ format_company_date(row.date) }}
+                                            </td>
+
+                                            <td class="text-end fw-semibold text-primary">
+                                                {{ format_currency(row.total) }}
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-center py-5 text-secondary">
+
+                            <div class="fw-semibold">
+                                No sales data
+                            </div>
+
+                            <div class="small">
+                                There are no sales in the selected period.
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DAILY PURCHASES -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Daily Purchases
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Purchase activity during the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if daily_purchases %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Date
+                                        </th>
+
+                                        <th class="text-end">
+                                            Purchases
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for row in daily_purchases %}
+
+                                        <tr>
+
+                                            <td class="text-dark">
+                                                {{ format_company_date(row.date) }}
+                                            </td>
+
+                                            <td
+                                                class="text-end fw-semibold"
+                                                style="color: #6f42c1;"
+                                            >
+                                                {{ format_currency(row.total) }}
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-center py-5 text-secondary">
+
+                            <div class="fw-semibold">
+                                No purchase data
+                            </div>
+
+                            <div class="small">
+                                There are no purchases in the selected period.
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DETAILED REPORTS
+    ====================================================== -->
+
+    <div class="d-print-none card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <h5 class="fw-bold mb-1">
+                Detailed Reports
+            </h5>
+
+            <p class="text-secondary small mb-0">
+                View detailed financial and business reports.
+            </p>
+
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="row g-3">
+
+                <!-- SALES REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.sales_report') }}"
+                        class="btn btn-outline-primary w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-cart-check fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Sales Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Analyse sales performance
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- PAYMENT REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.payment_report') }}"
+                        class="btn btn-outline-success w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-credit-card fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Payment Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Track payments received
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- RECEIVABLES REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.receivables_report') }}"
+                        class="btn btn-outline-info w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-arrow-down-left-circle fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Receivables
+                                </div>
+
+                                <div class="small text-muted">
+                                    Outstanding customer balances
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- PAYABLES REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.payables_report') }}"
+                        class="btn btn-outline-secondary w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-arrow-up-right-circle fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Payables Report
+                                </div>
+
+                                <div class="small text-dark">
+                                    Outstanding supplier balances
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- PROFIT & LOSS -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.profit_loss_report') }}"
+                        class="btn btn-outline-warning w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Profit & Loss
+                                </div>
+
+                                <div class="small text-muted">
+                                    Revenue and expenses
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- PURCHASE REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.purchase_report') }}"
+                        class="btn btn-outline-primary w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-bag-check fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Purchase Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Analyse purchasing activity
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- EXPENSE REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.expense_report') }}"
+                        class="btn btn-outline-danger w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-receipt fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Expense Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Analyse business expenses
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- INVENTORY REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.inventory_report') }}"
+                        class="btn btn-outline-secondary w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-box-seam fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Inventory Report
+                                </div>
+
+                                <div class="small text-dark">
+                                    Stock and inventory analysis
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- STAFF REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.staff_report') }}"
+                        class="btn btn-outline-primary w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-people fs-3"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Staff Report
+                                </div>
+
+                                <div class="small text-secondary">
+                                    Analyse staff activities
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- CUSTOMER REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.customer_report') }}"
+                        class="btn btn-outline-info w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-person-lines-fill fs-5"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Customer Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Analyse Customer Sales
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+
+                <!-- CASH DEPOSIT REPORT -->
+
+                <div class="col-12 col-md-6 col-xl-3">
+
+                    <a
+                        href="{{ url_for('reports.cash_deposit_report') }}"
+                        class="btn btn-outline-success w-100 text-start p-3 h-100"
+                    >
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <i class="bi bi-bank me-1"></i>
+
+                            <div>
+
+                                <div class="fw-semibold">
+                                    Cash Deposit Report
+                                </div>
+
+                                <div class="small text-muted">
+                                    Track sales cash deposited in the bank
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT SALES
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+                        Recent Sales
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Latest sales within the selected period
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ url_for('sales.sales') }}"
+                    class="d-print-none btn btn-sm btn-outline-secondary rounded-pill px-4"
+                >
+                    View Sales
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if recent_sales %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Invoice
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Balance
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for sale in recent_sales %}
+
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold text-dark">
+                                        {{ sale.invoice_number }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ sale.customer.name if sale.customer else "Walk-in Customer" }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ format_company_date(sale.sale_date) }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if sale.payment_status == "Paid" %}
+
+                                            <span class="badge text-bg-success">
+                                                Paid
+                                            </span>
+
+                                        {% elif sale.payment_status == "Partially Paid" %}
+
+                                            <span class="badge text-bg-warning">
+                                                Partially Paid
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge text-bg-danger">
+                                                Unpaid
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td class="text-end fw-semibold text-dark">
+                                        {{ format_currency(sale.total) }}
+                                    </td>
+
+                                    <td class="text-end pe-4 text-danger">
+                                        {{ format_currency(sale.balance) }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5 text-secondary">
+
+                    <div class="fw-semibold">
+                        No recent sales
+                    </div>
+
+                    <div class="small">
+                        No sales were recorded during this period.
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT PURCHASES
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+                        Recent Purchases
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Latest purchases within the selected period
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ url_for('purchases.purchases') }}"
+                    class="d-print-none btn btn-sm btn-outline-secondary rounded-pill px-4"
+                >
+                    View Purchases
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if recent_purchases %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Purchase
+                                </th>
+
+                                <th>
+                                    Supplier
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Balance
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for purchase in recent_purchases %}
+
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold text-dark">
+                                        {{ purchase.purchase_number }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ purchase.supplier.name if purchase.supplier else "No Supplier" }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ format_company_date(purchase.purchase_date) }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if purchase.payment_status == "Paid" %}
+
+                                            <span class="badge text-bg-success">
+                                                Paid
+                                            </span>
+
+                                        {% elif purchase.payment_status == "Partially Paid" %}
+
+                                            <span class="badge text-bg-warning">
+                                                Partially Paid
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge text-bg-danger">
+                                                Unpaid
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td class="text-end fw-semibold text-dark">
+                                        {{ format_currency(purchase.total) }}
+                                    </td>
+
+                                    <td class="text-end pe-4 text-danger">
+                                        {{ format_currency(purchase.balance) }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5 text-secondary">
+
+                    <div class="fw-semibold">
+                        No recent purchases
+                    </div>
+
+                    <div class="small">
+                        No purchases were recorded during this period.
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT EXPENSES
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+                        Recent Expenses
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Latest expenses within the selected period
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ url_for('expenses.expenses') }}"
+                    class="d-print-none btn btn-sm btn-outline-secondary rounded-pill px-4"
+                >
+                    View Expenses
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if recent_expenses %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Expense
+                                </th>
+
+                                <th>
+                                    Description
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Payment Method
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Amount
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for expense in recent_expenses %}
+
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold text-dark">
+                                        {{ expense.expense_number }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ expense.description }}
+                                    </td>
+
+                                    <td class="text-dark">
+                                        {{ format_company_date(expense.expense_date) }}
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge text-bg-secondary">
+                                            {{ expense.payment_method }}
+                                        </span>
+
+                                    </td>
+
+                                    <td class="text-end fw-semibold pe-4 text-danger">
+                                        {{ format_currency(expense.amount) }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5 text-secondary">
+
+                    <div class="fw-semibold">
+                        No recent expenses
+                    </div>
+
+                    <div class="small">
+                        No expenses were recorded during this period.
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT NOTE
+    ====================================================== -->
+
+    <div class="alert alert-warning border-0 rounded-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1 d-print-none"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Estimated Net Profit
+                </div>
+
+                <div class="small">
+                    Net profit is calculated as Sales − Cost of Goods Sold − Expenses.
+                    This provides an estimate of the business profit for the selected
+                    period based on recorded sales, product costs, and expenses.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT FOOTER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mt-5 pt-3 border-top">
+
+        <div class="row">
+
+            <div class="col-6">
+
+                <div class="small">
+                    Prepared by:
+                </div>
+
+                <div class="fw-semibold mt-1">
+                    {{ current_user.username }}
+                </div>
+
+            </div>
+
+            <div class="col-6 text-end">
+
+                <div class="small">
+                    Report Period
+                </div>
+
+                <div class="fw-semibold mt-1">
+                    {{ format_company_date(start_date) }}
+                    –
+                    {{ format_company_date(end_date) }}
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="text-center small text-secondary mt-4">
+            {{ current_user.company.name }}
+            ·
+            Business Performance Report
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const startDate = document.getElementById("start_date");
+    const endDate = document.getElementById("end_date");
+
+    if (startDate && endDate) {
+
+        startDate.addEventListener("change", function () {
+
+            if (this.value) {
+                endDate.min = this.value;
+            }
+
+        });
+
+        endDate.addEventListener("change", function () {
+
+            if (this.value) {
+                startDate.max = this.value;
+            }
+
+        });
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

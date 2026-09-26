@@ -1,0 +1,862 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Users
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <div class="page-eyebrow">
+                Company Administration
+            </div>
+
+            <h1 class="page-title">
+                Users
+            </h1>
+
+            <p class="page-subtitle">
+                Manage users, account status, and role assignments.
+            </p>
+        </div>
+
+        {% if current_user.has_permission("manage_users") %}
+
+            <a
+                href="{{ url_for('company_admin.user_create') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-person-plus me-2"></i>
+                Create User
+            </a>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    {% set total_users = users|length %}
+    {% set active_users = users|selectattr("is_active")|list|length %}
+    {% set inactive_users = total_users - active_users %}
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL -->
+
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+
+                                Total Users
+                            </div>
+
+                            <h3 class="stats-card-value">
+                                {{ total_users }}
+                            </h3>
+
+                             <div class="stats-card-meta">
+                                Company accounts
+                            </div>
+
+                        </div>
+
+                
+
+                        <div
+                            class="stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVE -->
+
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Active Users
+                            </div>
+
+                            <h3 class="stats-card-value">
+                                {{ active_users }}
+                            </h3>
+
+                            <div class="stats-card-meta">
+                                Currently active
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-person-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INACTIVE -->
+
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Inactive Users
+                            </div>
+
+                            <h3 class="stats-card-value">
+                                {{ inactive_users }}
+                            </h3>
+
+                            <div class="stats-card-meta">
+                                Deactivated accounts
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-person-x"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH & FILTERS
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('company_admin.users') }}"
+            >
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- SEARCH -->
+
+                    <div class="col-lg-5">
+
+                        <label class="form-label small fw-semibold mb-2">
+                            Search Users
+                        </label>
+
+
+                        <div class="search-field">
+                        
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="search"
+                                name="search"
+                                value="{{ search }}"
+                                class="form-control"
+                                placeholder="Search username or email..."
+                                autocomplete="off"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="col-lg-3">
+
+
+                        <label class="form-label small fw-semibold mb-2">
+                            Users Status
+                        </label>
+
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if status == "all" %}selected{% endif %}
+                            >
+                                All Users
+                            </option>
+
+                            <option
+                                value="active"
+                                {% if status == "active" %}selected{% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="inactive"
+                                {% if status == "inactive" %}selected{% endif %}
+                            >
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- FILTER -->
+
+                    <div class="col-12 col-sm-auto">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
+
+                            <i class="bi bi-funnel me-2"></i>
+
+                            Filter
+                        </button>
+
+                    </div>
+
+
+                    <!-- RESET -->
+
+                    {% if search or status != "all" %}
+
+                        <div class="col-12 col-sm-auto">
+
+                            <a
+                                href="{{ url_for('company_admin.users') }}"
+                                class="btn btn-light border w-100"
+                            >
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                Reset
+                            </a>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DESKTOP TABLE
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm d-none d-md-block">
+
+        <div class="card-header bg-transparent border-0 p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+                <div>
+
+                    <h5 class="mb-1">
+                        Company Users
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+
+                        {{ users|length }}
+
+                        {% if users|length == 1 %}
+                            user
+                        {% else %}
+                            users
+                        {% endif %}
+
+                        found
+
+                    </p>
+
+                </div>
+
+                <div class="text-secondary small">
+
+                    <i class="bi bi-shield-check me-1"></i>
+                    Role-based access
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if users %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="ps-4">
+                                User
+                            </th>
+
+                            <th>
+                                Roles
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Joined
+                            </th>
+
+                            <th class="text-end pe-4">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for user in users %}
+
+                            <tr>
+
+                                <!-- USER -->
+
+                                <td class="ps-4">
+
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <div
+                                            class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                            style="width:42px;height:42px;"
+                                        >
+                                            {{ user.username[:1]|upper }}
+                                        </div>
+
+                                        <div class="min-w-0">
+
+                                            <div class="fw-semibold text-truncate text-dark">
+                                                {{ user.username }}
+                                            </div>
+
+                                            <div class="text-secondary small text-truncate">
+                                                {{ user.email }}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ROLES -->
+
+                                <td>
+
+                                    {% if user.user_roles %}
+
+                                        <div class="d-flex flex-wrap gap-1">
+
+                                            {% set active_roles = [] %}
+
+                                            {% for user_role in user.user_roles %}
+
+                                                {% if user_role.role and user_role.role.is_active %}
+
+                                                    {% if active_roles.append(user_role.role) %}
+                                                    {% endif %}
+
+                                                {% endif %}
+
+                                            {% endfor %}
+
+
+                                            {% if active_roles %}
+
+                                                {% for role in active_roles[:3] %}
+
+                                                    <span class="badge text-bg-light border fw-normal">
+
+                                                        {% if role.is_system_role %}
+
+                                                            <i class="bi bi-shield-check text-primary me-1"></i>
+
+                                                        {% else %}
+
+                                                            <i class="bi bi-person-badge text-primary me-1"></i>
+
+                                                        {% endif %}
+
+                                                        {{ role.name }}
+
+                                                    </span>
+
+                                                {% endfor %}
+
+
+                                                {% if active_roles|length > 3 %}
+
+                                                    <span class="badge text-bg-light border fw-normal">
+
+                                                        +{{ active_roles|length - 3 }}
+
+                                                    </span>
+
+                                                {% endif %}
+
+                                            {% else %}
+
+                                                <span class="text-secondary small">
+                                                    No active roles
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <span class="text-secondary small">
+                                            No roles assigned
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    {% if user.is_active %}
+
+                                        <span class="badge rounded-pill text-bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge rounded-pill text-bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>
+                                            Inactive
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- JOINED -->
+
+                                <td>
+
+                                    {% if user.created_at %}
+
+                                        <span class="text-secondary small">
+                                            {{ user.created_at.strftime("%d %b %Y") }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-secondary">
+                                            —
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td class="text-end pe-4">
+
+                                    <a
+                                        href="{{ url_for('company_admin.user_view', user_id=user.id) }}"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="View user"
+                                    >
+                                        <i class="bi bi-eye me-1"></i>
+                                        View
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <!-- EMPTY STATE -->
+
+            <div class="empty-state text-center">
+
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-person-x-fill"></i>
+                </div>
+
+
+                {% if search or status != "all" %}
+
+                    <h5>
+                        No users found
+                    </h5>
+
+                    <p class="text-muted mb-4">
+                        No users match your current search or filter.
+                    </p>
+
+                    <a
+                        href="{{ url_for('company_admin.users') }}"
+                        class="btn btn-outline-secondary rounded-pill"
+                    >
+                        <i class="bi bi-x-lg me-2"></i>
+                        Clear Filters
+                    </a>
+
+                {% else %}
+
+                    <h5>
+                        No company users yet
+                    </h5>
+
+                    <p class="text-muted mb-4">
+                        Create your first company user to start assigning roles.
+                    </p>
+
+                    {% if current_user.has_permission("manage_users") %}
+
+                        <a
+                            href="{{ url_for('company_admin.user_create') }}"
+                            class="btn btn-primary rounded-pill px-4"
+                        >
+                            <i class="bi bi-person-plus me-2"></i>
+                            Create User
+                        </a>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         MOBILE USER CARDS
+    ====================================================== -->
+
+    <div class="d-md-none">
+
+        {% if users %}
+
+            {% for user in users %}
+
+                <div class="card border-0 shadow-sm mb-3">
+
+                    <div class="card-body">
+
+                        <!-- USER HEADER -->
+
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+
+                            <div class="d-flex align-items-center gap-3 min-w-0">
+
+                                <div
+                                    class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                    style="width:42px;height:42px;"
+                                >
+                                    {{ user.username[:1]|upper }}
+                                </div>
+
+                                <div class="min-w-0">
+
+                                    <div class="fw-semibold text-truncate">
+                                        {{ user.username }}
+                                    </div>
+
+                                    <div class="text-secondary small text-truncate">
+                                        {{ user.email }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            {% if user.is_active %}
+
+                                <span class="badge rounded-pill text-bg-success flex-shrink-0">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge rounded-pill text-bg-danger flex-shrink-0">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <!-- USER META -->
+
+                        <div class="row g-3">
+
+                            <div class="col-12">
+
+                                <div class="small text-secondary fw-semibold">
+                                    ROLES
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+
+                                    {% set mobile_active_roles = [] %}
+
+                                    {% for user_role in user.user_roles %}
+
+                                        {% if user_role.role and user_role.role.is_active %}
+
+                                            {% if mobile_active_roles.append(user_role.role) %}
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                    {% endfor %}
+
+
+                                    {% if mobile_active_roles %}
+
+                                        {% for role in mobile_active_roles[:2] %}
+
+                                            <span class="badge text-bg-light border fw-normal">
+                                                {{ role.name }}
+                                            </span>
+
+                                        {% endfor %}
+
+
+                                        {% if mobile_active_roles|length > 2 %}
+
+                                            <span class="badge text-bg-light border fw-normal">
+                                                +{{ mobile_active_roles|length - 2 }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span class="text-secondary small">
+                                            No roles assigned
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-12">
+
+                                <div class="small text-secondary fw-semibold">
+                                    JOINED
+                                </div>
+
+                                <div class="small mt-1">
+
+                                    {% if user.created_at %}
+
+                                        {{ user.created_at.strftime("%d %b %Y") }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- VIEW BUTTON -->
+
+                        <a
+                            href="{{ url_for('company_admin.user_view', user_id=user.id) }}"
+                            class="btn btn-outline-secondary rounded-pill w-100 mt-3"
+                        >
+                            <i class="bi bi-eye me-1"></i>
+                            View User
+                        </a>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+
+        {% elif search or status != "all" %}
+
+            <div class="empty-state text-center">
+
+                <div class="empty-state-icon mb-3">
+                        
+                    <i class="bi bi-person-x-fill"></i>
+
+                </div>
+
+                <h5>
+                    No users found
+                </h5>
+
+                <p class="text-muted mb-4">
+                    Try changing your search or status filter.
+                </p>
+
+                <a
+                    href="{{ url_for('company_admin.users') }}"
+                    class="btn btn-outline-secondary rounded-pill"
+                >
+                    <i class="bi bi-x-lg me-2"></i>
+                    Clear Filters
+                </a>
+
+                
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state text-center">
+
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-person-badge"></i>
+
+                </div>
+
+                <h5>
+                    No company users yet
+                </h5>
+
+                <p class="text-muted mb-4">
+                    Create your first company user to start assigning roles.
+                </p>
+
+                {% if current_user.has_permission("manage_users") %}
+
+                    <a
+                        href="{{ url_for('company_admin.user_create') }}"
+                        class="btn btn-primary rounded-pill px-4"
+                    >
+                        <i class="bi bi-person-plus me-2"></i>
+                        Create User
+                    </a>
+
+                {% endif %}
+
+                
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

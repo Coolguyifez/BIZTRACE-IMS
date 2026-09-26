@@ -1,0 +1,1068 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Platform Settings
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- ====================================================== -->
+    <!-- HEADER -->
+    <!-- ====================================================== -->
+
+    <div class="mb-4">
+
+        <div class="d-flex align-items-center gap-2 mb-2">
+
+            <div class="page-icon">
+                <i class="bi bi-sliders"></i>
+            </div>
+
+            <span class="text-muted small">
+                System Administration
+            </span>
+
+            <i class="bi bi-chevron-right text-muted small"></i>
+
+            <span class="text-muted small">
+                Platform Settings
+            </span>
+
+        </div>
+
+        <h1 class="fw-bold mb-1">
+            Platform Settings
+        </h1>
+
+        <p class="text-muted mb-0">
+            Manage configuration and platform-wide behavior for
+            BizTrace IMS.
+        </p>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- PLATFORM STATUS -->
+    <!-- ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap align-items-center gap-3">
+
+                <div class="platform-status-icon">
+                    <i class="bi bi-gear-wide-connected"></i>
+                </div>
+
+                <div class="flex-grow-1">
+
+                    <h5 class="fw-bold mb-1">
+                        Platform Configuration
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Configure settings that apply across the
+                        BizTrace IMS platform.
+                    </p>
+
+                </div>
+
+                {% if system_settings and system_settings.maintenance_mode %}
+
+                    <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">
+                        <i class="bi bi-tools me-1"></i>
+                        Maintenance Mode
+                    </span>
+
+                {% else %}
+
+                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>
+                        System Operational
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- MAINTENANCE MODE -->
+    <!-- ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-start gap-3 mb-4">
+
+                <div class="maintenance-icon
+                    {% if system_settings and system_settings.maintenance_mode %}
+                        maintenance-active
+                    {% endif %}
+                ">
+                    <i class="bi bi-tools"></i>
+                </div>
+
+                <div class="flex-grow-1">
+
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+
+                        <h5 class="fw-bold mb-0">
+                            Maintenance Mode
+                        </h5>
+
+                        {% if system_settings and system_settings.maintenance_mode %}
+
+                            <span class="badge rounded-pill bg-warning-subtle text-warning">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge rounded-pill bg-success-subtle text-success">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                    <p class="text-muted small mb-0 mt-1">
+                        Temporarily restrict company users from
+                        accessing BizTrace IMS while system
+                        maintenance is being performed.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- WARNING -->
+            {% if system_settings and system_settings.maintenance_mode %}
+
+                <div class="alert alert-warning border-0 rounded-3 d-flex align-items-start gap-3 mb-4">
+
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+
+                    <div>
+
+                        <div class="fw-semibold mb-1">
+                            Maintenance mode is currently active
+                        </div>
+
+                        <div class="small">
+                            Company Administrators and Staff users
+                            are being redirected to the maintenance
+                            page. System Administrators can continue
+                            accessing the platform.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            <form
+                method="POST"
+                action="{{ url_for('system_admin.platform_settings') }}"
+                id="platformSettingsForm"
+            >
+
+                <!-- CSRF -->
+                {% if csrf_token is defined %}
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+                {% endif %}
+
+
+                <!-- ================================================== -->
+                <!-- MAINTENANCE TOGGLE -->
+                <!-- ================================================== -->
+
+                <div class="maintenance-setting">
+
+                    <div class="d-flex align-items-start gap-3">
+
+                        <div class="maintenance-setting-icon">
+                            <i class="bi bi-power"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+
+                            <label
+                                for="maintenance_mode"
+                                class="fw-semibold mb-1"
+                            >
+                                Enable Maintenance Mode
+                            </label>
+
+                            <div class="small text-muted">
+                                When enabled, all company users will
+                                be redirected to the system maintenance
+                                page.
+                            </div>
+
+                        </div>
+
+                        <div class="form-check form-switch">
+
+                            <input
+                                class="form-check-input maintenance-switch"
+                                type="checkbox"
+                                role="switch"
+                                id="maintenance_mode"
+                                name="maintenance_mode"
+                                {% if system_settings and system_settings.maintenance_mode %}
+                                    checked
+                                {% endif %}
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================== -->
+                <!-- MAINTENANCE MESSAGE -->
+                <!-- ================================================== -->
+
+                <div class="mt-4">
+
+                    <label
+                        for="maintenance_message"
+                        class="form-label fw-semibold"
+                    >
+                        Maintenance Message
+                    </label>
+
+                    <textarea
+                        class="form-control"
+                        id="maintenance_message"
+                        name="maintenance_message"
+                        rows="5"
+                        maxlength="1000"
+                        placeholder="Enter the message users should see during maintenance..."
+                    >{{ system_settings.maintenance_message or "" }}</textarea>
+
+                    <div class="d-flex justify-content-between mt-2">
+
+                        <div class="form-text">
+                            This message will be displayed to
+                            company users while maintenance mode
+                            is active.
+                        </div>
+
+                        <div
+                            class="form-text"
+                            id="messageCounter"
+                        >
+                            0 / 1000
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================== -->
+                <!-- SAVE BUTTON -->
+                <!-- ================================================== -->
+
+                <div class="d-flex justify-content-end mt-4">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary px-4"
+                        id="savePlatformSettings"
+                    >
+
+                        <i class="bi bi-check-lg me-1"></i>
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- GENERAL SETTINGS -->
+    <!-- ====================================================== -->
+
+    <div class="row g-4">
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start gap-3 mb-4">
+
+                        <div class="settings-icon">
+                            <i class="bi bi-window"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                General Settings
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                General platform information and
+                                behavior.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Application Name
+                            </div>
+
+                            <div class="small text-muted">
+                                Name displayed throughout the platform.
+                            </div>
+                        </div>
+
+                        <span class="setting-value">
+                            BizTrace IMS
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Platform Type
+                            </div>
+
+                            <div class="small text-muted">
+                                Application classification.
+                            </div>
+                        </div>
+
+                        <span class="setting-value">
+                            Business IMS
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Multi-Company
+                            </div>
+
+                            <div class="small text-muted">
+                                Multiple companies can use the platform.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- COMPANY SETTINGS -->
+        <!-- ================================================== -->
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start gap-3 mb-4">
+
+                        <div class="settings-icon">
+                            <i class="bi bi-buildings"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                Company Management
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Platform-wide company configuration.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Company Registration
+                            </div>
+
+                            <div class="small text-muted">
+                                New companies can be registered.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Company Activation
+                            </div>
+
+                            <div class="small text-muted">
+                                System Administrators control activation.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Company Isolation
+                            </div>
+
+                            <div class="small text-muted">
+                                Company data is separated by company ID.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- USER SETTINGS -->
+        <!-- ================================================== -->
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start gap-3 mb-4">
+
+                        <div class="settings-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                User Management
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Platform-wide user account behavior.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                User Accounts
+                            </div>
+
+                            <div class="small text-muted">
+                                Users can be managed by System
+                                Administrators.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Account Activation
+                            </div>
+
+                            <div class="small text-muted">
+                                Accounts can be activated or
+                                deactivated.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Role Management
+                            </div>
+
+                            <div class="small text-muted">
+                                Platform roles are centrally managed.
+                            </div>
+                        </div>
+
+                        <span class="status-enabled">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Enabled
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- SYSTEM INFORMATION -->
+        <!-- ================================================== -->
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start gap-3 mb-4">
+
+                        <div class="settings-icon">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                System Information
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Information about the current
+                                BizTrace installation.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Application
+                            </div>
+
+                            <div class="small text-muted">
+                                Current application.
+                            </div>
+                        </div>
+
+                        <span class="setting-value">
+                            BizTrace IMS
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Environment
+                            </div>
+
+                            <div class="small text-muted">
+                                Current application environment.
+                            </div>
+                        </div>
+
+                        <span class="setting-value">
+                            {{ config.get('ENV', 'Production') }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+                            <div class="fw-semibold">
+                                Database
+                            </div>
+
+                            <div class="small text-muted">
+                                Database system used by the application.
+                            </div>
+                        </div>
+
+                        <span class="setting-value">
+                            SQLAlchemy
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- FUTURE SETTINGS -->
+        <!-- ================================================== -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start gap-3">
+
+                        <div class="info-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-bold mb-2">
+                                Platform Settings
+                            </h5>
+
+                            <p class="text-muted mb-2">
+                                Platform-wide settings are managed
+                                centrally by the System Administrator.
+                                These settings are independent of
+                                individual company settings.
+                            </p>
+
+                            <p class="text-muted mb-0">
+                                Company-specific configuration such as
+                                currency, timezone, date formats,
+                                inventory behavior, and document
+                                preferences remains inside Company
+                                Settings.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================== -->
+<!-- STYLES -->
+<!-- ========================================================== -->
+
+<style>
+
+    .page-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    .platform-status-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+
+    .settings-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+
+    .maintenance-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        flex-shrink: 0;
+    }
+
+
+    .maintenance-icon.maintenance-active {
+        background: rgba(255, 193, 7, 0.15);
+        color: #d99a00;
+    }
+
+
+    .maintenance-setting {
+        padding: 18px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 16px;
+        background: var(--bs-body-bg);
+    }
+
+
+    .maintenance-setting-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgba(10, 132, 255, 0.08);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+
+    .maintenance-switch {
+        width: 3em !important;
+        height: 1.5em !important;
+        cursor: pointer;
+    }
+
+
+    .maintenance-switch:checked {
+        background-color: #0a84ff;
+        border-color: #0a84ff;
+    }
+
+
+    .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+
+    .setting-row:last-child {
+        border-bottom: 0;
+    }
+
+
+    .setting-value {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color);
+        text-align: right;
+        white-space: nowrap;
+    }
+
+
+    .status-enabled {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #198754;
+        white-space: nowrap;
+    }
+
+
+    .info-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+
+    html[data-theme="dark"] .setting-row {
+        border-color: rgba(255, 255, 255, 0.10);
+    }
+
+
+    html[data-theme="dark"] .maintenance-setting {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: rgba(255, 255, 255, 0.10);
+    }
+
+
+    html[data-theme="dark"] .maintenance-icon.maintenance-active {
+        background: rgba(255, 193, 7, 0.15);
+        color: #ffc107;
+    }
+
+
+    @media (max-width: 575.98px) {
+
+        .container-fluid {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+        }
+
+
+        .card-body {
+            padding: 18px !important;
+        }
+
+
+        .setting-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+
+        .setting-value {
+            text-align: left;
+        }
+
+
+        .maintenance-setting > .d-flex {
+            align-items: flex-start !important;
+        }
+
+    }
+
+</style>
+
+
+<!-- ========================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const messageField = document.getElementById(
+        "maintenance_message"
+    );
+
+    const messageCounter = document.getElementById(
+        "messageCounter"
+    );
+
+    const form = document.getElementById(
+        "platformSettingsForm"
+    );
+
+    const maintenanceSwitch = document.getElementById(
+        "maintenance_mode"
+    );
+
+    const saveButton = document.getElementById(
+        "savePlatformSettings"
+    );
+
+
+    /* ----------------------------------------------------------
+       MESSAGE COUNTER
+    ---------------------------------------------------------- */
+
+    function updateMessageCounter() {
+
+        if (!messageField || !messageCounter) {
+            return;
+        }
+
+        messageCounter.textContent =
+            `${messageField.value.length} / 1000`;
+    }
+
+
+    if (messageField) {
+
+        messageField.addEventListener(
+            "input",
+            updateMessageCounter
+        );
+
+        updateMessageCounter();
+    }
+
+
+    /* ----------------------------------------------------------
+       FORM SUBMISSION
+    ---------------------------------------------------------- */
+
+    if (form && saveButton) {
+
+        form.addEventListener(
+            "submit",
+            function () {
+
+                saveButton.disabled = true;
+
+                saveButton.innerHTML = `
+                    <span
+                        class="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                    ></span>
+                    Saving...
+                `;
+
+            }
+        );
+
+    }
+
+
+    /* ----------------------------------------------------------
+       MAINTENANCE MODE CONFIRMATION
+    ---------------------------------------------------------- */
+
+    if (maintenanceSwitch) {
+
+        maintenanceSwitch.addEventListener(
+            "change",
+            function () {
+
+                if (this.checked) {
+
+                    const confirmed = window.confirm(
+                        "Enable Maintenance Mode?\n\n" +
+                        "Company Administrators and Staff " +
+                        "will be redirected to the maintenance " +
+                        "page."
+                    );
+
+                    if (!confirmed) {
+
+                        this.checked = false;
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,1539 @@
+{% extends "base.html" %}
+
+{% block title %}
+Inventory Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         SCREEN HEADER
+    ========================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <div
+                    class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                    style="width: 42px; height: 42px;"
+                >
+                    <i class="bi bi-box-seam fs-5"></i>
+                </div>
+
+                <div>
+
+                    <h4 class="mb-1 fw-bold">
+                        Inventory Report
+                    </h4>
+
+                    <div class="text-muted small">
+                        Current stock levels, valuation and inventory analysis
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-outline-secondary rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printInventoryReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRINT HEADER
+    ========================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h2 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h2>
+
+            {% if current_user.company.address %}
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.email %}
+
+                    {% if current_user.company.phone %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {{ current_user.company.email }}
+
+                {% endif %}
+
+            </div>
+
+            <hr>
+
+            <h4 class="fw-bold mb-1">
+                Inventory Report
+            </h4>
+
+            <div>
+                Inventory position as of {{ report_date }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         REPORTING PERIOD
+    ========================================================== -->
+
+    <div class="alert alert-primary border-0 rounded-4 mb-4 d-print-none">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle-fill fs-5"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Current Inventory Snapshot
+                </div>
+
+                <div class="small mt-1">
+                    This report reflects the current inventory position
+                    as of {{ report_date }}.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRIMARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- TOTAL PRODUCTS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Products
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ total_products }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Active products
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STOCK VALUE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Stock Value
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_stock_value) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                At purchase cost
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon"
+                            style="background: rgba(111,66,193,.12); color: #6f42c1;"
+                        >
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOW STOCK -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Low Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ low_stock_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-warning">
+                                Requires attention
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OUT OF STOCK -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Out of Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ out_of_stock_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-danger">
+                                No available stock
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-box2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SECONDARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- SELLING VALUE -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Potential Selling Value
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_selling_value) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Based on current selling prices
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- POTENTIAL PROFIT -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Potential Gross Margin
+                            </div>
+
+                            <div class="stats-card-value responsive-money text-success">
+                                {{ format_currency(potential_profit) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Selling value less purchase cost
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL QUANTITY -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Quantity
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(total_quantity) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Across all active products
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CHARTS
+    ========================================================== -->
+
+    <div class="row g-4 mb-4 d-print-none">
+
+        <!-- STOCK LEVEL DISTRIBUTION -->
+
+        <div class="col-12 col-lg-5">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Stock Level Distribution
+                    </h6>
+
+                    <div class="small text-muted">
+                        Current product stock status
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="stockLevelChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOP PRODUCTS -->
+
+        <div class="col-12 col-lg-7">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Top Products by Stock Value
+                    </h6>
+
+                    <div class="small text-muted">
+                        Products with the highest inventory value
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CATEGORY BREAKDOWN
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <h6 class="fw-bold mb-1">
+                Inventory by Category
+            </h6>
+
+            <div class="small text-muted">
+                Stock quantity and valuation by product category
+            </div>
+
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Category
+                            </th>
+
+                            <th class="text-end">
+                                Products
+                            </th>
+
+                            <th class="text-end">
+                                Quantity
+                            </th>
+
+                            <th class="text-end">
+                                Stock Value
+                            </th>
+
+                            <th class="text-end">
+                                Share
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in category_breakdown %}
+
+                        <tr>
+
+                            <td class="fw-semibold text-dark">
+                                {{ row.category }}
+                            </td>
+
+                            <td class="text-end text-dark">
+                                {{ row.products }}
+                            </td>
+
+                            <td class="text-end text-dark">
+                                {{ "{:,.1f}".format(row.quantity) }}
+                            </td>
+
+                            <td class="text-end fw-semibold text-dark">
+                                {{ format_currency(row.stock_value) }}
+                            </td>
+
+                            <td class="text-end text-dark">
+                                {{ "{:,.2f}".format(row.percentage) }}%
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="text-center text-muted py-4"
+                            >
+                                No inventory data available.
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                    {% if category_breakdown %}
+
+                    <tfoot>
+
+                        <tr class="fw-bold">
+
+                            <td style="color: #6f42c1;">
+                                Total
+                            </td>
+
+                            <td class="text-end text-dark">
+                                {{ total_products }}
+                            </td>
+
+                            <td class="text-end text-dark">
+                                {{ "{:,.1f}".format(total_quantity) }}
+                            </td>
+
+                            <td
+                                class="text-end"
+                                style="color: #6f42c1;"
+                            >
+                                {{ format_currency(total_stock_value) }}
+                            </td>
+
+                            <td
+                                class="text-end"
+                                style="color: #6f42c1;"
+                            >
+                                100.00%
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+
+                    {% endif %}
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         INFORMATION NOTE
+    ========================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Inventory Valuation Note
+                </div>
+
+                <div class="small">
+
+                    Stock value is calculated using the current product
+                    quantity multiplied by the product purchase price.
+                    Potential gross margin is based on the difference
+                    between current selling value and purchase cost.
+
+                    This report represents a current inventory snapshot
+                    rather than a historical inventory valuation.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         EXPORT / PRINT SECTION
+    ========================================================== -->
+
+    <div
+        id="inventoryExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+
+                        {% if current_user.company.phone %}
+                            &nbsp; | &nbsp;
+                        {% endif %}
+
+                        {{ current_user.company.email }}
+
+                    {% endif %}
+
+                </div>
+
+                <hr>
+
+                <h3 class="fw-bold">
+                    Inventory Report
+                </h3>
+
+                <div>
+                    Inventory position as of {{ report_date }}
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row mb-4">
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Total Products
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ total_products }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Stock Value
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_stock_value) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Selling Value
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_selling_value) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Potential Margin
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(potential_profit) }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="row mb-4">
+
+                <div class="col-6">
+
+                    <h5 class="fw-bold mb-3">
+                        Stock Level Distribution
+                    </h5>
+
+                    <img
+                        id="inventoryStockLevelExportImage"
+                        class="img-fluid"
+                        alt="Stock Level Distribution"
+                    >
+
+                </div>
+
+                <div class="col-6">
+
+                    <h5 class="fw-bold mb-3">
+                        Top Products by Stock Value
+                    </h5>
+
+                    <img
+                        id="inventoryTopProductsExportImage"
+                        class="img-fluid"
+                        alt="Top Products by Stock Value"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CATEGORY BREAKDOWN -->
+
+            <h5 class="fw-bold mb-3">
+                Inventory by Category
+            </h5>
+
+            <table class="table table-bordered align-middle mb-4">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th class="text-end">
+                            Products
+                        </th>
+
+                        <th class="text-end">
+                            Quantity
+                        </th>
+
+                        <th class="text-end">
+                            Stock Value
+                        </th>
+
+                        <th class="text-end">
+                            Share
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in category_breakdown %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.category }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ row.products }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ "{:,.1f}".format(row.quantity) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.stock_value) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ "{:,.2f}".format(row.percentage) }}%
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <!-- EXPORT INVENTORY DETAILS -->
+
+            <h5 class="fw-bold mb-3">
+                Detailed Inventory
+            </h5>
+
+            <table class="table table-bordered align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Product
+                        </th>
+
+                        <th>
+                            SKU
+                        </th>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th class="text-end">
+                            Quantity
+                        </th>
+
+                        <th class="text-end">
+                            Min. Stock
+                        </th>
+
+                        <th class="text-end">
+                            Purchase Price
+                        </th>
+
+                        <th class="text-end">
+                            Selling Price
+                        </th>
+
+                        <th class="text-end">
+                            Stock Value
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Remark
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in export_rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.product }}
+                        </td>
+
+                        <td class="text-danger">
+                            <code>{{ row.sku }}</code>
+                        </td>
+
+                        <td>
+                            {{ row.category }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ "{:,.1f}".format(row.quantity) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ "{:,.1f}".format(row.minimum_stock) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.purchase_price) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.selling_price) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.stock_value) }}
+                        </td>
+
+                        <td>
+                            {{ row.status }}
+                        </td>
+
+                        <td></td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <div class="mt-4 small text-muted">
+
+                <strong>Report Note:</strong>
+
+                Stock value is calculated using current quantity
+                multiplied by current purchase price.
+
+            </div>
+
+
+            <div class="mt-5 pt-3 border-top d-flex justify-content-between">
+
+                <div>
+                    Prepared by:
+                    <strong>{{ current_user.username }}</strong>
+                </div>
+
+                <div>
+                    {{ report_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =============================================================
+     CHART.JS
+============================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =========================================================
+       COMPANY CURRENCY SETTINGS
+    ========================================================= */
+
+    const COMPANY_SETTINGS = {
+
+        currencyCode:
+            {{ get_currency_code()|tojson }},
+
+        currencySymbol:
+            {{ get_currency_symbol()|tojson }},
+
+        decimalPlaces:
+            {{ get_decimal_places()|tojson }},
+
+        currencyPosition:
+            {{ get_currency_position()|tojson }},
+
+        dateFormat:
+            {{ get_date_format()|tojson }},
+
+        timeFormat:
+            {{ get_time_format()|tojson }},
+
+        timezone:
+            {{ get_company_timezone_name()|tojson }}
+
+    };
+
+
+    /* =========================================================
+       MONEY FORMATTER
+    ========================================================= */
+
+    function money(value) {
+
+        const numericValue =
+            Number(value || 0);
+
+        const decimalPlaces =
+            Number.isInteger(
+                Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+            )
+                ? Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+                : 2;
+
+
+        const formatted =
+            numericValue.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits:
+                        decimalPlaces,
+
+                    maximumFractionDigits:
+                        decimalPlaces
+                }
+            );
+
+
+        if (
+            COMPANY_SETTINGS.currencyPosition
+            === "after"
+        ) {
+
+            return (
+                formatted
+                + " "
+                + COMPANY_SETTINGS.currencySymbol
+            );
+
+        }
+
+
+        return (
+            COMPANY_SETTINGS.currencySymbol
+            + formatted
+        );
+
+    }
+
+
+    const stockLevels =
+        {{ stock_level_chart | tojson }};
+
+    const topProducts =
+        {{ top_products | tojson }};
+
+
+    /* =========================================================
+       STOCK LEVEL CHART
+    ========================================================= */
+
+    const stockLevelCanvas =
+        document.getElementById(
+            "stockLevelChart"
+        );
+
+
+    if (stockLevelCanvas) {
+
+        /*
+         * Keep only stock statuses that actually
+         * have products in them.
+         */
+        const visibleStockLevels =
+            stockLevels.filter(
+                item =>
+                    Number(
+                        item.count || 0
+                    ) > 0
+            );
+
+
+        /*
+         * Match each status with its correct color.
+         */
+        const stockLevelColors =
+            visibleStockLevels.map(
+                item => {
+
+                    if (
+                        item.status
+                        === "Healthy Stock"
+                    ) {
+
+                        return "#198754";
+
+                    }
+
+
+                    if (
+                        item.status
+                        === "Low Stock"
+                    ) {
+
+                        return "#ffc107";
+
+                    }
+
+
+                    if (
+                        item.status
+                        === "Out of Stock"
+                    ) {
+
+                        return "#dc3545";
+
+                    }
+
+
+                    return "#6c757d";
+
+                }
+            );
+
+
+        new Chart(
+            stockLevelCanvas,
+            {
+
+                type: "doughnut",
+
+                data: {
+
+                    labels:
+                        visibleStockLevels.map(
+                            item =>
+                                item.status
+                        ),
+
+                    datasets: [
+
+                        {
+
+                            data:
+                                visibleStockLevels.map(
+                                    item =>
+                                        Number(
+                                            item.count || 0
+                                        )
+                                ),
+
+                            backgroundColor:
+                                stockLevelColors,
+
+                            borderWidth: 0
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            position: "bottom"
+
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:
+                                    function (context) {
+
+                                        const count =
+                                            Number(
+                                                context.raw || 0
+                                            );
+
+
+                                        return (
+                                            context.label
+                                            + ": "
+                                            + count.toLocaleString(
+                                                undefined
+                                            )
+                                        );
+
+                                    }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       TOP PRODUCTS BY STOCK VALUE
+    ========================================================= */
+
+    const topProductsCanvas =
+        document.getElementById(
+            "topProductsChart"
+        );
+
+
+    if (topProductsCanvas) {
+
+        new Chart(
+            topProductsCanvas,
+            {
+
+                type: "bar",
+
+                data: {
+
+                    labels:
+                        topProducts.map(
+                            item =>
+                                item.product
+                        ),
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Stock Value",
+
+                            data:
+                                topProducts.map(
+                                    item =>
+                                        Number(
+                                            item.stock_value || 0
+                                        )
+                                ),
+
+                            backgroundColor:
+                                "#6f42c1",
+
+                            borderRadius: 6
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    indexAxis: "y",
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            display: false
+
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:
+                                    function (context) {
+
+                                        const value =
+                                            Number(
+                                                context.raw || 0
+                                            );
+
+
+                                        return (
+                                            "Stock Value: "
+                                            + money(value)
+                                        );
+
+                                    }
+
+                            }
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback:
+                                    function (value) {
+
+                                        return money(
+                                            value
+                                        );
+
+                                    }
+
+                            }
+
+                        },
+
+                        y: {
+
+                            ticks: {
+
+                                autoSkip: false
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+
+/* =============================================================
+   EXPORT / PRINT
+============================================================= */
+
+function prepareInventoryExport() {
+
+    const stockLevelCanvas =
+        document.getElementById(
+            "stockLevelChart"
+        );
+
+
+    const topProductsCanvas =
+        document.getElementById(
+            "topProductsChart"
+        );
+
+
+    if (stockLevelCanvas) {
+
+        const image =
+            document.getElementById(
+                "inventoryStockLevelExportImage"
+            );
+
+
+        if (image) {
+
+            image.src =
+                stockLevelCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+
+    if (topProductsCanvas) {
+
+        const image =
+            document.getElementById(
+                "inventoryTopProductsExportImage"
+            );
+
+
+        if (image) {
+
+            image.src =
+                topProductsCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+}
+
+
+/* =============================================================
+   PRINT INVENTORY REPORT
+============================================================= */
+
+function printInventoryReport() {
+
+    prepareInventoryExport();
+
+
+    const exportSection =
+        document.getElementById(
+            "inventoryExportSection"
+        );
+
+
+    if (!exportSection) {
+        return;
+    }
+
+
+    const originalBody =
+        document.body.innerHTML;
+
+
+    document.body.innerHTML =
+        exportSection.innerHTML;
+
+
+    window.print();
+
+
+    document.body.innerHTML =
+        originalBody;
+
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,3398 @@
+{% extends "base.html" %}
+
+{% block title %}
+Settings
+{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================================================
+       SETTINGS PAGE
+       ========================================================= */
+
+    .settings-page {
+        padding: 28px;
+        max-width: 1500px;
+        margin: 0 auto;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .settings-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+
+    .settings-header-main {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .settings-header-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .settings-eyebrow {
+        margin: 0 0 4px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #8a8f98;
+    }
+
+    .settings-title {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.15;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+        color: #111827;
+    }
+
+    .settings-subtitle {
+        margin: 7px 0 0;
+        color: #737985;
+        font-size: 14px;
+    }
+
+    .settings-header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* =========================================================
+       LAYOUT
+       ========================================================= */
+
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 235px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* =========================================================
+       SIDEBAR
+       ========================================================= */
+
+    .settings-nav {
+        position: sticky;
+        top: 90px;
+        background: #ffffff;
+        border: 1px solid #e7e9ee;
+        border-radius: 18px;
+        padding: 10px;
+        box-shadow: 0 5px 22px rgba(15, 23, 42, .045);
+    }
+
+    .settings-nav-title {
+        padding: 10px 12px 8px;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #969ba5;
+    }
+
+    .settings-nav-item {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 11px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        text-align: left;
+        color: #60656f;
+        font-size: 13px;
+        font-weight: 600;
+        transition: .18s ease;
+    }
+
+    .settings-nav-item i {
+        width: 19px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .settings-nav-item:hover {
+        background: #f4f6f9;
+        color: #111827;
+    }
+
+    .settings-nav-item.active {
+        background: rgba(10, 132, 255, .10);
+        color: #0a84ff;
+    }
+
+    /* =========================================================
+       CONTENT
+       ========================================================= */
+
+    .settings-content {
+        min-width: 0;
+    }
+
+    .settings-section {
+        scroll-margin-top: 95px;
+        margin-bottom: 24px;
+        background: #ffffff;
+        border: 1px solid #e7e9ee;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 22px rgba(15, 23, 42, .045);
+    }
+
+    .settings-section-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 22px 24px;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .settings-section-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #f3f7fb;
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .settings-section-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 720;
+        color: #17191d;
+    }
+
+    .settings-section-description {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #858a94;
+    }
+
+    .settings-section-body {
+        padding: 24px;
+    }
+
+    /* =========================================================
+       FORM
+       ========================================================= */
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .settings-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .settings-field {
+        min-width: 0;
+    }
+
+    .settings-field-full {
+        grid-column: 1 / -1;
+    }
+
+    .settings-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #3d424b;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .settings-help {
+        margin-top: 6px;
+        color: #9297a0;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .settings-input,
+    .settings-select,
+    .settings-textarea {
+        width: 100%;
+        border: 1px solid #dfe3e8;
+        border-radius: 11px;
+        background: #fff;
+        color: #17191d;
+        min-height: 44px;
+        padding: 9px 12px;
+        font-size: 13px;
+        outline: none;
+        transition:
+            border-color .18s ease,
+            box-shadow .18s ease;
+    }
+
+    .settings-textarea {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .settings-input:focus,
+    .settings-select:focus,
+    .settings-textarea:focus {
+        border-color: #0a84ff;
+        box-shadow: 0 0 0 3px rgba(10, 132, 255, .10);
+    }
+
+    /* =========================================================
+       TOGGLE
+       ========================================================= */
+
+    .settings-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 16px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .settings-toggle-row:first-child {
+        padding-top: 0;
+    }
+
+    .settings-toggle-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .settings-toggle-content {
+        min-width: 0;
+    }
+
+    .settings-toggle-title {
+        margin: 0;
+        color: #262a31;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .settings-toggle-description {
+        margin: 4px 0 0;
+        color: #9297a0;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .settings-switch {
+        position: relative;
+        width: 46px;
+        height: 27px;
+        flex-shrink: 0;
+    }
+
+    .settings-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .settings-switch-slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: #d8dce2;
+        border-radius: 999px;
+        transition: .2s ease;
+    }
+
+    .settings-switch-slider::before {
+        content: "";
+        position: absolute;
+        width: 21px;
+        height: 21px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 1px 4px rgba(0,0,0,.18);
+        transition: .2s ease;
+    }
+
+    .settings-switch input:checked + .settings-switch-slider {
+        background: #0a84ff;
+    }
+
+    .settings-switch input:checked + .settings-switch-slider::before {
+        transform: translateX(19px);
+    }
+
+    /* =========================================================
+       INFO BOXES
+       ========================================================= */
+
+    .inventory-info,
+    .notification-info,
+    .sound-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 16px;
+        margin-bottom: 20px;
+        border-radius: 14px;
+        background: #f5f9ff;
+        border: 1px solid #dcecff;
+    }
+
+    .inventory-info-icon,
+    .notification-info-icon,
+    .sound-info-icon {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 132, 255, .10);
+        color: #0a84ff;
+    }
+
+    .inventory-info-title,
+    .notification-info-title,
+    .sound-info-title {
+        margin: 0 0 3px;
+        color: #26384d;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .inventory-info-text,
+    .notification-info-text,
+    .sound-info-text {
+        margin: 0;
+        color: #718096;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* =========================================================
+       NUMBERING PREVIEW
+       ========================================================= */
+
+    .number-preview {
+        margin-top: 22px;
+        padding: 18px;
+        border-radius: 14px;
+        background: #f7f9fb;
+        border: 1px solid #e9edf2;
+    }
+
+    .number-preview-label {
+        margin-bottom: 12px;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: #9297a0;
+    }
+
+    .number-preview-items {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .number-preview-item {
+        background: #fff;
+        border: 1px solid #e6e9ed;
+        border-radius: 11px;
+        padding: 12px;
+    }
+
+    .number-preview-name {
+        color: #8a9099;
+        font-size: 11px;
+        margin-bottom: 5px;
+    }
+
+    .number-preview-value {
+        color: #1b1f25;
+        font-family:
+            ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            monospace;
+        font-size: 13px;
+        font-weight: 650;
+        word-break: break-word;
+    }
+
+    /* =========================================================
+       SOUND PREFERENCES
+       ========================================================= */
+
+    .sound-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 24px;
+    }
+
+    .sound-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        min-width: 0;
+        padding: 17px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .sound-card:nth-last-child(-n + 2) {
+        border-bottom: 0;
+    }
+
+    .sound-card-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .sound-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f3f7fb;
+        color: #0a84ff;
+        font-size: 17px;
+    }
+
+    .sound-card-title {
+        margin: 0;
+        color: #262a31;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .sound-card-description {
+        margin: 3px 0 0;
+        color: #9297a0;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    /* =========================================================
+       NOTIFICATION SETTINGS
+       ========================================================= */
+
+    .notification-empty {
+        padding: 34px 20px;
+        text-align: center;
+        border: 1px dashed #dfe3e8;
+        border-radius: 14px;
+        color: #8a9099;
+    }
+
+    .notification-empty-icon {
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 12px;
+        border-radius: 14px;
+        background: #f4f6f9;
+        color: #8a9099;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .notification-empty-title {
+        margin: 0 0 5px;
+        color: #363b43;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .notification-empty-text {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .notification-matrix-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid #e6e9ee;
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .notification-matrix {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .notification-matrix th,
+    .notification-matrix td {
+        padding: 13px 14px;
+        border-bottom: 1px solid #edf0f4;
+        border-right: 1px solid #edf0f4;
+        vertical-align: middle;
+    }
+
+    .notification-matrix th:last-child,
+    .notification-matrix td:last-child {
+        border-right: 0;
+    }
+
+    .notification-matrix tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .notification-matrix thead th {
+        background: #f8fafc;
+        color: #737985;
+        font-size: 11px;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        white-space: nowrap;
+    }
+
+    .notification-category-header {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        min-width: 220px;
+        text-align: left;
+        background: #f8fafc !important;
+    }
+
+    .notification-user-header {
+        min-width: 125px;
+        text-align: center;
+    }
+
+    .notification-category-cell {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: #fff;
+        min-width: 220px;
+    }
+
+    .notification-category {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .notification-category-icon {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: #f3f7fb;
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+    }
+
+    .notification-category-name {
+        color: #262a31;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .notification-category-code {
+        margin-top: 2px;
+        color: #a0a5ad;
+        font-size: 10px;
+        font-family:
+            ui-monospace,
+            SFMono-Regular,
+            Menlo,
+            Monaco,
+            Consolas,
+            monospace;
+    }
+
+    .notification-user {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .notification-user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(10, 132, 255, .10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .notification-user-name {
+        max-width: 105px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #444951;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+    .notification-check-cell {
+        text-align: center;
+    }
+
+    .notification-checkbox {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-checkbox input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+    }
+
+    .notification-checkbox-mark {
+        width: 21px;
+        height: 21px;
+        border: 1px solid #cfd5dc;
+        border-radius: 7px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: transparent;
+        cursor: pointer;
+        transition: .16s ease;
+    }
+
+    .notification-checkbox input:checked + .notification-checkbox-mark {
+        background: #0a84ff;
+        border-color: #0a84ff;
+        color: #fff;
+    }
+
+    .notification-checkbox-mark i {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .notification-checkbox input:focus-visible + .notification-checkbox-mark {
+        box-shadow: 0 0 0 3px rgba(10, 132, 255, .14);
+    }
+
+    .notification-assignment-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .notification-assignment-hint {
+        color: #8b919b;
+        font-size: 12px;
+    }
+
+    .notification-select-btn {
+        border: 1px solid #dfe3e8;
+        background: #fff;
+        color: #555b64;
+        border-radius: 9px;
+        padding: 7px 11px;
+        font-size: 11px;
+        font-weight: 650;
+        transition: .18s ease;
+    }
+
+    .notification-select-btn:hover {
+        background: #f7f8fa;
+        color: #20242a;
+    }
+
+    
+    /* =========================================================
+       FOOTER ACTIONS
+       ========================================================= */
+
+    .settings-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 0 10px;
+    }
+
+    .settings-actions-left {
+        color: #9398a1;
+        font-size: 12px;
+    }
+
+    .settings-actions-right {
+        display: flex;
+        gap: 10px;
+    }
+
+    .settings-btn {
+        min-height: 42px;
+        padding: 9px 17px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font-size: 13px;
+        font-weight: 650;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: .18s ease;
+    }
+
+    .settings-btn-primary {
+        background: #0a84ff;
+        color: #fff;
+        box-shadow: 0 5px 14px rgba(10, 132, 255, .20);
+    }
+
+    .settings-btn-primary:hover {
+        background: #0077ed;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .settings-btn-secondary {
+        background: #fff;
+        color: #535963;
+        border-color: #dfe3e8;
+    }
+
+    .settings-btn-secondary:hover {
+        background: #f7f8fa;
+        color: #20242a;
+    }
+
+    .settings-btn-danger {
+        background: #fff;
+        color: #d64545;
+        border-color: #f0cccc;
+    }
+
+    .settings-btn-danger:hover {
+        background: #fff5f5;
+    }
+
+    /* =========================================================
+       DARK MODE
+       ========================================================= */
+
+    html[data-theme="dark"] .settings-title,
+    html.system-dark .settings-title {
+        color: #f4f5f7;
+    }
+
+    html[data-theme="dark"] .settings-subtitle,
+    html.system-dark .settings-subtitle {
+        color: #969ca7;
+    }
+
+    html[data-theme="dark"] .settings-nav,
+    html.system-dark .settings-nav,
+    html[data-theme="dark"] .settings-section,
+    html.system-dark .settings-section {
+        background: #17191d;
+        border-color: #292d33;
+        box-shadow: none;
+    }
+
+    html[data-theme="dark"] .settings-nav-item,
+    html.system-dark .settings-nav-item {
+        color: #9ca2ad;
+    }
+
+    html[data-theme="dark"] .settings-nav-item:hover,
+    html.system-dark .settings-nav-item:hover {
+        background: #202329;
+        color: #f4f5f7;
+    }
+
+    html[data-theme="dark"] .settings-nav-item.active,
+    html.system-dark .settings-nav-item.active {
+        background: rgba(10, 132, 255, .16);
+        color: #4ba3ff;
+    }
+
+    html[data-theme="dark"] .settings-section-header,
+    html.system-dark .settings-section-header {
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .settings-section-title,
+    html.system-dark .settings-section-title,
+    html[data-theme="dark"] .settings-label,
+    html.system-dark .settings-label,
+    html[data-theme="dark"] .settings-toggle-title,
+    html.system-dark .settings-toggle-title,
+    html[data-theme="dark"] .sound-card-title,
+    html.system-dark .sound-card-title {
+        color: #f1f2f4;
+    }
+
+    html[data-theme="dark"] .settings-section-description,
+    html.system-dark .settings-section-description,
+    html[data-theme="dark"] .settings-help,
+    html.system-dark .settings-help,
+    html[data-theme="dark"] .settings-toggle-description,
+    html.system-dark .settings-toggle-description,
+    html[data-theme="dark"] .sound-card-description,
+    html.system-dark .sound-card-description {
+        color: #858c97;
+    }
+
+    html[data-theme="dark"] .settings-section-icon,
+    html.system-dark .settings-section-icon,
+    html[data-theme="dark"] .sound-card-icon,
+    html.system-dark .sound-card-icon {
+        background: #20242a;
+        color: #4ba3ff;
+    }
+
+    html[data-theme="dark"] .settings-input,
+    html.system-dark .settings-input,
+    html[data-theme="dark"] .settings-select,
+    html.system-dark .settings-select,
+    html[data-theme="dark"] .settings-textarea,
+    html.system-dark .settings-textarea {
+        background: #111317;
+        border-color: #343940;
+        color: #f1f2f4;
+    }
+
+    html[data-theme="dark"] .settings-input:focus,
+    html.system-dark .settings-input:focus,
+    html[data-theme="dark"] .settings-select:focus,
+    html.system-dark .settings-select:focus,
+    html[data-theme="dark"] .settings-textarea:focus,
+    html.system-dark .settings-textarea:focus {
+        border-color: #0a84ff;
+    }
+
+    html[data-theme="dark"] .settings-toggle-row,
+    html.system-dark .settings-toggle-row,
+    html[data-theme="dark"] .sound-card,
+    html.system-dark .sound-card {
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .inventory-info,
+    html.system-dark .inventory-info,
+    html[data-theme="dark"] .notification-info,
+    html.system-dark .notification-info,
+    html[data-theme="dark"] .sound-info,
+    html.system-dark .sound-info {
+        background: rgba(10, 132, 255, .07);
+        border-color: rgba(10, 132, 255, .18);
+    }
+
+    html[data-theme="dark"] .inventory-info-title,
+    html.system-dark .inventory-info-title,
+    html[data-theme="dark"] .notification-info-title,
+    html.system-dark .notification-info-title,
+    html[data-theme="dark"] .sound-info-title,
+    html.system-dark .sound-info-title {
+        color: #d9e8f8;
+    }
+
+    html[data-theme="dark"] .inventory-info-text,
+    html.system-dark .inventory-info-text,
+    html[data-theme="dark"] .notification-info-text,
+    html.system-dark .notification-info-text,
+    html[data-theme="dark"] .sound-info-text,
+    html.system-dark .sound-info-text {
+        color: #8995a5;
+    }
+
+    html[data-theme="dark"] .number-preview,
+    html.system-dark .number-preview {
+        background: #111317;
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .number-preview-item,
+    html.system-dark .number-preview-item {
+        background: #17191d;
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .number-preview-value,
+    html.system-dark .number-preview-value {
+        color: #f1f2f4;
+    }
+
+    html[data-theme="dark"] .settings-btn-secondary,
+    html.system-dark .settings-btn-secondary,
+    html[data-theme="dark"] .settings-btn-danger,
+    html.system-dark .settings-btn-danger {
+        background: #17191d;
+        border-color: #343940;
+    }
+
+    html[data-theme="dark"] .notification-matrix-wrapper,
+    html.system-dark .notification-matrix-wrapper {
+        background: #17191d;
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .notification-matrix thead th,
+    html.system-dark .notification-matrix thead th {
+        background: #202329 !important;
+        color: #9ca2ad;
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .notification-matrix th,
+    html.system-dark .notification-matrix th,
+    html[data-theme="dark"] .notification-matrix td,
+    html.system-dark .notification-matrix td {
+        border-color: #292d33;
+    }
+
+    html[data-theme="dark"] .notification-category-cell,
+    html.system-dark .notification-category-cell {
+        background: #17191d;
+    }
+
+    html[data-theme="dark"] .notification-category-icon,
+    html.system-dark .notification-category-icon,
+    html[data-theme="dark"] .notification-user-avatar,
+    html.system-dark .notification-user-avatar {
+        background: rgba(10, 132, 255, .12);
+        color: #4ba3ff;
+    }
+
+    html[data-theme="dark"] .notification-category-name,
+    html.system-dark .notification-category-name {
+        color: #f1f2f4;
+    }
+
+    html[data-theme="dark"] .notification-category-code,
+    html.system-dark .notification-category-code {
+        color: #737b87;
+    }
+
+    html[data-theme="dark"] .notification-user-name,
+    html.system-dark .notification-user-name {
+        color: #c5cad2;
+    }
+
+    html[data-theme="dark"] .notification-checkbox-mark,
+    html.system-dark .notification-checkbox-mark {
+        background: #111317;
+        border-color: #3b4149;
+    }
+
+    html[data-theme="dark"] .notification-empty,
+    html.system-dark .notification-empty {
+        border-color: #343940;
+        color: #858c97;
+    }
+
+    html[data-theme="dark"] .notification-empty-icon,
+    html.system-dark .notification-empty-icon {
+        background: #20242a;
+    }
+
+    html[data-theme="dark"] .notification-empty-title,
+    html.system-dark .notification-empty-title {
+        color: #e1e4e8;
+    }
+
+    html[data-theme="dark"] .notification-select-btn,
+    html.system-dark .notification-select-btn {
+        background: #17191d;
+        border-color: #343940;
+        color: #b8bec7;
+    }
+
+    html[data-theme="dark"] .notification-select-btn:hover,
+    html.system-dark .notification-select-btn:hover {
+        background: #202329;
+        color: #f1f2f4;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 1000px) {
+
+        .settings-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-nav {
+            position: static;
+            display: flex;
+            overflow-x: auto;
+            gap: 4px;
+            padding: 7px;
+        }
+
+        .settings-nav-title {
+            display: none;
+        }
+
+        .settings-nav-item {
+            width: auto;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+    }
+
+    @media (max-width: 760px) {
+
+        .settings-page {
+            padding: 18px 14px;
+        }
+
+        .settings-header {
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .settings-header-actions {
+            width: 100%;
+        }
+
+        .settings-header-actions .settings-btn {
+            flex: 1;
+        }
+
+        .settings-title {
+            font-size: 25px;
+        }
+
+        .settings-grid,
+        .settings-grid-3,
+        .sound-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-field-full {
+            grid-column: auto;
+        }
+
+        .settings-section-body {
+            padding: 18px;
+        }
+
+        .settings-section-header {
+            padding: 18px;
+        }
+
+        .number-preview-items {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .settings-actions-right {
+            width: 100%;
+        }
+
+        .settings-actions-right .settings-btn {
+            flex: 1;
+        }
+
+        .notification-assignment-actions {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .notification-category-header,
+        .notification-category-cell {
+            min-width: 190px;
+        }
+
+        .sound-card:nth-last-child(-n + 2) {
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .sound-card:last-child {
+            border-bottom: 0;
+        }
+    }
+</style>
+
+
+<div class="settings-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="settings-header">
+
+        <div class="settings-header-main">
+
+            <div class="settings-header-icon">
+                <i class="bi bi-sliders2"></i>
+            </div>
+
+            <div>
+
+                <p class="settings-eyebrow">
+                    Administration
+                </p>
+
+                <h1 class="settings-title">
+                    Settings
+                </h1>
+
+                <p class="settings-subtitle">
+                    Configure how your company uses BizTrace IMS.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="settings-header-actions">
+
+            <a
+                href="{{ url_for('dashboard.dashboard') }}"
+                class="settings-btn settings-btn-secondary bg-light border text-decoration-none rounded-pill px-4"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SETTINGS LAYOUT
+         ===================================================== -->
+
+    <div class="settings-layout">
+
+
+        <!-- =================================================
+             SETTINGS NAVIGATION
+             ================================================= -->
+
+        <aside class="settings-nav">
+
+            <div class="settings-nav-title">
+                Configuration
+            </div>
+
+            <button
+                type="button"
+                class="settings-nav-item active"
+                data-target="general"
+            >
+                <i class="bi bi-building"></i>
+                General
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="currency"
+            >
+                <i class="bi bi-currency-exchange"></i>
+                Currency
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="datetime"
+            >
+                <i class="bi bi-calendar3"></i>
+                Date & Time
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="numbering"
+            >
+                <i class="bi bi-hash"></i>
+                Numbering
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="inventory"
+            >
+                <i class="bi bi-box-seam"></i>
+                Inventory
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="notifications"
+            >
+                <i class="bi bi-bell"></i>
+                Notifications
+            </button>
+
+            <button
+                type="button"
+                class="settings-nav-item"
+                data-target="sounds"
+            >
+                <i class="bi bi-volume-up"></i>
+                Sounds
+            </button>
+
+        </aside>
+
+
+        <!-- =================================================
+             CONTENT
+             ================================================= -->
+
+        <main class="settings-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('settings.index') }}"
+            >
+
+                {% if csrf_token is defined %}
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+                {% endif %}
+
+
+                <!-- =========================================
+                     GENERAL
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="general"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                General
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Basic company configuration.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="settings-grid">
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Company name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="settings-input"
+                                    value="{{ current_user.company.name }}"
+                                    disabled
+                                >
+
+                                <div class="settings-help">
+                                    Company identity is managed from the company profile.
+                                </div>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Company email
+                                </label>
+
+                                <input
+                                    type="email"
+                                    class="settings-input"
+                                    value="{{ current_user.company.email or '' }}"
+                                    disabled
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Company phone
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="settings-input"
+                                    value="{{ current_user.company.phone or '' }}"
+                                    disabled
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Company ID
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="settings-input"
+                                    value="{{ current_user.company.qr_code }}"
+                                    disabled
+                                >
+
+                                <div class="settings-help">
+                                    Used to uniquely identify this company.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     CURRENCY
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="currency"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-currency-exchange"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Currency & Financial
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Configure how monetary values appear throughout the system.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="settings-grid">
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Currency code
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="currency_code"
+                                    class="settings-input"
+                                    maxlength="10"
+                                    value="{{ settings.currency_code }}"
+                                    placeholder="NGN"
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Currency symbol
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="currency_symbol"
+                                    class="settings-input"
+                                    maxlength="10"
+                                    value="{{ settings.currency_symbol }}"
+                                    placeholder="₦"
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Decimal places
+                                </label>
+
+                                <select
+                                    name="decimal_places"
+                                    class="settings-select"
+                                >
+
+                                    {% for value in [0, 1, 2, 3, 4] %}
+
+                                        <option
+                                            value="{{ value }}"
+                                            {% if settings.decimal_places == value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ value }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                                <div class="settings-help">
+                                    Number of decimal places displayed for monetary values.
+                                </div>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Currency position
+                                </label>
+
+                                <select
+                                    name="currency_position"
+                                    class="settings-select"
+                                >
+
+                                    <option
+                                        value="before"
+                                        {% if settings.currency_position == "before" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Before amount — ₦1,000
+                                    </option>
+
+                                    <option
+                                        value="after"
+                                        {% if settings.currency_position == "after" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        After amount — 1,000 ₦
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     DATE & TIME
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="datetime"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Date & Time
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Control dates, times and timezone behavior.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="settings-grid">
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Timezone
+                                </label>
+
+                                <select
+                                    name="timezone"
+                                    class="settings-select"
+                                >
+
+                                    <option
+                                        value="Africa/Lagos"
+                                        {% if settings.timezone == "Africa/Lagos" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Africa/Lagos — West Africa Time
+                                    </option>
+
+                                    <option
+                                        value="UTC"
+                                        {% if settings.timezone == "UTC" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        UTC
+                                    </option>
+
+                                    <option
+                                        value="Europe/London"
+                                        {% if settings.timezone == "Europe/London" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Europe/London
+                                    </option>
+
+                                    <option
+                                        value="America/New_York"
+                                        {% if settings.timezone == "America/New_York" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        America/New_York
+                                    </option>
+
+                                    <option
+                                        value="America/Los_Angeles"
+                                        {% if settings.timezone == "America/Los_Angeles" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        America/Los_Angeles
+                                    </option>
+
+                                </select>
+
+                                <div class="settings-help">
+                                    Used when generating timestamps and document numbers.
+                                </div>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Date format
+                                </label>
+
+                                <select
+                                    name="date_format"
+                                    class="settings-select"
+                                >
+
+                                    {% for value in [
+                                        "DD/MM/YYYY",
+                                        "MM/DD/YYYY",
+                                        "YYYY-MM-DD",
+                                        "DD MMM YYYY"
+                                    ] %}
+
+                                        <option
+                                            value="{{ value }}"
+                                            {% if settings.date_format == value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ value }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Time format
+                                </label>
+
+                                <select
+                                    name="time_format"
+                                    class="settings-select"
+                                >
+
+                                    <option
+                                        value="12h"
+                                        {% if settings.time_format == "12h" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        12-hour — 10:30 AM
+                                    </option>
+
+                                    <option
+                                        value="24h"
+                                        {% if settings.time_format == "24h" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        24-hour — 10:30
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Week starts on
+                                </label>
+
+                                <select
+                                    name="week_starts"
+                                    class="settings-select"
+                                >
+
+                                    <option
+                                        value="Monday"
+                                        {% if settings.week_starts == "Monday" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Monday
+                                    </option>
+
+                                    <option
+                                        value="Sunday"
+                                        {% if settings.week_starts == "Sunday" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Sunday
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     NUMBERING
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="numbering"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-hash"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Document Numbering
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Configure invoice, purchase, and expense numbers.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="settings-grid">
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Invoice prefix
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="invoice_prefix"
+                                    class="settings-input"
+                                    maxlength="20"
+                                    value="{{ settings.invoice_prefix }}"
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Purchase prefix
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="purchase_prefix"
+                                    class="settings-input"
+                                    maxlength="20"
+                                    value="{{ settings.purchase_prefix }}"
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Expense prefix
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="expense_prefix"
+                                    class="settings-input"
+                                    maxlength="20"
+                                    value="{{ settings.expense_prefix }}"
+                                >
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Number length
+                                </label>
+
+                                <select
+                                    name="number_length"
+                                    class="settings-select"
+                                >
+
+                                    {% for value in range(2, 9) %}
+
+                                        <option
+                                            value="{{ value }}"
+                                            {% if settings.number_length == value %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ value }} digits
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="settings-field">
+
+                                <label class="settings-label">
+                                    Number reset
+                                </label>
+
+                                <select
+                                    name="number_reset"
+                                    id="numberReset"
+                                    class="settings-select"
+                                >
+
+                                    <option
+                                        value="daily"
+                                        {% if settings.number_reset == "daily" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Daily
+                                    </option>
+
+                                    <option
+                                        value="monthly"
+                                        {% if settings.number_reset == "monthly" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Monthly
+                                    </option>
+
+                                    <option
+                                        value="yearly"
+                                        {% if settings.number_reset == "yearly" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Yearly
+                                    </option>
+
+                                    <option
+                                        value="never"
+                                        {% if settings.number_reset == "never" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Never
+                                    </option>
+
+                                </select>
+
+                                <div class="settings-help">
+                                    The sequence resets according to this period when dates are included.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="settings-toggle-row mt-4">
+
+                            <div class="settings-toggle-content">
+
+                                <p class="settings-toggle-title">
+                                    Include date in document numbers
+                                </p>
+
+                                <p class="settings-toggle-description">
+                                    Adds the date between the document prefix and sequence.
+                                </p>
+
+                            </div>
+
+
+                            <label class="settings-switch">
+
+                                <input
+                                    type="checkbox"
+                                    name="include_date"
+                                    id="includeDate"
+                                    {% if settings.include_date %}
+                                        checked
+                                    {% endif %}
+                                >
+
+                                <span class="settings-switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="number-preview">
+
+                            <div class="number-preview-label">
+                                Example document numbers
+                            </div>
+
+
+                            <div class="number-preview-items">
+
+                                <div class="number-preview-item">
+
+                                    <div class="number-preview-name">
+                                        Invoice
+                                    </div>
+
+                                    <div
+                                        class="number-preview-value"
+                                        id="invoicePreview"
+                                    >
+                                        INV-20260925-0001
+                                    </div>
+
+                                </div>
+
+
+                                <div class="number-preview-item">
+
+                                    <div class="number-preview-name">
+                                        Purchase
+                                    </div>
+
+                                    <div
+                                        class="number-preview-value"
+                                        id="purchasePreview"
+                                    >
+                                        PUR-20260925-0001
+                                    </div>
+
+                                </div>
+
+
+                                <div class="number-preview-item">
+
+                                    <div class="number-preview-name">
+                                        Expense
+                                    </div>
+
+                                    <div
+                                        class="number-preview-value"
+                                        id="expensePreview"
+                                    >
+                                        EXP-20260925-0001
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     INVENTORY
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="inventory"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Inventory
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Configure how BizTrace handles stock and inventory operations.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="inventory-info">
+
+                            <div class="inventory-info-icon">
+                                <i class="bi bi-info-circle"></i>
+                            </div>
+
+                            <div>
+
+                                <p class="inventory-info-title">
+                                    Inventory controls
+                                </p>
+
+                                <p class="inventory-info-text">
+                                    These settings apply company-wide. Individual product
+                                    minimum stock levels remain configurable on each product.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="settings-toggle-row">
+
+                            <div class="settings-toggle-content">
+
+                                <p class="settings-toggle-title">
+                                    Allow negative stock
+                                </p>
+
+                                <p class="settings-toggle-description">
+                                    Allow inventory quantities to fall below zero when
+                                    completing stock-consuming transactions.
+                                </p>
+
+                            </div>
+
+
+                            <label class="settings-switch">
+
+                                <input
+                                    type="checkbox"
+                                    name="allow_negative_stock"
+                                    {% if settings.allow_negative_stock %}
+                                        checked
+                                    {% endif %}
+                                >
+
+                                <span class="settings-switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="settings-toggle-row">
+
+                            <div class="settings-toggle-content">
+
+                                <p class="settings-toggle-title">
+                                    Reserve stock
+                                </p>
+
+                                <p class="settings-toggle-description">
+                                    Reserve available inventory when a transaction
+                                    requires stock to be held before completion.
+                                </p>
+
+                            </div>
+
+
+                            <label class="settings-switch">
+
+                                <input
+                                    type="checkbox"
+                                    name="reserve_stock"
+                                    {% if settings.reserve_stock %}
+                                        checked
+                                    {% endif %}
+                                >
+
+                                <span class="settings-switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="settings-toggle-row">
+
+                            <div class="settings-toggle-content">
+
+                                <p class="settings-toggle-title">
+                                    Low-stock notifications
+                                </p>
+
+                                <p class="settings-toggle-description">
+                                    Notify assigned users when a product reaches or falls
+                                    below its configured minimum stock level.
+                                </p>
+
+                            </div>
+
+
+                            <label class="settings-switch">
+
+                                <input
+                                    type="checkbox"
+                                    name="low_stock_notifications"
+                                    {% if settings.low_stock_notifications %}
+                                        checked
+                                    {% endif %}
+                                >
+
+                                <span class="settings-switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="settings-toggle-row">
+
+                            <div class="settings-toggle-content">
+
+                                <p class="settings-toggle-title">
+                                    Require adjustment note
+                                </p>
+
+                                <p class="settings-toggle-description">
+                                    Require users to provide a reason when manually
+                                    adjusting inventory quantities.
+                                </p>
+
+                            </div>
+
+
+                            <label class="settings-switch">
+
+                                <input
+                                    type="checkbox"
+                                    name="stock_adjustment_requires_note"
+                                    {% if settings.stock_adjustment_requires_note %}
+                                        checked
+                                    {% endif %}
+                                >
+
+                                <span class="settings-switch-slider"></span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     NOTIFICATION ASSIGNMENTS
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="notifications"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-bell"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Notification Assignments
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Choose which notification categories each company user can receive.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="notification-info">
+
+                            <div class="notification-info-icon">
+                                <i class="bi bi-person-check"></i>
+                            </div>
+
+                            <div>
+
+                                <p class="notification-info-title">
+                                    Notification delivery is user-specific
+                                </p>
+
+                                <p class="notification-info-text">
+                                    These checkboxes control notification delivery only.
+                                    Sound preferences below do not grant notification access.
+                                    Browser push and email follow these assignments.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if notification_users %}
+
+                            <div class="notification-assignment-actions">
+
+                                <div class="notification-assignment-hint">
+                                    Check a category under a user to allow that user to receive it.
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="notification-select-btn"
+                                    id="toggleAllNotifications"
+                                >
+                                    Select all
+                                </button>
+
+                            </div>
+
+
+                            <div class="notification-matrix-wrapper">
+
+                                <table class="notification-matrix">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th class="notification-category-header">
+                                                Notification category
+                                            </th>
+
+                                            {% for user in notification_users %}
+
+                                                {% set username = user.username or 'User' %}
+                                                {% set initials = username[:2]|upper %}
+
+                                                <th class="notification-user-header">
+
+                                                    <div class="notification-user">
+
+                                                        <div class="notification-user-avatar">
+                                                            {{ initials }}
+                                                        </div>
+
+                                                        <div
+                                                            class="notification-user-name"
+                                                            title="{{ username }}"
+                                                        >
+                                                            {{ username }}
+                                                        </div>
+
+                                                    </div>
+
+                                                </th>
+
+                                            {% endfor %}
+
+                                        </tr>
+
+                                    </thead>
+
+
+                                    <tbody>
+
+                                        {% for category, label in notification_categories %}
+
+                                            {# =================================================
+                                               IMPORTANT:
+                                               SOUND-ONLY CATEGORIES MUST NOT APPEAR HERE.
+                                               The assignment matrix controls DELIVERY.
+                                               ================================================= #}
+
+                                            {% if category not in [
+                                                "success",
+                                                "error",
+                                                "gross_loss",
+                                                "net_loss",
+                                                "system"
+                                            ] %}
+
+                                                <tr>
+
+                                                    <td class="notification-category-cell">
+
+                                                        <div class="notification-category">
+
+                                                            <div class="notification-category-icon">
+
+                                                                {% if category == "low_stock" %}
+                                                                    <i class="bi bi-box-seam"></i>
+
+                                                                {% elif category == "sale" %}
+                                                                    <i class="bi bi-cart-check"></i>
+
+                                                                {% elif category == "payment" %}
+                                                                    <i class="bi bi-credit-card"></i>
+
+                                                                {% elif category == "purchase" %}
+                                                                    <i class="bi bi-bag-check"></i>
+
+                                                                {% elif category == "expense" %}
+                                                                    <i class="bi bi-wallet2"></i>
+
+                                                                {% elif category == "cash_deposit" %}
+                                                                    <i class="bi bi-bank"></i>
+
+                                                                {% elif category == "receivable" %}
+                                                                    <i class="bi bi-arrow-down-circle"></i>
+
+                                                                {% elif category == "payable" %}
+                                                                    <i class="bi bi-arrow-up-circle"></i>
+
+                                                                {% elif category == "security" %}
+                                                                    <i class="bi bi-shield-lock"></i>
+
+                                                                {% else %}
+                                                                    <i class="bi bi-bell"></i>
+                                                                {% endif %}
+
+                                                            </div>
+
+
+                                                            <div>
+
+                                                                <div class="notification-category-name">
+                                                                    {{ label }}
+                                                                </div>
+
+                                                                <div class="notification-category-code">
+                                                                    {{ category }}
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </td>
+
+
+                                                    {% for user in notification_users %}
+
+                                                        {% set key = category ~ ":" ~ user.id %}
+
+                                                        <td class="notification-check-cell">
+
+                                                            <label class="notification-checkbox">
+
+                                                                <input
+                                                                    type="checkbox"
+                                                                    name="notification_assignment"
+                                                                    value="{{ key }}"
+                                                                    data-notification-assignment="true"
+                                                                    data-category="{{ category }}"
+                                                                    data-user-id="{{ user.id }}"
+                                                                    {% if notification_assignment_map.get(key) %}
+                                                                        checked
+                                                                    {% endif %}
+                                                                >
+
+                                                                <span class="notification-checkbox-mark">
+                                                                    <i class="bi bi-check2"></i>
+                                                                </span>
+
+                                                            </label>
+
+                                                        </td>
+
+                                                    {% endfor %}
+
+                                                </tr>
+
+                                            {% endif %}
+
+                                        {% endfor %}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+
+                            <div class="settings-help mt-3">
+                                Sound categories such as Success, System, Errors,
+                                Net Loss and Gross Loss are controlled separately
+                                in the Sounds section. They do not assign notification
+                                delivery to users.
+                            </div>
+
+                        {% else %}
+
+                            <div class="notification-empty">
+
+                                <div class="notification-empty-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+
+                                <p class="notification-empty-title">
+                                    No active company users
+                                </p>
+
+                                <p class="notification-empty-text">
+                                    Add an active company user before assigning notification categories.
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     SOUND PREFERENCES
+                     ========================================= -->
+
+                <section
+                    class="settings-section"
+                    id="sounds"
+                >
+
+                    <div class="settings-section-header">
+
+                        <div class="settings-section-icon">
+                            <i class="bi bi-volume-up"></i>
+                        </div>
+
+                        <div>
+
+                            <h2 class="settings-section-title">
+                                Sound Preferences
+                            </h2>
+
+                            <p class="settings-section-description">
+                                Control which notification sounds are played for your account.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-section-body">
+
+                        <div class="sound-info">
+
+                            <div class="sound-info-icon">
+                                <i class="bi bi-volume-up"></i>
+                            </div>
+
+                            <div>
+
+                                <p class="sound-info-title">
+                                    Sounds do not control notification delivery
+                                </p>
+
+                                <p class="sound-info-text">
+                                    These settings only determine whether a sound is played
+                                    when you receive a notification. Notification delivery
+                                    is controlled separately by the notification assignments.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="sound-grid">
+
+                            <!-- SUCCESS -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            Success
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound for successful operations.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="success_sound_enabled"
+                                        {% if current_user.success_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- SYSTEM -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            System
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound for system events.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="system_sound_enabled"
+                                        {% if current_user.system_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- ERROR -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-x-circle"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            Errors
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound when an operation fails.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="error_sound_enabled"
+                                        {% if current_user.error_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- NET LOSS -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-graph-down"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            Net Loss
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound for net-loss financial alerts.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="net_loss_sound_enabled"
+                                        {% if current_user.net_loss_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- GROSS LOSS -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-bar-chart-line"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            Gross Loss
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound for gross-loss financial alerts.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="gross_loss_sound_enabled"
+                                        {% if current_user.gross_loss_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- LOW STOCK -->
+
+                            <div class="sound-card">
+
+                                <div class="sound-card-content">
+
+                                    <div class="sound-card-icon">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <p class="sound-card-title">
+                                            Low Stock
+                                        </p>
+
+                                        <p class="sound-card-description">
+                                            Play a sound when assigned low-stock alerts arrive.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <label class="settings-switch">
+
+                                    <input
+                                        type="checkbox"
+                                        name="low_stock_sound_enabled"
+                                        {% if current_user.low_stock_sound_enabled %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <span class="settings-switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="settings-help mt-4">
+                            Example: a user can have the Sales notification assigned
+                            while Success sound is disabled. The user still receives
+                            the Sales notification, but no success sound is played.
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================
+                     ACTIONS
+                     ========================================= -->
+
+                <div class="settings-actions">
+
+                    <div class="settings-actions-left">
+                        Changes apply to company settings, notification assignments,
+                        and your personal sound preferences.
+                    </div>
+
+
+                    <div class="settings-actions-right">
+
+                        <button
+                            type="button"
+                            class="settings-btn settings-btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#resetSettingsModal"
+                        >
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Reset defaults
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            class="settings-btn settings-btn-primary"
+                        >
+                            <i class="bi bi-check2"></i>
+                            Save settings
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     RESET MODAL
+     ========================================================= -->
+
+<div
+    class="modal fade"
+    id="resetSettingsModal"
+    tabindex="-1"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow-lg">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Reset settings?
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p class="mb-0 text-secondary">
+                    This will restore the company settings to the
+                    BizTrace default values. Existing documents,
+                    transactions, notification assignments, and
+                    personal notification sound preferences will
+                    not be changed.
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                >
+                    Cancel
+                </button>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for('settings.reset') }}"
+                >
+
+                    {% if csrf_token is defined %}
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                    {% endif %}
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger"
+                    >
+                        Reset settings
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       SETTINGS NAVIGATION
+       ===================================================== */
+
+    const navItems = document.querySelectorAll(
+        ".settings-nav-item"
+    );
+
+    const sections = document.querySelectorAll(
+        ".settings-section"
+    );
+
+
+    navItems.forEach(function (item) {
+
+        item.addEventListener(
+            "click",
+            function () {
+
+                const targetId =
+                    this.dataset.target;
+
+                const target =
+                    document.getElementById(
+                        targetId
+                    );
+
+                if (!target) {
+                    return;
+                }
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+                navItems.forEach(
+                    function (nav) {
+                        nav.classList.remove("active");
+                    }
+                );
+
+                this.classList.add("active");
+
+            }
+        );
+
+    });
+
+
+    /* =====================================================
+       ACTIVE SECTION ON SCROLL
+       ===================================================== */
+
+    const observer =
+        new IntersectionObserver(
+            function (entries) {
+
+                entries.forEach(
+                    function (entry) {
+
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        const id =
+                            entry.target.id;
+
+                        navItems.forEach(
+                            function (item) {
+
+                                item.classList.toggle(
+                                    "active",
+                                    item.dataset.target === id
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+            },
+            {
+                rootMargin:
+                    "-20% 0px -65% 0px"
+            }
+        );
+
+
+    sections.forEach(
+        function (section) {
+            observer.observe(section);
+        }
+    );
+
+
+    /* =====================================================
+       NUMBER PREVIEW
+       ===================================================== */
+
+    const invoicePrefix =
+        document.querySelector(
+            '[name="invoice_prefix"]'
+        );
+
+    const purchasePrefix =
+        document.querySelector(
+            '[name="purchase_prefix"]'
+        );
+
+    const expensePrefix =
+        document.querySelector(
+            '[name="expense_prefix"]'
+        );
+
+    const numberLength =
+        document.querySelector(
+            '[name="number_length"]'
+        );
+
+    const includeDate =
+        document.getElementById(
+            "includeDate"
+        );
+
+    const numberReset =
+        document.getElementById(
+            "numberReset"
+        );
+
+    const invoicePreview =
+        document.getElementById(
+            "invoicePreview"
+        );
+
+    const purchasePreview =
+        document.getElementById(
+            "purchasePreview"
+        );
+
+    const expensePreview =
+        document.getElementById(
+            "expensePreview"
+        );
+
+
+    function updateNumberPreview() {
+
+        if (
+            !invoicePrefix ||
+            !purchasePrefix ||
+            !expensePrefix ||
+            !numberLength
+        ) {
+            return;
+        }
+
+
+        const length =
+            Math.max(
+                2,
+                Math.min(
+                    parseInt(
+                        numberLength.value,
+                        10
+                    ) || 4,
+                    8
+                )
+            );
+
+
+        const invoice =
+            invoicePrefix.value
+                .trim()
+                .toUpperCase() || "INV";
+
+
+        const purchase =
+            purchasePrefix.value
+                .trim()
+                .toUpperCase() || "PUR";
+
+
+        const expense =
+            expensePrefix.value
+                .trim()
+                .toUpperCase() || "EXP";
+
+
+        const today =
+            new Date();
+
+
+        const year =
+            today.getFullYear();
+
+
+        const month =
+            String(
+                today.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const day =
+            String(
+                today.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        let datePart = "";
+
+
+        if (
+            includeDate &&
+            includeDate.checked
+        ) {
+
+            if (
+                !numberReset ||
+                numberReset.value === "daily"
+            ) {
+
+                datePart =
+                    `${year}${month}${day}`;
+
+            }
+
+            else if (
+                numberReset.value === "monthly"
+            ) {
+
+                datePart =
+                    `${year}${month}`;
+
+            }
+
+            else if (
+                numberReset.value === "yearly"
+            ) {
+
+                datePart =
+                    `${year}`;
+
+            }
+
+        }
+
+
+        const sequence =
+            String(1).padStart(
+                length,
+                "0"
+            );
+
+
+        function buildNumber(prefix) {
+
+            if (datePart) {
+
+                return (
+                    `${prefix}-${datePart}-${sequence}`
+                );
+
+            }
+
+            return (
+                `${prefix}-${sequence}`
+            );
+
+        }
+
+
+        if (invoicePreview) {
+            invoicePreview.textContent =
+                buildNumber(invoice);
+        }
+
+        if (purchasePreview) {
+            purchasePreview.textContent =
+                buildNumber(purchase);
+        }
+
+        if (expensePreview) {
+            expensePreview.textContent =
+                buildNumber(expense);
+        }
+
+    }
+
+
+    [
+        invoicePrefix,
+        purchasePrefix,
+        expensePrefix,
+        numberLength,
+        includeDate,
+        numberReset
+    ].forEach(function (element) {
+
+        if (!element) {
+            return;
+        }
+
+        element.addEventListener(
+            "input",
+            updateNumberPreview
+        );
+
+        element.addEventListener(
+            "change",
+            updateNumberPreview
+        );
+
+    });
+
+
+    updateNumberPreview();
+
+
+    /* =====================================================
+       NOTIFICATION ASSIGNMENT MATRIX
+       ===================================================== */
+
+    const notificationCheckboxes =
+        Array.from(
+            document.querySelectorAll(
+                '[data-notification-assignment="true"]'
+            )
+        );
+
+    const toggleAllNotifications =
+        document.getElementById(
+            "toggleAllNotifications"
+        );
+
+
+    function updateSelectAllButton() {
+
+        if (
+            !toggleAllNotifications ||
+            !notificationCheckboxes.length
+        ) {
+            return;
+        }
+
+        const allChecked =
+            notificationCheckboxes.every(
+                function (checkbox) {
+                    return checkbox.checked;
+                }
+            );
+
+        toggleAllNotifications.textContent =
+            allChecked
+                ? "Clear all"
+                : "Select all";
+
+    }
+
+
+    if (toggleAllNotifications) {
+
+        toggleAllNotifications.addEventListener(
+            "click",
+            function () {
+
+                if (!notificationCheckboxes.length) {
+                    return;
+                }
+
+                const allChecked =
+                    notificationCheckboxes.every(
+                        function (checkbox) {
+                            return checkbox.checked;
+                        }
+                    );
+
+                notificationCheckboxes.forEach(
+                    function (checkbox) {
+                        checkbox.checked = !allChecked;
+                    }
+                );
+
+                updateSelectAllButton();
+
+            }
+        );
+
+    }
+
+
+    notificationCheckboxes.forEach(
+        function (checkbox) {
+
+            checkbox.addEventListener(
+                "change",
+                updateSelectAllButton
+            );
+
+        }
+    );
+
+
+    updateSelectAllButton();
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "system_admin/system_admin_base.html" %}
+
+{% block title %}
+Setup Unavailable
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrapper">
+
+    <div class="auth-container">
+
+        <div class="text-center mb-4">
+
+            <div
+                class="brand-icon mx-auto mb-3"
+                style="
+                    background: rgba(25, 135, 84, 0.10);
+                    color: #198754;
+                "
+            >
+
+                <i class="bi bi-check-circle fs-2"></i>
+
+            </div>
+
+            <h1 class="h3 fw-bold mb-2">
+                Setup Already Completed
+            </h1>
+
+            <p class="text-muted mb-0">
+                A System Administrator has already been
+                configured for this BizTrace IMS installation.
+            </p>
+
+        </div>
+
+
+        <div class="auth-card">
+
+            <div class="p-4 p-md-6 text-center">
+
+                <p class="text-muted mb-4">
+                    The initial administrator setup is permanently
+                    unavailable once a System Administrator exists.
+                </p>
+
+                <a
+                    href="{{ url_for('system_admin.login') }}"
+                    class="btn btn-primary w-100"
+                >
+
+                  <i class="bi bi-box-arrow-in-right"></i>
+
+                    Go to System Admin Login
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="text-center mt-4">
+
+            <small class="text-muted">
+                BizTrace IMS Platform Administration
+            </small>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

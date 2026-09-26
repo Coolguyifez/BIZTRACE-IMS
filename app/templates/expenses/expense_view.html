@@ -1,0 +1,834 @@
+{% extends "base.html" %}
+
+{% block title %}
+Expense {{ expense.expense_number }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+
+<!-- =====================================================
+     ACTION BAR
+     ===================================================== -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 no-print">
+
+    <div>
+        <div class="page-eyebrow text-primary fw-semibold small mb-1">
+            EXPENSES
+        </div>
+
+        <h1 class="h3 fw-bold mb-1">
+            Expense Details
+        </h1>
+
+        <p class="text-muted mb-0">
+            View expense record and transaction details.
+        </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+
+        <button
+            type="button"
+            class="btn btn-light border rounded-pill"
+            onclick="window.print()"
+        >
+            <i class="bi bi-printer me-1"></i>
+            Print
+        </button>
+
+        <a
+            href="{{ url_for('expenses.expenses') }}"
+            class="btn btn-primary rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Expenses
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PRINTER HEADER
+     ===================================================== -->
+<div class="d-none d-print-block mb-4">
+
+    <div class="text-center">
+
+        <h1 class="fw-bold mb-1">
+            {{ current_user.company.name }}
+        </h1>
+
+        {% if current_user.company.address %}
+            <div>
+                {{ current_user.company.address }}
+            </div>
+        {% endif %}
+
+        <div>
+            {% if current_user.company.phone %}
+                {{ current_user.company.phone }}
+            {% endif %}
+
+            {% if current_user.company.phone and current_user.company.email %}
+                &nbsp; | &nbsp;
+            {% endif %}
+
+            {% if current_user.company.email %}
+                {{ current_user.company.email }}
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     EXPENSE DOCUMENT
+     ===================================================== -->
+<div
+    id="expenseDocument"
+    class="card border-0 shadow-sm"
+>
+
+    <div class="card-body p-4 p-lg-5">
+
+
+        <!-- =================================================
+             DOCUMENT HEADER
+             ================================================= -->
+        <div class="row align-items-start mb-5">
+
+            <!-- LEFT -->
+            <div class="col-md-7">
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+
+                    <div
+                        class="rounded-3 d-flex align-items-center justify-content-center"
+                        style="
+                            width: 52px;
+                            height: 52px;
+                            background: rgba(13, 110, 253, 0.10);
+                        "
+                    >
+                        <i class="bi bi-wallet2 text-primary fs-4"></i>
+                    </div>
+
+                    <div>
+
+                        <div class="small text-muted text-uppercase fw-semibold d-print-none">
+                            {{ current_user.company.name }}
+                        </div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Expense
+                        </h1>
+
+                    </div>
+
+                </div>
+
+                <div class="small text-muted">
+                    Expense Record
+                </div>
+
+            </div>
+
+
+            <!-- RIGHT -->
+            <div class="col-md-5 text-md-end mt-4 mt-md-0">
+
+                <div class="small text-muted mb-1">
+                    Expense Number
+                </div>
+
+                <div class="fw-bold fs-5">
+                    {{ expense.expense_number }}
+                </div>
+
+
+                <div class="small text-muted mt-3 mb-1">
+                    Expense Date
+                </div>
+
+                <div class="fw-semibold">
+                    {{ format_company_date(expense.expense_date) }}
+                </div>
+
+
+                <div class="mt-3">
+
+                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                        Recorded
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- =================================================
+             DESCRIPTION
+             ================================================= -->
+        <div class="row mb-4">
+
+            <div class="col-12">
+
+                <div class="small text-muted text-uppercase fw-semibold mb-2">
+                    Description
+                </div>
+
+                <div class="fs-5 fw-semibold">
+                    {{ expense.description }}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             EXPENSE INFORMATION
+             ================================================= -->
+        <div class="row g-4 mb-5">
+
+            <!-- CATEGORY -->
+            <div class="col-12 col-md-6">
+
+                <div>
+
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-tags me-1"></i>
+                        Category
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ expense.category.name }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PAYMENT METHOD -->
+            <div class="col-12 col-md-6">
+
+                <div>
+
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-credit-card me-1"></i>
+                        Payment Method
+                    </div>
+
+                    <div>
+
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                            {{ expense.payment_method }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- REFERENCE -->
+            <div class="col-12 col-md-6">
+
+                <div>
+
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-upc-scan me-1"></i>
+                        Reference
+                    </div>
+
+                    {% if expense.reference %}
+
+                        <div class="fw-semibold">
+                            {{ expense.reference }}
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-muted">
+                            No reference provided
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPENSE ID -->
+            <div class="col-12 col-md-6">
+
+                <div>
+
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-hash me-1"></i>
+                        Expense ID
+                    </div>
+
+                    <div class="fw-semibold">
+                        #{{ expense.id }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             AMOUNT SECTION
+             ================================================= -->
+        <div class="row justify-content-end mb-5">
+
+            <div class="col-12 col-md-5">
+
+                <div class="border-top pt-3">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                        <span class="text-muted">
+                            Total Expense
+                        </span>
+
+                        <span class="fw-bold fs-4 text-primary">
+                            {{ format_currency(expense.amount) }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             NOTES
+             ================================================= -->
+        {% if expense.notes %}
+
+        <div class="mb-5">
+
+            <div class="small text-muted text-uppercase fw-semibold mb-2">
+                <i class="bi bi-sticky me-1"></i>
+                Notes
+            </div>
+
+            <div class="border rounded-3 p-3">
+                {{ expense.notes | e | replace('\n', '<br>') | safe }}
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             RECORD INFORMATION
+             ================================================= -->
+        <div class="border-top pt-4">
+
+            <div class="small text-muted text-uppercase fw-semibold mb-3">
+                Record Information
+            </div>
+
+            <div class="row g-3">
+
+                <!-- CREATED BY -->
+                <div class="col-12 col-md-4">
+
+                    <div class="small text-muted mb-1">
+                        Created By
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if expense.created_by_user %}
+                            {{ expense.created_by_user.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- CREATED AT -->
+                <div class="col-12 col-md-4">
+
+                    <div class="small text-muted mb-1">
+                        Created At
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ format_company_datetime(expense.created_at) }}
+                    </div>
+
+                </div>
+
+
+                <!-- EXPENSE ID -->
+                <div class="col-12 col-md-4">
+
+                    <div class="small text-muted mb-1">
+                        Expense ID
+                    </div>
+
+                    <div class="fw-semibold">
+                        #{{ expense.id }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <br><br><br>
+
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
+        <div class="text-center text-muted small mt-5">
+
+            <div>
+                Powered by <strong>BizTrace IMS</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- =========================================================
+     PRINT CSS
+     ========================================================= -->
+
+<style>
+
+@media print {
+
+    @page {
+        margin: 0;
+    }
+
+
+    /* =====================================================
+       GLOBAL PRINT
+       ===================================================== */
+
+    html,
+    body {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: visible !important;
+
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif !important;
+
+        font-size: 11px !important;
+
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+
+    }
+
+
+    body {
+        background: transparent !important;
+    }
+
+
+    /* =====================================================
+       HIDE APP UI
+       ===================================================== */
+
+    .sidebar,
+    .navbar,
+    .page-header,
+    .no-print,
+    .btn,
+    button,
+    form {
+
+        display: none !important;
+
+    }
+
+
+    /* =====================================================
+       CONTAINERS
+       ===================================================== */
+
+    .container-fluid,
+    .container {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       EXPENSE DOCUMENT
+       ===================================================== */
+
+    #expenseDocument {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        border: none !important;
+
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+
+        background: transparent !important;
+
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+
+    }
+
+
+    #expenseDocument .card-body {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 3mm !important;
+
+    }
+
+
+    /* =====================================================
+       ROWS / COLUMNS
+       ===================================================== */
+
+    #expenseDocument .row {
+
+        width: 100% !important;
+
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+
+    }
+
+
+    #expenseDocument .col,
+    #expenseDocument [class*="col-"] {
+
+        min-width: 0 !important;
+
+    }
+
+
+    #expenseDocument .col-md-7,
+    #expenseDocument .col-md-5 {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        flex: 0 0 100% !important;
+
+        text-align: left !important;
+
+    }
+
+
+    #expenseDocument .text-md-end {
+
+        text-align: left !important;
+
+    }
+
+
+    /* =====================================================
+       TYPOGRAPHY
+       ===================================================== */
+
+    #expenseDocument h1 {
+        font-size: 18px !important;
+    }
+
+    #expenseDocument h2 {
+        font-size: 16px !important;
+    }
+
+    #expenseDocument h3 {
+        font-size: 15px !important;
+    }
+
+    #expenseDocument h4 {
+        font-size: 14px !important;
+    }
+
+    #expenseDocument h5 {
+        font-size: 13px !important;
+    }
+
+    #expenseDocument h6 {
+        font-size: 11px !important;
+    }
+
+
+    #expenseDocument p,
+    #expenseDocument span,
+    #expenseDocument div {
+
+        max-width: 100% !important;
+
+    }
+
+
+    /* =====================================================
+       SPACING
+       ===================================================== */
+
+    #expenseDocument .mb-5 {
+        margin-bottom: 10px !important;
+    }
+
+    #expenseDocument .mb-4 {
+        margin-bottom: 8px !important;
+    }
+
+    #expenseDocument .mb-3 {
+        margin-bottom: 6px !important;
+    }
+
+    #expenseDocument .mb-2 {
+        margin-bottom: 4px !important;
+    }
+
+    #expenseDocument .mt-5 {
+        margin-top: 10px !important;
+    }
+
+    #expenseDocument .mt-4 {
+        margin-top: 8px !important;
+    }
+
+    #expenseDocument .mt-3 {
+        margin-top: 6px !important;
+    }
+
+    #expenseDocument .pt-5 {
+        padding-top: 10px !important;
+    }
+
+    #expenseDocument .pt-4 {
+        padding-top: 4px !important;
+    }
+
+    #expenseDocument .pt-3 {
+        padding-top: 3px !important;
+    }
+
+
+    /* =====================================================
+       HR / BORDERS
+       ===================================================== */
+
+    #expenseDocument hr {
+
+        margin: 5px 0 !important;
+
+        opacity: 1 !important;
+
+    }
+
+
+    #expenseDocument .border-top {
+
+        border-top-width: 1px !important;
+
+        border-top-style: solid !important;
+
+        border-color: currentColor !important;
+
+    }
+
+
+    /* =====================================================
+       BADGES
+       ===================================================== */
+
+    #expenseDocument .badge {
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+        font-size: 8px !important;
+
+    }
+
+
+    /* =====================================================
+       BOOTSTRAP TEXT COLOURS
+       ===================================================== */
+
+    #expenseDocument .text-primary {
+        color: var(--bs-primary) !important;
+    }
+
+    #expenseDocument .text-success {
+        color: var(--bs-success) !important;
+    }
+
+    #expenseDocument .text-danger {
+        color: var(--bs-danger) !important;
+    }
+
+    #expenseDocument .text-warning {
+        color: var(--bs-warning) !important;
+    }
+
+    #expenseDocument .text-info {
+        color: var(--bs-info) !important;
+    }
+
+    #expenseDocument .text-secondary {
+        color: var(--bs-secondary-color) !important;
+    }
+
+    #expenseDocument .text-muted {
+        color: var(--bs-secondary-color) !important;
+    }
+
+
+    /* =====================================================
+       BACKGROUND COLOURS
+       ===================================================== */
+
+    #expenseDocument .bg-primary,
+    #expenseDocument .bg-secondary,
+    #expenseDocument .bg-success,
+    #expenseDocument .bg-danger,
+    #expenseDocument .bg-warning,
+    #expenseDocument .bg-info,
+    #expenseDocument .bg-primary-subtle,
+    #expenseDocument .bg-secondary-subtle,
+    #expenseDocument .bg-success-subtle,
+    #expenseDocument .bg-danger-subtle,
+    #expenseDocument .bg-warning-subtle,
+    #expenseDocument .bg-info-subtle {
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+
+    /* =====================================================
+       IMAGES
+       ===================================================== */
+
+    #expenseDocument img {
+
+        max-width: 100% !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    /* =====================================================
+       PAGE BREAKS
+       ===================================================== */
+
+    #expenseDocument,
+    #expenseDocument .card-body {
+
+        page-break-inside: auto !important;
+
+        break-inside: auto !important;
+
+    }
+
+
+    #expenseDocument .border-top {
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    /* =====================================================
+       REMOVE SCREEN EFFECTS
+       ===================================================== */
+
+    #expenseDocument,
+    #expenseDocument * {
+
+        box-shadow: none !important;
+
+        text-shadow: none !important;
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+}
+
+</style>
+
+{% endblock %}

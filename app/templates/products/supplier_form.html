@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <div class="page-eyebrow">
+                BUSINESS MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                {{ title }}
+            </h1>
+
+            <p class="page-subtitle">
+                Add supplier contact and account information.
+            </p>
+        </div>
+
+        <div>
+            <a
+                href="{{ url_for('products.suppliers') }}"
+                class="btn btn-light border rounded-pill px-4"
+            >
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Suppliers
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUPPLIER FORM
+    ====================================================== -->
+
+    <form method="POST">
+
+        {{ form.hidden_tag() }}
+
+        <div class="row g-4">
+
+            <!-- =================================================
+                 SUPPLIER INFORMATION
+            ================================================== -->
+
+            <div class="col-xl-8">
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-header bg-transparent border-0 p-4">
+
+                        <h5 class="mb-1 fw-semibold">
+                            Supplier Information
+                        </h5>
+
+                        <small class="text-muted">
+                            Basic information about the supplier.
+                        </small>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <div class="row g-4">
+
+                            <!-- NAME -->
+
+                            <div class="col-md-8">
+
+                                {{ form.name.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.name(
+                                    class="form-control",
+                                    placeholder="e.g. ABC Distribution Ltd"
+                                ) }}
+
+                                {% for error in form.name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- PHONE -->
+
+                            <div class="col-md-4">
+
+                                {{ form.phone.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.phone(
+                                    class="form-control",
+                                    placeholder="08012345678"
+                                ) }}
+
+                                {% for error in form.phone.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- EMAIL -->
+
+                            <div class="col-md-6">
+
+                                {{ form.email.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.email(
+                                    class="form-control",
+                                    placeholder="supplier@example.com"
+                                ) }}
+
+                                {% for error in form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- ADDRESS -->
+
+                            <div class="col-md-6">
+
+                                {{ form.address.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.address(
+                                    class="form-control",
+                                    placeholder="Supplier address"
+                                ) }}
+
+                                {% for error in form.address.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- NOTES -->
+
+                            <div class="col-12">
+
+                                {{ form.notes.label(
+                                    class="form-label fw-semibold"
+                                ) }}
+
+                                {{ form.notes(
+                                    class="form-control",
+                                    rows="4",
+                                    placeholder="Additional notes..."
+                                ) }}
+
+                                {% for error in form.notes.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACCOUNT SETTINGS
+            ================================================== -->
+
+            <div class="col-xl-4">
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-header bg-transparent border-0 p-4">
+
+                        <h5 class="mb-1 fw-semibold">
+                            Account Settings
+                        </h5>
+
+                        <small class="text-muted">
+                            Configure supplier account information.
+                        </small>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <!-- OPENING BALANCE -->
+
+                        <div class="mb-2">
+
+                            {{ form.opening_balance.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            <div class="input-group">
+
+                                <!-- COMPANY CURRENCY -->
+
+                                <span class="input-group-text">
+                                    {{ get_currency_symbol() }}
+                                </span>
+
+                                {{ form.opening_balance(
+                                    class="form-control",
+                                    placeholder="0.00",
+                                    inputmode="decimal"
+                                ) }}
+
+                            </div>
+
+                            <div class="form-text text-muted">
+                                Existing balance before using BizFlow.
+                            </div>
+
+                            {% for error in form.opening_balance.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body p-4">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100 rounded-pill py-2 mb-2"
+                        >
+                            <i class="bi bi-check2-circle me-2"></i>
+                            {{ form.submit.label.text }}
+                        </button>
+
+                        <a
+                            href="{{ url_for('products.suppliers') }}"
+                            class="btn btn-light border w-100 rounded-pill"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

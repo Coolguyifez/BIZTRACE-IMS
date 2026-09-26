@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0a84ff"
+    >
+
+    <title>Sign In</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+
+        :root {
+
+            --primary: #0a84ff;
+
+            --background: #f5f5f7;
+
+            --surface: rgba(255,255,255,.88);
+
+            --text: #1d1d1f;
+
+            --muted: #6e6e73;
+
+            --border: rgba(0,0,0,.08);
+
+        }
+
+
+        /* =====================================================
+        HIDE SCROLLBARS
+        ===================================================== */
+
+        /* Chrome, Edge, Safari */
+        html,
+        body,
+        .sidebar-inner {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        .sidebar-inner::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+
+        html[data-theme="dark"],
+        html.system-dark {
+
+            --background: #0f1115;
+
+            --surface: rgba(24,26,32,.90);
+
+            --text: #f5f5f7;
+
+            --muted: #a1a1a6;
+
+            --border: rgba(255,255,255,.10);
+
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+
+            color: var(--text);
+
+            background: var(--background);
+
+        }
+
+
+        .auth-page {
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 24px;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+
+        .background-orb {
+
+            position: absolute;
+
+            width: 420px;
+
+            height: 420px;
+
+            border-radius: 50%;
+
+            filter: blur(90px);
+
+            opacity: .18;
+
+            pointer-events: none;
+
+        }
+
+
+        .orb-one {
+
+            background: #0a84ff;
+
+            top: -180px;
+
+            left: -120px;
+
+        }
+
+
+        .orb-two {
+
+            background: #7c3aed;
+
+            right: -180px;
+
+            bottom: -180px;
+
+        }
+
+
+        .auth-wrapper {
+
+            width: 100%;
+
+            max-width: 1100px;
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: 32px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.12);
+
+            backdrop-filter: blur(24px);
+
+            -webkit-backdrop-filter: blur(24px);
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+
+        .auth-brand-panel {
+
+            min-height: 680px;
+
+            padding: 56px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(10,132,255,.14),
+                    transparent 60%
+                );
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: space-between;
+
+        }
+
+
+        .brand {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            color: var(--text);
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+            font-size: 20px;
+
+        }
+
+
+        .brand-icon {
+
+            width: 42px;
+
+            height: 42px;
+
+            border-radius: 13px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: var(--primary);
+
+            color: white;
+
+            box-shadow:
+                0 10px 25px rgba(10,132,255,.28);
+
+        }
+
+
+        .hero-content {
+
+            max-width: 440px;
+
+        }
+
+
+        .hero-badge {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 8px 13px;
+
+            border-radius: 999px;
+
+            background: rgba(10,132,255,.10);
+
+            color: var(--primary);
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            margin-bottom: 22px;
+
+        }
+
+
+        .hero-content h1 {
+
+            font-size: clamp(38px, 5vw, 60px);
+
+            line-height: 1.03;
+
+            letter-spacing: -2.5px;
+
+            font-weight: 750;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .hero-content p {
+
+            color: var(--muted);
+
+            font-size: 17px;
+
+            line-height: 1.7;
+
+        }
+
+
+        .feature-list {
+
+            margin-top: 34px;
+
+            display: grid;
+
+            gap: 15px;
+
+        }
+
+
+        .feature-item {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+        }
+
+
+        .feature-item i {
+
+            width: 30px;
+
+            height: 30px;
+
+            border-radius: 9px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: var(--primary);
+
+            background: rgba(10,132,255,.10);
+
+        }
+
+
+        .auth-form-panel {
+
+            padding: 56px;
+
+            display: flex;
+
+            align-items: center;
+
+        }
+
+
+        .auth-form {
+
+            width: 100%;
+
+            max-width: 420px;
+
+            margin: auto;
+
+        }
+
+
+        .mobile-brand {
+
+            display: none;
+
+        }
+
+
+        .auth-form h2 {
+
+            font-size: 32px;
+
+            font-weight: 750;
+
+            letter-spacing: -1px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .auth-subtitle {
+
+            color: var(--muted);
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .form-label {
+
+            font-size: 13px;
+
+            font-weight: 650;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .input-group-modern {
+
+            position: relative;
+
+        }
+
+
+        .input-group-modern > i {
+
+            position: absolute;
+
+            left: 16px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: var(--muted);
+
+            z-index: 5;
+
+        }
+
+
+        .modern-input {
+
+            width: 100%;
+
+            min-height: 54px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 15px;
+
+            background: rgba(127,127,127,.06);
+
+            color: var(--text);
+
+            padding: 0 48px;
+
+            outline: none;
+
+            transition: .2s ease;
+
+        }
+
+
+        .modern-input:focus {
+
+            border-color: var(--primary);
+
+            box-shadow:
+                0 0 0 4px rgba(10,132,255,.12);
+
+        }
+
+
+        .password-toggle {
+
+            position: absolute;
+
+            right: 10px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            border: 0;
+
+            background: transparent;
+
+            color: var(--muted);
+
+            width: 38px;
+
+            height: 38px;
+
+            border-radius: 10px;
+
+        }
+
+
+        .password-toggle:hover {
+
+            background: rgba(127,127,127,.10);
+
+        }
+
+
+        .form-check-input {
+
+            cursor: pointer;
+
+        }
+
+
+        .form-check-label {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+        }
+
+
+        .forgot-link {
+
+            color: var(--primary);
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            font-weight: 650;
+
+        }
+
+
+        .forgot-link:hover {
+
+            text-decoration: underline;
+
+        }
+
+
+        .btn-primary-modern {
+
+            width: 100%;
+
+            min-height: 54px;
+
+            border: 0;
+
+            border-radius: 15px;
+
+            background: var(--primary);
+
+            color: white;
+
+            font-weight: 700;
+
+            transition: .2s ease;
+
+            box-shadow:
+                0 10px 24px rgba(10,132,255,.22);
+
+        }
+
+
+        .btn-primary-modern:hover {
+
+            background: #0077ed;
+
+            transform: translateY(-1px);
+
+        }
+
+
+        .auth-footer {
+
+            margin-top: 24px;
+
+            text-align: center;
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+        }
+
+
+        .auth-footer a {
+
+            color: var(--primary);
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+        }
+
+
+        .alert {
+
+            border: 0;
+
+            border-radius: 14px;
+
+            font-size: 13px;
+
+        }
+
+
+        @media (max-width: 850px) {
+
+            .auth-wrapper {
+
+                max-width: 520px;
+
+                grid-template-columns: 1fr;
+
+            }
+
+            .auth-brand-panel {
+
+                display: none;
+
+            }
+
+            .auth-form-panel {
+
+                padding: 36px 28px;
+
+            }
+
+            .mobile-brand {
+
+                display: flex;
+
+                margin-bottom: 34px;
+
+            }
+
+        }
+
+
+        @media (max-width: 480px) {
+
+            .auth-page {
+
+                padding: 12px;
+
+            }
+
+            .auth-wrapper {
+
+                border-radius: 24px;
+
+            }
+
+            .auth-form-panel {
+
+                padding: 28px 20px;
+
+            }
+
+            .auth-form h2 {
+
+                font-size: 28px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="auth-page">
+
+    <div class="background-orb orb-one"></div>
+    <div class="background-orb orb-two"></div>
+
+    <div class="auth-wrapper">
+
+        <section class="auth-brand-panel">
+
+            <a
+                href="{{ url_for('auth.welcome') }}"
+                class="brand"
+            >
+
+                <span class="brand-icon">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </span>
+
+                <span>BizTrace<small><small class="text-primary"> IMS</small></small></span>
+
+            </a>
+
+
+            <div class="hero-content">
+
+                <span class="hero-badge">
+                    <i class="bi bi-stars"></i>
+                    Business management, simplified
+                </span>
+
+                <h1>
+                    Everything your business needs.
+                </h1>
+
+                <p>
+                    Manage sales, purchases, inventory,
+                    customers, suppliers and business
+                    performance from one connected workspace.
+                </p>
+
+
+                <div class="feature-list">
+
+                    <div class="feature-item">
+                        <i class="bi bi-check2"></i>
+                        Sales and customer management
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="bi bi-check2"></i>
+                        Real-time inventory visibility
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="bi bi-check2"></i>
+                        Purchase and supplier tracking
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="bi bi-check2"></i>
+                        Reports and financial insights
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <small class="text-body-muted">
+                © {{ now().year if now is defined else 2026 }}
+                BizTrace IMS
+            </small>
+
+        </section>
+
+
+        <section class="auth-form-panel">
+
+            <div class="auth-form">
+
+                <a
+                    href="{{ url_for('auth.welcome') }}"
+                    class="brand mobile-brand"
+                >
+
+                    <span class="brand-icon">
+                        <i class="bi bi-bar-chart-fill"></i>
+                </span>
+
+                <span>BizTrace<small><small class="text-primary"> IMS</small></small></span>
+                </a>
+
+
+                <h2>
+                    Welcome back
+                </h2>
+
+                <p class="auth-subtitle">
+                    Sign in to continue to your workspace.
+                </p>
+
+
+                {% with messages = get_flashed_messages(
+                    with_categories=true
+                ) %}
+
+                    {% if messages %}
+
+                        {% for category, message in messages %}
+
+                            <div
+                                class="alert alert-{{ category }} mb-3"
+                            >
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+                <form
+                    method="POST"
+                    novalidate
+                >
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+
+                    <div class="mb-3">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.email.id }}"
+                        >
+                            Email address
+                        </label>
+
+                        <div class="input-group-modern">
+
+                            <i class="bi bi-envelope"></i>
+
+                            {{ form.email(
+                                class="modern-input",
+                                placeholder="you@example.com",
+                                autocomplete="email"
+                            ) }}
+
+                        </div>
+
+                        {% for error in form.email.errors %}
+
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.password.id }}"
+                        >
+                            Password
+                        </label>
+
+                        <div class="input-group-modern">
+
+                            <i class="bi bi-lock"></i>
+
+                            {{ form.password(
+                                class="modern-input",
+                                placeholder="Enter your password",
+                                autocomplete="current-password",
+                                id="loginPassword"
+                            ) }}
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePassword(
+                                    'loginPassword',
+                                    this
+                                )"
+                                aria-label="Show password"
+                            >
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                        </div>
+
+                        {% for error in form.password.errors %}
+
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between
+                                align-items-center mb-4">
+
+                        <div class="form-check">
+
+                            {{ form.remember(
+                                class="form-check-input"
+                            ) }}
+
+                            <label
+                                class="form-check-label"
+                                for="{{ form.remember.id }}"
+                            >
+                                Remember me
+                            </label>
+
+                        </div>
+
+
+                        <a
+                            href="{{ url_for(
+                                'auth.forgot_password'
+                            ) }}"
+                            class="forgot-link"
+                        >
+                            Forgot password?
+                        </a>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn-primary-modern"
+                    >
+
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+
+                        Sign in
+
+                    </button>
+
+                </form>
+
+
+                <div class="auth-footer">
+
+                    Don't have an account?
+
+                    <a
+                        href="{{ url_for('auth.register') }}"
+                    >
+                        Create one
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function togglePassword(
+    inputId,
+    button
+) {
+
+    const input =
+        document.getElementById(inputId);
+
+    const icon =
+        button.querySelector("i");
+
+    if (
+        input.type === "password"
+    ) {
+
+        input.type = "text";
+
+        icon.className =
+            "bi bi-eye-slash";
+
+    } else {
+
+        input.type = "password";
+
+        icon.className =
+            "bi bi-eye";
+
+    }
+
+}
+
+
+(function () {
+
+    const root = document.documentElement;
+
+    const mediaQuery = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+    );
+
+
+    function applyTheme() {
+
+        const savedTheme =
+            localStorage.getItem("theme") || "system";
+
+
+        /* Remove previous theme states */
+
+        root.removeAttribute("data-theme");
+
+        root.classList.remove("system-dark");
+
+
+        /* DARK */
+
+        if (savedTheme === "dark") {
+
+            root.setAttribute(
+                "data-theme",
+                "dark"
+            );
+
+            return;
+        }
+
+
+        /* LIGHT */
+
+        if (savedTheme === "light") {
+
+            root.setAttribute(
+                "data-theme",
+                "light"
+            );
+
+            return;
+        }
+
+
+        /* SYSTEM */
+
+        if (savedTheme === "system") {
+
+            if (mediaQuery.matches) {
+
+                root.classList.add(
+                    "system-dark"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* Apply theme immediately */
+
+    applyTheme();
+
+
+    /* Watch for OS theme changes */
+
+    mediaQuery.addEventListener(
+        "change",
+        function () {
+
+            const savedTheme =
+                localStorage.getItem("theme") || "system";
+
+            if (savedTheme === "system") {
+
+                applyTheme();
+
+            }
+
+        }
+    );
+
+
+    /* Allow other pages/components to trigger a theme update */
+
+    window.addEventListener(
+        "themechange",
+        applyTheme
+    );
+
+
+})();
+</script>
+
+</body>
+
+</html>

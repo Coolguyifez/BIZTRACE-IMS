@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header mb-4">
+
+        <div>
+            <div class="page-eyebrow">
+                INVENTORY MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                Products
+            </h1>
+
+            <p class="page-subtitle">
+                Manage products, pricing, stock levels and inventory.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('products.categories') }}"
+                class="btn btn-light border rounded-pill"
+            >
+                <i class="bi bi-tags me-2"></i>
+                View Categories
+            </a>
+
+            <a
+                href="{{ url_for('products.new_product') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-plus-lg me-2"></i>
+                New Product
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILTERS -->
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-3">
+
+            <form method="GET">
+
+                <div class="row g-2">
+
+                    <div class="col-lg-6">
+
+                        <div class="search-field">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ search }}"
+                                class="form-control"
+                                placeholder="Search by product, SKU or barcode..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-lg-3">
+
+                        <select
+                            name="category"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All Categories
+                            </option>
+
+                            {% for category in categories %}
+
+                                <option
+                                    value="{{ category.id }}"
+                                    {% if selected_category == category.id %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ category.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-lg-3">
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-light border flex-grow-1"
+                            >
+                                <i class="bi bi-funnel me-1"></i>
+                                Filter
+                            </button>
+
+                            {% if search or selected_category %}
+
+                                <a
+                                    href="{{ url_for('products.products') }}"
+                                    class="btn btn-light border"
+                                    title="Clear filters"
+                                >
+                                    <i class="bi bi-x-lg"></i>
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCT TABLE -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="mb-1 fw-semibold">
+                        Product Catalog
+                    </h5>
+
+                    <small class="text-muted">
+                        {{ products|length }}
+                        product{{ '' if products|length == 1 else 's' }}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if products %}
+
+        <div class="table-responsive">
+
+            <table class="table align-middle mb-0">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="ps-4">
+                            Product
+                        </th>
+
+                        <th>
+                            SKU
+                        </th>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th>
+                            Purchase
+                        </th>
+
+                        <th>
+                            Selling
+                        </th>
+
+                        <th>
+                            Stock
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-end pe-4">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                {% for product in products %}
+
+                    <tr>
+
+                        <!-- PRODUCT -->
+                        <td class="ps-4">
+
+                            <div class="d-flex align-items-center gap-3">
+
+                                <div class="icon-box bg-primary-subtle text-primary">
+
+                                    <i class="bi bi-box-seam"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="fw-semibold text-dark">
+                                        {{ product.name }}
+                                    </div>
+
+                                    {% if product.barcode %}
+
+                                        <small class="text-muted">
+                                            {{ product.barcode }}
+                                        </small>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- SKU -->
+                        <td>
+
+                            <code>
+                                {{ product.sku }}
+                            </code>
+
+                        </td>
+
+
+                        <!-- CATEGORY -->
+                        <td>
+
+                            {% if product.category %}
+
+                                <span class="badge text-bg-secondary">
+                                    {{ product.category.name }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    Uncategorized
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- PURCHASE PRICE -->
+                        <td>
+
+                            <span class="fw-medium text-muted">
+                                {{ format_currency(product.purchase_price) }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- SELLING PRICE -->
+                        <td>
+
+                            <span class="fw-semibold text-dark">
+                                {{ format_currency(product.selling_price) }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- STOCK -->
+                        <td>
+
+                            <div>
+
+                                <span class="fw-semibold text-dark">
+                                    {{ "{:,.1f}".format(product.quantity) }}
+                                </span>
+
+                                <small class="text-muted">
+                                    {{ product.unit }}
+                                </small>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- STATUS -->
+                        <td>
+
+                            {% if product.quantity <= 0 %}
+
+                                <span class="badge rounded-pill text-bg-danger">
+                                    Out of Stock
+                                </span>
+
+                            {% elif product.is_low_stock %}
+
+                                <span class="badge rounded-pill text-bg-warning">
+                                    Low Stock
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge rounded-pill text-bg-success">
+                                    In Stock
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ACTIONS -->
+                        <td class="text-end pe-4">
+
+                            <div class="dropdown">
+
+                                <button
+                                    class="btn btn-sm btn-light rounded-circle"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    title="Product actions"
+                                >
+
+                                    <i class="bi bi-three-dots"></i>
+
+                                </button>
+
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+
+                                    <!-- EDIT -->
+                                    <li>
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ url_for('products.edit_product', product_id=product.id) }}"
+                                        >
+
+                                            <i class="bi bi-pencil me-2"></i>
+                                            Edit Product
+
+                                        </a>
+
+                                    </li>
+
+
+                                    <!-- ADJUST STOCK -->
+                                    <li>
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{{ url_for('inventory.adjust_stock', product_id=product.id) }}"
+                                        >
+
+                                            <i class="bi bi-box-arrow-in-down me-2"></i>
+                                            Adjust Stock
+
+                                        </a>
+
+                                    </li>
+
+
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+
+
+                                    <!-- DELETE -->
+                                    <li>
+
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('products.delete_product', product_id=product.id) }}"
+                                            onsubmit="return confirm('Delete this product?');"
+                                        >
+
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="dropdown-item text-danger"
+                                            >
+
+                                                <i class="bi bi-trash me-2"></i>
+                                                Delete Product
+
+                                            </button>
+
+                                        </form>
+
+                                    </li>
+
+                                </ul>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% else %}
+
+        <!-- EMPTY STATE -->
+
+        <div class="empty-state text-center">
+
+            <div class="empty-state-icon mb-3">
+
+                <i class="bi bi-box-seam"></i>
+
+            </div>
+
+            <h5>
+                No products found
+            </h5>
+
+            <p class="text-muted mb-4">
+
+                {% if search or selected_category %}
+
+                    Try changing your search or filter.
+
+                {% else %}
+
+                    Add your first product to start managing inventory.
+
+                {% endif %}
+
+            </p>
+
+
+            {% if search or selected_category %}
+
+                <a
+                    href="{{ url_for('products.products') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    Clear Filters
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{{ url_for('products.new_product') }}"
+                    class="btn btn-primary rounded-pill px-4"
+                >
+
+                    <i class="bi bi-plus-lg me-2"></i>
+                    Add Product
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

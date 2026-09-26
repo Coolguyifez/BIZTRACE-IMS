@@ -1,0 +1,58 @@
+{
+    "name": "BizTrace IMS",
+    "short_name": "BizTrace",
+    "description": "Business Purchase, Sales and Inventory Management System",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#f5f7fb",
+    "theme_color": "#0a84ff",
+    "categories": [
+        "business",
+        "productivity",
+        "finance"
+    ],
+    "icons": [
+        {
+            "src": "/static/icons/3.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/4.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/5.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/6.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/9.png",
+            "sizes": "152x152",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/7.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/8.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icons/1.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block title %}
+Purchases
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                BUSINESS MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                Purchases
+            </h1>
+
+            <p class="text-muted mb-0">
+                Manage supplier purchases and inventory replenishment.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a
+                href="{{ url_for('purchases.new_purchase') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-bag-check me-1"></i>
+                New Purchase
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-3">
+
+            <form
+                method="GET"
+                action="{{ url_for('purchases.purchases') }}"
+            >
+
+                <div class="row g-2">
+
+                    <div class="col-md-9">
+
+                        <div class="search-field">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="search"
+                                class="form-control"
+                                placeholder="Search purchase number..."
+                                value="{{ search }}"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <button
+                            type="submit"
+                            class="btn btn-light border w-100"
+                        >
+                            <i class="bi bi-search me-1"></i>
+                            Search
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PURCHASE TABLE
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 p-4">
+
+            <h5 class="mb-1 fw-semibold">
+                Purchase Directory
+            </h5>
+
+            <small class="text-muted">
+
+                {{ purchases|length }}
+
+                purchase{{ '' if purchases|length == 1 else 's' }}
+
+            </small>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if purchases %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="px-3">
+                                Purchase No.
+                            </th>
+
+                            <th>
+                                Order Date
+                            </th>
+
+                            <th>
+                                Expected Date
+                            </th>
+
+                            <th>
+                                Supplier
+                            </th>
+
+                            <th>
+                                Items
+                            </th>
+
+                            <th>
+                                Total
+                            </th>
+
+                            <th>
+                                Paid
+                            </th>
+
+                            <th>
+                                Balance
+                            </th>
+
+                            <th>
+                                Payment
+                            </th>
+
+                            <th class="text-end px-3">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for purchase in purchases %}
+
+                        <tr>
+
+                            <!-- =================================
+                                 PURCHASE NUMBER
+                            ================================== -->
+
+                            <td class="ps-4">
+
+                                <div class="d-flex align-items-center gap-3">
+
+                                    <div
+                                        class="icon-box bg-primary-subtle text-primary"
+                                    >
+                                        <i class="bi bi-bag-check"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <div class="fw-semibold text-dark">
+                                            {{ purchase.purchase_number }}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- =================================
+                                 PURCHASE DATE
+                            ================================== -->
+
+                            <td>
+
+                                <span class="text-dark">
+
+                                    {{ format_company_date(
+                                        purchase.purchase_date
+                                    ) }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- =================================
+                                 EXPECTED DELIVERY DATE
+                            ================================== -->
+
+                            <td>
+
+                                <span class="text-dark">
+
+                                    {% if purchase.expected_delivery_date %}
+
+                                        {{ format_company_date(
+                                            purchase.expected_delivery_date
+                                        ) }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- =================================
+                                 SUPPLIER
+                            ================================== -->
+
+                            <td>
+
+                                {% if purchase.supplier %}
+
+                                    <span class="badge text-bg-secondary">
+
+                                        {{ purchase.supplier.name }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        No Supplier
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- =================================
+                                 ITEMS
+                            ================================== -->
+
+                            <td>
+
+                                <span class="text-dark">
+
+                                    {{ purchase.items|length }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- =================================
+                                 TOTAL
+                            ================================== -->
+
+                            <td class="text-muted">
+
+                                {{ format_currency(
+                                    purchase.total
+                                ) }}
+
+                            </td>
+
+
+                            <!-- =================================
+                                 PAID
+                            ================================== -->
+
+                            <td class="fw-semibold text-dark">
+
+                                {{ format_currency(
+                                    purchase.paid_amount
+                                ) }}
+
+                            </td>
+
+
+                            <!-- =================================
+                                 BALANCE
+                            ================================== -->
+
+                            <td>
+
+                                {% if purchase.balance > 0 %}
+
+                                    <span class="text-danger fw-semibold">
+
+                                        {{ format_currency(
+                                            purchase.balance
+                                        ) }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-success">
+
+                                        {{ format_currency(0) }}
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- =================================
+                                 PAYMENT STATUS
+                            ================================== -->
+
+                            <td>
+
+                                {% if purchase.payment_status == "Paid" %}
+
+                                    <span
+                                        class="badge bg-success-subtle text-success"
+                                    >
+                                        Paid
+                                    </span>
+
+                                {% elif purchase.payment_status == "Partially Paid" %}
+
+                                    <span
+                                        class="badge bg-warning-subtle text-warning"
+                                    >
+                                        Partially Paid
+                                    </span>
+
+                                {% else %}
+
+                                    <span
+                                        class="badge bg-danger-subtle text-danger"
+                                    >
+                                        Unpaid
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- =================================
+                                 ACTIONS
+                            ================================== -->
+
+                            <td class="text-end pe-4">
+
+                                <div class="dropdown">
+
+                                    <button
+                                        class="btn btn-sm btn-light rounded-circle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                        title="Purchase actions"
+                                    >
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+
+
+                                    <ul
+                                        class="dropdown-menu dropdown-menu-end"
+                                    >
+
+                                        <!-- VIEW -->
+
+                                        <li>
+
+                                            <a
+                                                class="dropdown-item"
+                                                href="{{ url_for(
+                                                    'purchases.view_purchase',
+                                                    purchase_id=purchase.id
+                                                ) }}"
+                                            >
+
+                                                <i class="bi bi-eye me-2"></i>
+
+                                                View Purchase
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <!-- EDIT -->
+
+                                        <li>
+
+                                            <a
+                                                class="dropdown-item"
+                                                href="{{ url_for(
+                                                    'purchases.edit_purchase',
+                                                    purchase_id=purchase.id
+                                                ) }}"
+                                            >
+
+                                                <i class="bi bi-pencil me-2"></i>
+
+                                                Edit Purchase
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <hr class="dropdown-divider">
+
+                                        </li>
+
+
+                                        <!-- DELETE -->
+
+                                        <li>
+
+                                            <form
+                                                method="POST"
+                                                action="{{ url_for(
+                                                    'purchases.delete_purchase',
+                                                    purchase_id=purchase.id
+                                                ) }}"
+                                                onsubmit="return confirm(
+                                                    'Delete this purchase? The purchased quantities will be removed from inventory.'
+                                                );"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="{{ csrf_token() }}"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="dropdown-item text-danger"
+                                                >
+
+                                                    <i class="bi bi-trash me-2"></i>
+
+                                                    Delete Purchase
+
+                                                </button>
+
+                                            </form>
+
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 EMPTY STATE
+            ================================================== -->
+
+            {% else %}
+
+                <div class="empty-state text-center py-5">
+
+                    <div class="empty-state-icon mb-3">
+
+                        <i class="bi bi-bag-x"></i>
+
+                    </div>
+
+                    <h5>
+                        No purchases found
+                    </h5>
+
+                    <p class="text-muted">
+                        Start by creating your first purchase.
+                    </p>
+
+                    <a
+                        href="{{ url_for('purchases.new_purchase') }}"
+                        class="btn btn-primary rounded-pill px-4"
+                    >
+
+                        <i class="bi bi-bag-check me-1"></i>
+
+                        Add Purchase
+
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

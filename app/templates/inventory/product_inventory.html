@@ -1,0 +1,760 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ product.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                INVENTORY DETAILS
+            </div>
+
+            <h1 class="page-title">
+                {{ product.name }}
+            </h1>
+
+            <p class="page-subtitle">
+                View stock levels, reservations and inventory movements
+                for this product.
+            </p>
+
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('inventory.inventory') }}"
+                class="btn btn-light border rounded-pill px-4"
+            >
+                <i class="bi bi-arrow-left me-2"></i>
+                Inventory
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'inventory.adjust_stock',
+                    product=product.id
+                ) }}"
+                class="btn btn-light border rounded-pill"
+            >
+                <i class="bi bi-sliders me-1"></i>
+                Adjust Stock
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'inventory.reserve_stock',
+                    product=product.id
+                ) }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-bookmark-check me-1"></i>
+                Reserve / Release
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRODUCT SUMMARY
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row g-4 align-items-center">
+
+                <div class="col-lg-7">
+
+                    <div class="d-flex align-items-start gap-3">
+
+                        <div
+                            class="rounded-4 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                            style="width: 64px; height: 64px;"
+                        >
+                            <i class="bi bi-box-seam fs-3"></i>
+                        </div>
+
+                        <div>
+
+                            <h4 class="fw-semibold mb-1">
+                                {{ product.name }}
+                            </h4>
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <span class="badge bg-light text-secondary border">
+                                    SKU: <code>{{ product.sku }}</code>
+                                </span>
+
+                                {% if product.barcode %}
+
+                                    <span class="badge bg-light text-muted border">
+                                        Barcode: {{ product.barcode }}
+                                    </span>
+
+                                {% endif %}
+
+                                {% if product.category %}
+
+                                    <span class="badge bg-light text-secondary border">
+                                        {{ product.category.name }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-lg-5">
+
+                    <div class="row g-3">
+
+                        <!-- UNIT -->
+
+                        <div class="col-4">
+
+                            <div class="text-muted small mb-1">
+                                Unit
+                            </div>
+
+                            <div class="fw-semibold">
+                                {{ product.unit }}
+                            </div>
+
+                        </div>
+
+
+                        <!-- PURCHASE PRICE -->
+
+                        <div class="col-4">
+
+                            <div class="text-muted small mb-1">
+                                Purchase Price
+                            </div>
+
+                            <div class="fw-semibold responsive-money">
+                                {{ format_currency(product.purchase_price or 0) }}
+                            </div>
+
+                        </div>
+
+
+                        <!-- SELLING PRICE -->
+
+                        <div class="col-4">
+
+                            <div class="text-muted small mb-1">
+                                Selling Price
+                            </div>
+
+                            <div class="fw-semibold responsive-money">
+                                {{ format_currency(product.selling_price or 0) }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STOCK STATISTICS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PHYSICAL -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Physical Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(quantity) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                {{ product.unit }}
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESERVED -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Reserved
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(reserved_quantity) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                {{ product.unit }} reserved
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-bookmark-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AVAILABLE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Available
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(available_quantity) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                {{ product.unit }} available
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-success-subtle text-success">
+                            <i class="bi bi-boxes"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STOCK VALUE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Stock Value
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(stock_value) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                Based on purchase cost
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-info-subtle text-info">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STOCK STATUS
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap justify-content-between
+                        align-items-center gap-3">
+
+                <div>
+
+                    <div class="fw-semibold mb-1">
+                        Current Stock Status
+                    </div>
+
+                    <div class="text-muted small">
+                        Minimum stock level:
+
+                        <strong>
+                            {{ "{:,.1f}".format(
+                                product.minimum_stock or 0
+                            ) }}
+                        </strong>
+
+                        {{ product.unit }}
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    {% if quantity <= 0 %}
+
+                        <span class="badge text-bg-danger px-3 py-2">
+                            <i class="bi bi-x-circle me-1"></i>
+                            Out of Stock
+                        </span>
+
+                    {% elif product.is_low_stock %}
+
+                        <span class="badge text-bg-warning px-3 py-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Low Stock
+                        </span>
+
+                    {% elif available_quantity <= 0 %}
+
+                        <span class="badge text-bg-secondary px-3 py-2">
+                            <i class="bi bi-bookmark-check me-1"></i>
+                            Fully Reserved
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge text-bg-success px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>
+                            In Stock
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INVENTORY MOVEMENT HISTORY
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <div class="d-flex flex-wrap justify-content-between
+                        align-items-center gap-3">
+
+                <div>
+
+                    <h5 class="mb-1 fw-semibold">
+                        Inventory Movement History
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        Every stock adjustment and reservation movement
+                        recorded for this product.
+                    </p>
+
+                </div>
+
+                <span class="badge bg-light text-secondary border">
+
+                    {{ transactions|length }}
+
+                    movement{{ 's' if transactions|length != 1 else '' }}
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Date
+                            </th>
+
+                            <th>
+                                Movement
+                            </th>
+
+                            <th>
+                                Quantity
+                            </th>
+
+                            <th>
+                                Reference
+                            </th>
+
+                            <th>
+                                Notes
+                            </th>
+
+                            <th class="text-end pe-4">
+                                User
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for transaction in transactions %}
+
+                        <tr>
+
+                            <!-- DATE -->
+
+                            <td class="ps-4">
+
+                                <div class="fw-semibold text-dark">
+
+                                    {% if transaction.created_at %}
+
+                                        {{ format_company_date(
+                                            transaction.created_at
+                                        ) }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    {% if transaction.created_at %}
+
+                                        {{ format_company_time(
+                                            transaction.created_at
+                                        ) }}
+
+                                    {% endif %}
+
+                                </small>
+
+                            </td>
+
+
+                            <!-- MOVEMENT -->
+
+                            <td>
+
+                                {% if transaction.transaction_type == "Adjustment" %}
+
+                                    {% if transaction.quantity > 0 %}
+
+                                        <span class="badge text-bg-success">
+                                            <i class="bi bi-arrow-up me-1"></i>
+                                            Stock Increase
+                                        </span>
+
+                                    {% elif transaction.quantity < 0 %}
+
+                                        <span class="badge text-bg-danger">
+                                            <i class="bi bi-arrow-down me-1"></i>
+                                            Stock Decrease
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge text-bg-secondary">
+                                            Adjustment
+                                        </span>
+
+                                    {% endif %}
+
+
+                                {% elif transaction.transaction_type == "Opening Stock" %}
+
+                                    <span class="badge text-bg-primary">
+                                        <i class="bi bi-box-seam me-1"></i>
+                                        Opening Stock
+                                    </span>
+
+
+                                {% elif transaction.transaction_type == "Reservation" %}
+
+                                    <span class="badge text-bg-warning">
+                                        <i class="bi bi-bookmark-plus me-1"></i>
+                                        Reservation
+                                    </span>
+
+
+                                {% elif transaction.transaction_type == "Reservation Release" %}
+
+                                    <span class="badge text-bg-success">
+                                        <i class="bi bi-bookmark-dash me-1"></i>
+                                        Reservation Release
+                                    </span>
+
+
+                                {% else %}
+
+                                    <span class="badge bg-light text-secondary border">
+                                        {{ transaction.transaction_type }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- QUANTITY -->
+
+                            <td>
+
+                                {% if transaction.quantity > 0 %}
+
+                                    <span class="text-success fw-semibold">
+                                        +{{ "{:,.3f}".format(
+                                            transaction.quantity
+                                        ) }}
+                                    </span>
+
+                                {% elif transaction.quantity < 0 %}
+
+                                    <span class="text-danger fw-semibold">
+                                        {{ "{:,.3f}".format(
+                                            transaction.quantity
+                                        ) }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        0.000
+                                    </span>
+
+                                {% endif %}
+
+                                <small class="text-muted">
+                                    {{ product.unit }}
+                                </small>
+
+                            </td>
+
+
+                            <!-- REFERENCE -->
+
+                            <td>
+
+                                {% if transaction.reference_type %}
+
+                                    <div class="fw-semibold small text-dark">
+                                        {{ transaction.reference_type }}
+                                    </div>
+
+                                    {% if transaction.reference_id %}
+
+                                        <small class="text-muted">
+                                            #{{ transaction.reference_id }}
+                                        </small>
+
+                                    {% endif %}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- NOTES -->
+
+                            <td>
+
+                                {% if transaction.notes %}
+
+                                    <span
+                                        class="text-muted small"
+                                        title="{{ transaction.notes }}"
+                                    >
+                                        {{ transaction.notes|truncate(60) }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- USER -->
+
+                            <td class="text-end pe-4">
+
+                                {% if transaction.user %}
+
+                                    <span class="small fw-semibold text-dark">
+                                        {{ transaction.user.username }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        System
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="text-center"
+                            >
+
+                                <div class="empty-state py-5">
+
+                                    <div class="empty-state-icon">
+                                        <i class="bi bi-clock-history"></i>
+                                    </div>
+
+                                    <h5 class="mt-3">
+                                        No inventory movements
+                                    </h5>
+
+                                    <p class="text-muted mb-0">
+                                        No stock adjustments or reservations
+                                        have been recorded for this product.
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

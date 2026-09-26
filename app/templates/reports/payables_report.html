@@ -1,0 +1,2004 @@
+{% extends "base.html" %}
+
+{% block title %}
+Payables Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-arrow-up-right-circle fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Payables Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Supplier balances and payment obligations
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printPayablesReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+
+                    {{ current_user.company.phone }}
+
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+
+                    &nbsp; | &nbsp;
+
+                {% endif %}
+
+                {% if current_user.company.email %}
+
+                    {{ current_user.company.email }}
+
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Payables Report
+            </h2>
+
+            <div>
+
+                Reporting Period:
+
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.payables_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        id="start_date"
+                        type="date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        id="end_date"
+                        type="date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.payables_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL PURCHASES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Purchases
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_purchases) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-primary">
+                                    {{ total_purchase_count }}
+                                </span>
+
+                                transaction{{ "" if total_purchase_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-bag-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL PAID -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Amount Paid
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_paid) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Payments made to suppliers
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OUTSTANDING -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Outstanding Payables
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_payables) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Amount owed to suppliers
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUPPLIERS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Suppliers Owed
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ supplier_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Suppliers with outstanding balances
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-building"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT STATUS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PAYMENT STATUS CHART -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Purchase Payment Status
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Purchase invoices grouped by payment status
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="paymentStatusChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AGING CHART -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Payables Aging
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Outstanding supplier balances by age
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="agingChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         AGING SUMMARY
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- 0-30 -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                0 – 30 Days
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(aging_0_30) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Current supplier obligations
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 31-60 -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                31 – 60 Days
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(aging_31_60) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Outstanding obligations
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 61-90 -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                61 – 90 Days
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(aging_61_90) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Older supplier obligations
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 91+ -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                91+ Days
+                            </div>
+
+                            <div class="stats-card-value responsive-money text-danger">
+                                {{ format_currency(aging_91_plus) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Long outstanding obligations
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUPPLIER BREAKDOWN
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4 d-print-none">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <h5 class="fw-bold mb-1">
+                Supplier Payables
+            </h5>
+
+            <p class="text-secondary small mb-0">
+                Outstanding balances grouped by supplier
+            </p>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if supplier_breakdown %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Supplier
+                                </th>
+
+                                <th class="text-end">
+                                    Purchases
+                                </th>
+
+                                <th class="text-end">
+                                    Paid
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Outstanding
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in supplier_breakdown %}
+
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold text-dark">
+                                        {{ row.supplier }}
+                                    </td>
+
+                                    <td class="text-end text-dark">
+                                        {{ format_currency(row.total) }}
+                                    </td>
+
+                                    <td class="text-end text-success">
+                                        {{ format_currency(row.paid) }}
+                                    </td>
+
+                                    <td class="text-end pe-4 fw-semibold text-danger">
+                                        {{ format_currency(row.balance) }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5 text-secondary">
+
+                    <div class="fw-semibold">
+                        No supplier payables
+                    </div>
+
+                    <div class="small">
+                        No outstanding supplier balances were found.
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Payables Report
+                </div>
+
+                <div class="small">
+
+                    This report shows purchase obligations recorded
+                    during the selected reporting period, including
+                    amounts paid and outstanding supplier balances.
+
+                    Aging is calculated from the purchase date because
+                    the current purchase model does not contain a
+                    supplier invoice due date.
+
+                    Detailed purchase records are included when
+                    exporting or printing this report.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="payablesExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+
+                        {{ current_user.company.phone }}
+
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+
+                        &nbsp; | &nbsp;
+
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+
+                        {{ current_user.company.email }}
+
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Payables Report
+                </h3>
+
+                <div>
+
+                    Reporting Period:
+
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Purchases
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_purchases) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Amount Paid
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_paid) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Outstanding
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_payables) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Suppliers Owed
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ supplier_count }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Payables Analysis
+                </h4>
+
+                <div class="row g-4">
+
+                    <!-- PAYMENT STATUS -->
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Payment Status
+                            </h5>
+
+                            <img
+                                id="exportPaymentStatus"
+                                class="img-fluid w-100"
+                                alt="Purchase payment status chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- AGING -->
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Payables Aging
+                            </h5>
+
+                            <img
+                                id="exportAging"
+                                class="img-fluid w-100"
+                                alt="Payables aging chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SUPPLIER BREAKDOWN
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Supplier Payables Breakdown
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Supplier
+                            </th>
+
+                            <th class="text-end">
+                                Purchases
+                            </th>
+
+                            <th class="text-end">
+                                Paid
+                            </th>
+
+                            <th class="text-end">
+                                Outstanding
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in supplier_breakdown %}
+
+                            <tr>
+
+                                <td>
+                                    {{ row.supplier }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(row.total) }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(row.paid) }}
+                                </td>
+
+                                <td class="text-end fw-semibold">
+                                    {{ format_currency(row.balance) }}
+                                </td>
+
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="text-center py-3"
+                                >
+                                    No supplier payables found.
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                    {% if supplier_breakdown %}
+
+                        <tfoot>
+
+                            <tr class="fw-bold">
+
+                                <td class="text-end">
+                                    Total
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(total_purchases) }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(total_paid) }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(total_payables) }}
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    {% endif %}
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 AGING BREAKDOWN
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Payables Aging Breakdown
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Aging Period
+                            </th>
+
+                            <th class="text-end">
+                                Outstanding Amount
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                0 – 30 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_0_30) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                31 – 60 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_31_60) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                61 – 90 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_61_90) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                91+ Days
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                {{ format_currency(aging_91_plus) }}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                    <tfoot>
+
+                        <tr class="fw-bold">
+
+                            <td class="text-end">
+                                Total Outstanding
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(total_payables) }}
+                            </td>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 DETAILED PURCHASE TRANSACTIONS
+            ================================================== -->
+
+            <div>
+
+                <h4 class="fw-bold mb-3">
+                    Purchase Transactions
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Purchase
+                                </th>
+
+                                <th>
+                                    Supplier
+                                </th>
+
+                                <th>
+                                    Total
+                                </th>
+
+                                <th>
+                                    Paid
+                                </th>
+
+                                <th>
+                                    Balance
+                                </th>
+
+                                <th>
+                                    Payment Status
+                                </th>
+
+                                <th>
+                                    Aging
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in export_rows %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ format_company_date(row.date) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.purchase_number }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.supplier }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.total) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.paid) }}
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        {{ format_currency(row.balance) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.payment_status }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.aging }}
+                                    </td>
+
+                                </tr>
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="8"
+                                        class="text-center py-4"
+                                    >
+                                        No purchase transactions found
+                                        for the selected period.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                        {% if export_rows %}
+
+                            <tfoot>
+
+                                <tr class="fw-bold">
+
+                                    <td
+                                        colspan="3"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_purchases) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_paid) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_payables) }}
+                                    </td>
+
+                                    <td></td>
+
+                                    <td></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        {% endif %}
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT NOTE
+            ================================================== -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Payables represent outstanding balances on
+                    purchase transactions recorded during the
+                    selected reporting period.
+
+                    Aging is calculated from the purchase date because
+                    supplier invoice due dates are not currently stored
+                    in the purchase model.
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT FOOTER
+            ================================================== -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="text-center small text-secondary mt-4">
+
+                    {{ current_user.company.name }}
+                    · Payables Report
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     COMPANY SETTINGS FOR JAVASCRIPT
+========================================================= -->
+
+<script>
+
+window.BizFlowSettings = {
+
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+
+};
+
+</script>
+
+
+<!-- =========================================================
+     CHART.JS
+========================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       COMPANY CURRENCY
+    ====================================================== */
+
+    const settings =
+        window.BizFlowSettings || {};
+
+    const currencySymbol =
+        settings.currencySymbol || "₦";
+
+    const decimalPlaces =
+        Number.isInteger(
+            Number(settings.decimalPlaces)
+        )
+            ? Number(settings.decimalPlaces)
+            : 2;
+
+
+    /* =====================================================
+       FORMAT MONEY
+    ====================================================== */
+
+    function formatChartMoney(value) {
+
+        const numericValue =
+            Number(value || 0);
+
+        const formatted =
+            numericValue.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits:
+                        decimalPlaces,
+
+                    maximumFractionDigits:
+                        decimalPlaces
+                }
+            );
+
+        if (
+            settings.currencyPosition ===
+            "after"
+        ) {
+
+            return (
+                formatted +
+                " " +
+                currencySymbol
+            );
+
+        }
+
+        return (
+            currencySymbol +
+            formatted
+        );
+
+    }
+
+
+    /* =====================================================
+       DATA FROM FLASK
+    ====================================================== */
+
+    const paymentStatus =
+        {{ payment_status_chart | tojson }};
+
+
+    const agingData =
+        {{ aging_chart | tojson }};
+
+
+    /* =====================================================
+       PAYMENT STATUS CHART
+    ====================================================== */
+
+    const paymentStatusCanvas =
+        document.getElementById(
+            "paymentStatusChart"
+        );
+
+
+    if (paymentStatusCanvas) {
+
+        const paymentStatusChart =
+            new Chart(
+                paymentStatusCanvas,
+                {
+                    type: "doughnut",
+
+                    data: {
+
+                        labels: paymentStatus.map(
+                            item => item.status
+                        ),
+
+                        datasets: [
+
+                            {
+
+                                data: paymentStatus.map(
+                                    item => item.total
+                                ),
+
+                                backgroundColor:
+                                    paymentStatus.map(
+                                        item => {
+
+                                            if (
+                                                item.status ===
+                                                "Paid"
+                                            ) {
+
+                                                return "#198754";
+
+                                            }
+
+                                            if (
+                                                item.status ===
+                                                "Partially Paid"
+                                            ) {
+
+                                                return "#ffc107";
+
+                                            }
+
+                                            if (
+                                                item.status ===
+                                                "Unpaid"
+                                            ) {
+
+                                                return "#dc3545";
+
+                                            }
+
+                                            return "#6c757d";
+
+                                        }
+                                    ),
+
+                                borderWidth: 0
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom"
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                context.label +
+                                                ": " +
+                                                formatChartMoney(
+                                                    context.raw
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           PREPARE PAYMENT STATUS EXPORT
+        ================================================== */
+
+        window.preparePaymentStatusExport =
+            function () {
+
+                const image =
+                    document.getElementById(
+                        "exportPaymentStatus"
+                    );
+
+                if (image) {
+
+                    image.src =
+                        paymentStatusChart
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+            };
+
+    }
+
+
+    /* =====================================================
+       AGING CHART
+    ====================================================== */
+
+    const agingCanvas =
+        document.getElementById(
+            "agingChart"
+        );
+
+
+    if (agingCanvas) {
+
+        const agingChart =
+            new Chart(
+                agingCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels: agingData.map(
+                            item => item.label
+                        ),
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Outstanding",
+
+                                data:
+                                    agingData.map(
+                                        item =>
+                                            item.total
+                                    ),
+
+                                backgroundColor:
+                                    agingData.map(
+                                        item => {
+
+                                            if (
+                                                item.label ===
+                                                "0–30 Days"
+                                            ) {
+
+                                                return "#f4bec3";
+
+                                            }
+
+                                            if (
+                                                item.label ===
+                                                "31–60 Days"
+                                            ) {
+
+                                                return "#f0a8af";
+
+                                            }
+
+                                            if (
+                                                item.label ===
+                                                "61–90 Days"
+                                            ) {
+
+                                                return "#e87d88";
+
+                                            }
+
+                                            if (
+                                                item.label ===
+                                                "91+ Days"
+                                            ) {
+
+                                                return "#e05260";
+
+                                            }
+
+                                            return "#6c757d";
+
+                                        }
+                                    ),
+
+                                borderWidth: 0
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                display: false
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return formatChartMoney(
+                                                context.raw
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return formatChartMoney(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           PREPARE AGING EXPORT
+        ================================================== */
+
+        window.prepareAgingExport =
+            function () {
+
+                const image =
+                    document.getElementById(
+                        "exportAging"
+                    );
+
+                if (image) {
+
+                    image.src =
+                        agingChart
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+            };
+
+    }
+
+
+    /* =====================================================
+       PREPARE EXPORT CHARTS
+    ====================================================== */
+
+    window.preparePayablesExport =
+        function () {
+
+            if (
+                typeof window.preparePaymentStatusExport ===
+                "function"
+            ) {
+
+                window.preparePaymentStatusExport();
+
+            }
+
+            if (
+                typeof window.prepareAgingExport ===
+                "function"
+            ) {
+
+                window.prepareAgingExport();
+
+            }
+
+        };
+
+
+    /* =====================================================
+       DATE FILTER
+    ====================================================== */
+
+    const startDate =
+        document.getElementById(
+            "start_date"
+        );
+
+
+    const endDate =
+        document.getElementById(
+            "end_date"
+        );
+
+
+    if (
+        startDate &&
+        endDate
+    ) {
+
+        startDate.addEventListener(
+            "change",
+            function () {
+
+                if (this.value) {
+
+                    endDate.min =
+                        this.value;
+
+                }
+
+            }
+        );
+
+
+        endDate.addEventListener(
+            "change",
+            function () {
+
+                if (this.value) {
+
+                    startDate.max =
+                        this.value;
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+
+/* =========================================================
+   PRINT / EXPORT PAYABLES REPORT
+========================================================= */
+
+function printPayablesReport() {
+
+    if (
+        typeof window.preparePayablesExport ===
+        "function"
+    ) {
+
+        window.preparePayablesExport();
+
+    }
+
+
+    const exportSection =
+        document.getElementById(
+            "payablesExportSection"
+        );
+
+
+    if (!exportSection) {
+
+        return;
+
+    }
+
+
+    const originalBody =
+        document.body.innerHTML;
+
+
+    const exportContent =
+        exportSection.innerHTML;
+
+
+    document.body.innerHTML =
+        exportContent;
+
+
+    window.print();
+
+
+    document.body.innerHTML =
+        originalBody;
+
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

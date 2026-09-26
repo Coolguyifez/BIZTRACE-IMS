@@ -1,0 +1,916 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ user.username }} | User
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2 mb-1">
+
+                <a
+                    href="{{ url_for('company_admin.users') }}"
+                    class="btn btn-sm btn-light border rounded-pill"
+                    title="Back to Users"
+                >
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <h1 class="h3 fw-bold mb-0">
+                    User Details
+                </h1>
+
+            </div>
+
+            <p class="text-secondary mb-0">
+                View account information, roles, and access permissions.
+            </p>
+
+        </div>
+
+
+        {% if current_user.has_permission("manage_users") %}
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('company_admin.user_edit', user_id=user.id) }}"
+                    class="btn btn-primary rounded-pill px-4"
+                >
+                    <i class="bi bi-pencil me-2"></i>
+                    Edit User
+                </a>
+
+
+                {% if user.id != current_user.id %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('company_admin.user_toggle', user_id=user.id) }}"
+                        class="d-inline"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        {% if user.is_active %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger rounded-pill px-4"
+                                onclick="return confirm('Are you sure you want to deactivate this user?');"
+                            >
+                                <i class="bi bi-person-dash me-1"></i>
+                                Deactivate
+                            </button>
+
+                        {% else %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-success"
+                            >
+                                <i class="bi bi-person-check me-1"></i>
+                                Activate
+                            </button>
+
+                        {% endif %}
+
+                    </form>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =========================================================
+         USER PROFILE CARD
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row align-items-center g-4">
+
+                <!-- AVATAR -->
+
+                <div class="col-auto">
+
+                    <div
+                        class="rounded-4 bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold"
+                        style="width:76px;height:76px;font-size:30px;"
+                    >
+                        {{ user.username[:1]|upper }}
+                    </div>
+
+                </div>
+
+
+                <!-- USER IDENTITY -->
+
+                <div class="col">
+
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+
+                        <h2 class="h4 fw-bold mb-0">
+                            {{ user.username }}
+                        </h2>
+
+
+                        {% if user.is_active %}
+
+                            <span class="badge rounded-pill text-bg-success">
+
+                                <i class="bi bi-check-circle me-1"></i>
+
+                                Active
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge rounded-pill text-bg-secondary">
+
+                                <i class="bi bi-pause-circle me-1"></i>
+
+                                Inactive
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="text-secondary mb-2">
+
+                        <i class="bi bi-envelope me-1"></i>
+
+                        {{ user.email }}
+
+                    </div>
+
+
+                    <div class="small text-secondary">
+
+                        <i class="bi bi-calendar3 me-1"></i>
+
+                        Joined
+
+                        {% if user.created_at %}
+
+                            {{ user.created_at.strftime("%d %b %Y") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCOUNT TYPE -->
+
+                <div class="col-12 col-lg-auto">
+
+                    <div
+                        class=" badge text-bg-light border rounded-3 p-3 w-100"
+                        style="min-width:220px;"
+                    >
+
+                        <div class="small text-secondary mb-1">
+                            Account Type
+                        </div>
+
+
+                        {% if user.is_company_admin %}
+
+                            <div class="fw-semibold">
+
+                                <i class="bi bi-shield-check text-primary me-1"></i>
+
+                                Company Administrator
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="fw-semibold">
+
+                                <i class="bi bi-person text-primary me-1"></i>
+
+                                Company User
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUMMARY CARDS
+    ========================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- ASSIGNED ROLES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Assigned Roles
+                            </div>
+
+                            <h3 class="stats-card-value">
+                                {{ assigned_roles|length }}
+                            </h3>
+
+                        </div>
+
+
+                        <div
+                             class="stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACCOUNT STATUS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Account Status
+                            </div>
+
+                            <div class="fs-5 fw-bold">
+
+                                {% if user.is_active %}
+                                    Active
+                                {% else %}
+                                    Inactive
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="stats-card-icon {% if user.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-3 d-flex align-items-center justify-content-center"
+
+                        >
+
+                            {% if user.is_active %}
+
+                                <i class="bi bi-check-circle"></i>
+
+                            {% else %}
+
+                                <i class="bi bi-pause-circle"></i>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMPANY -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Company
+                            </div>
+
+                            <h3
+                                class="stats-card-value"
+                                title="{{ user.company.name if user.company else '—' }}"
+                            >
+                                {{ user.company.name if user.company else "—" }}
+                            </h3>
+
+                        </div>
+
+
+                        <div
+                            class="stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-building fs-5"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- USER ID -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                User ID
+                            </div>
+
+                            <h3 class="stats-card-value">
+                                #{{ user.id }}
+                            </h3>
+
+                        </div>
+
+
+                        <div
+                            class="stats-card-icon bg-warning-subtle text-muted"
+                        >
+                            <i class="bi bi-hash"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+    ========================================================== -->
+
+    <div class="row g-4">
+
+        <!-- =====================================================
+             ASSIGNED ROLES
+        ====================================================== -->
+
+        <div class="col-12 col-xl-8">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+                        <div>
+
+                            <h3 class="h5 fw-bold mb-1">
+                                Assigned Roles
+                            </h3>
+
+                            <p class="text-secondary small mb-0">
+                                Roles determine what this user can access.
+                            </p>
+
+                        </div>
+
+
+                        {% if current_user.has_permission("manage_users") %}
+
+                            <span class="small text-secondary">
+
+                                {{ assigned_roles|length }}
+
+                                role{% if assigned_roles|length != 1 %}s{% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body p-4 pt-3">
+
+                    {% if assigned_roles %}
+
+                        <div class="d-flex flex-column">
+
+                            {% for role in assigned_roles %}
+
+                                <div
+                                    class="py-3 {% if not loop.last %}border-bottom{% endif %}"
+                                >
+
+                                    <div class="d-flex align-items-start gap-3">
+
+                                        <!-- ROLE ICON -->
+
+                                        <div
+                                            class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                            style="width:42px;height:42px;"
+                                        >
+
+                                            {% if role.is_system_role %}
+
+                                                <i class="bi bi-shield-lock"></i>
+
+                                            {% else %}
+
+                                                <i class="bi bi-person-badge"></i>
+
+                                            {% endif %}
+
+                                        </div>
+
+
+                                        <!-- ROLE DETAILS -->
+
+                                        <div class="flex-grow-1 min-w-0">
+
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+
+                                                <a
+                                                    href="{{ url_for('company_admin.role_view', role_id=role.id) }}"
+                                                    class="fw-semibold text-decoration-none link-body-emphasis text-dark"
+                                                >
+                                                    {{ role.name }}
+                                                </a>
+
+
+                                                {% if role.is_system_role %}
+
+                                                    <span class="badge rounded-pill bg-primary-subtle text-primary">
+                                                        System Role
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis">
+                                                        Custom Role
+                                                    </span>
+
+                                                {% endif %}
+
+
+                                                {% if role.is_active %}
+
+                                                    <span class="badge rounded-pill bg-success-subtle text-success">
+                                                        Active
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="badge rounded-pill bg-danger-subtle text-danger">
+                                                        Inactive
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </div>
+
+
+                                            <div class="small text-secondary">
+
+                                                {% if role.description %}
+
+                                                    {{ role.description }}
+
+                                                {% else %}
+
+                                                    No description provided.
+
+                                                {% endif %}
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <!-- REMOVE ROLE -->
+
+                                        {% if current_user.has_permission("manage_users") %}
+
+                                            <div class="flex-shrink-0">
+
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for(
+                                                        'company_admin.remove_user_role',
+                                                        user_id=user.id,
+                                                        role_id=role.id
+                                                    ) }}"
+                                                >
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="csrf_token"
+                                                        value="{{ csrf_token() }}"
+                                                    >
+
+
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        title="Remove role"
+                                                        onclick="return confirm('Remove this role from {{ user.username }}?');"
+                                                    >
+                                                       <i class="bi bi-trash"></i>
+                                                    </button>
+
+                                                </form>
+
+                                            </div>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="empty-state text-center">
+
+                            <div class="empty-state-icon mb-3">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+
+
+                            <h5>
+                                No roles assigned
+                            </h5>
+
+
+                            <p class="text-muted mb-4">
+                                This user currently has no application roles.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             ASSIGN ROLE
+        ====================================================== -->
+
+        <div class="col-12 col-xl-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h3 class="h5 fw-bold mb-1">
+                        Assign Role
+                    </h3>
+
+                    <p class="text-secondary small mb-0">
+                        Give this user additional access.
+                    </p>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    {% if current_user.has_permission("manage_users") %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('company_admin.assign_user_role', user_id=user.id) }}"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="role_id"
+                                    class="form-label fw-semibold"
+                                >
+                                    Select Role
+                                </label>
+
+
+                                <select
+                                    class="form-select"
+                                    id="role_id"
+                                    name="role_id"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Choose a role...
+                                    </option>
+
+
+                                    {% set assigned_role_ids = assigned_roles | map(attribute='id') | list %}
+
+
+                                    {% for role in user.company.roles if role.is_active %}
+
+                                        {% if role.id not in assigned_role_ids %}
+
+                                            <option value="{{ role.id }}">
+                                                {{ role.name }}
+                                            </option>
+
+                                        {% endif %}
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary rounded-pill w-100"
+                            >
+                                <i class="bi bi-person-plus me-1"></i>
+                                Assign Role
+                            </button>
+
+                        </form>
+
+
+                        <div class="alert alert-info d-flex align-items-start gap-2 mt-3 mb-0 py-2 px-3">
+
+                            <i class="bi bi-info-circle mt-1"></i>
+
+                            <div class="small">
+
+                                A user can have multiple roles.
+                                Permissions from all assigned roles are
+                                available to the user.
+
+                            </div>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-center py-3">
+
+                            <i class="bi bi-lock fs-3 text-secondary"></i>
+
+                            <p class="text-secondary small mt-2 mb-0">
+                                You do not have permission to manage user roles.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ACCOUNT INFORMATION
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm mt-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h3 class="h5 fw-bold mb-1">
+                        Account Information
+                    </h3>
+
+                </div>
+
+
+                <div class="card-body p-4 pt-2">
+
+                    <!-- USERNAME -->
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 py-3 border-bottom">
+
+                        <span class="small text-secondary">
+                            Username
+                        </span>
+
+                        <span class="small fw-semibold text-end text-break">
+                            {{ user.username }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 py-3 border-bottom">
+
+                        <span class="small text-secondary">
+                            Email
+                        </span>
+
+                        <span class="small fw-semibold text-end text-break">
+                            {{ user.email }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- LEGACY ROLE -->
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 py-3 border-bottom">
+
+                        <span class="small text-secondary">
+                            Legacy Role
+                        </span>
+
+                        <span class="small fw-semibold text-end">
+                            {{ user.role or "—" }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- CREATED -->
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 py-3 border-bottom">
+
+                        <span class="small text-secondary">
+                            Created
+                        </span>
+
+                        <span class="small fw-semibold text-end">
+
+                            {% if user.created_at %}
+
+                                {{ user.created_at.strftime("%d %b %Y, %H:%M") }}
+
+                            {% else %}
+
+                                —
+
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- USER ID -->
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 py-3">
+
+                        <span class="small text-secondary">
+                            User ID
+                        </span>
+
+                        <span class="small fw-semibold text-end">
+                            {{ user.id }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SECURITY / ACCESS NOTE
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm mt-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-start gap-3">
+
+                <div
+                    class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0"
+                    style="width:42px;height:42px;"
+                >
+                    <i class="bi bi-shield-check fs-5"></i>
+                </div>
+
+
+                <div>
+
+                    <h3 class="h6 fw-bold mb-1">
+                        Access Control
+                    </h3>
+
+
+                    <p class="text-secondary small mb-0">
+
+                        BizTrace IMS uses role-based access control.
+                        The permissions available to this user are determined
+                        by their assigned roles. Removing a role immediately
+                        removes the permissions provided by that role.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

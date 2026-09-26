@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0a84ff"
+    >
+
+    <title>Offline</title>
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('static', filename='icons/7.png') }}"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 24px;
+
+            background:
+                #f5f7fb;
+
+            color:
+                #1d1d1f;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+        }
+
+
+        .offline-container {
+            width: 100%;
+            max-width: 480px;
+
+            text-align: center;
+        }
+
+
+        .offline-card {
+            background: #ffffff;
+
+            border: 1px solid rgba(
+                0,
+                0,
+                0,
+                0.06
+            );
+
+            border-radius: 28px;
+
+            padding: 42px 30px 34px;
+
+            box-shadow:
+                0 20px 60px rgba(
+                    0,
+                    0,
+                    0,
+                    0.08
+                );
+        }
+
+
+        .app-icon {
+            width: 88px;
+            height: 88px;
+
+            margin: 0 auto 24px;
+
+            border-radius: 22px;
+
+            object-fit: cover;
+
+            box-shadow:
+                0 10px 25px rgba(
+                    10,
+                    132,
+                    255,
+                    0.20
+                );
+        }
+
+
+        .offline-icon {
+            width: 72px;
+            height: 72px;
+
+            margin: 0 auto 20px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.10
+                );
+
+            color:
+                #0a84ff;
+
+            font-size: 34px;
+
+            font-weight: 600;
+        }
+
+
+        h1 {
+            margin: 0 0 12px;
+
+            font-size: 28px;
+
+            font-weight: 700;
+
+            letter-spacing:
+                -0.5px;
+        }
+
+
+        .description {
+            margin: 0 auto 26px;
+
+            max-width: 380px;
+
+            color:
+                #6e6e73;
+
+            font-size: 15px;
+
+            line-height: 1.6;
+        }
+
+
+        .status {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            margin-bottom: 24px;
+
+            font-size: 13px;
+
+            color:
+                #6e6e73;
+        }
+
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background:
+                #ff9500;
+        }
+
+
+        .buttons {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+
+        button {
+            width: 100%;
+
+            min-height: 48px;
+
+            border: 0;
+
+            border-radius: 14px;
+
+            font-family: inherit;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s ease,
+                opacity 0.15s ease;
+        }
+
+
+        button:active {
+            transform:
+                scale(0.98);
+        }
+
+
+        .retry-button {
+            background:
+                #0a84ff;
+
+            color:
+                #ffffff;
+        }
+
+
+        .retry-button:hover {
+            opacity: 0.92;
+        }
+
+
+        .back-button {
+            background:
+                #f2f2f7;
+
+            color:
+                #1d1d1f;
+        }
+
+
+        .footer {
+            margin-top: 22px;
+
+            font-size: 12px;
+
+            color:
+                #8e8e93;
+        }
+
+
+        /* ====================================================
+           DARK MODE
+        ==================================================== */
+
+        @media (
+            prefers-color-scheme: dark
+        ) {
+
+            body {
+                background:
+                    #0f1115;
+
+                color:
+                    #f5f5f7;
+            }
+
+
+            .offline-card {
+                background:
+                    #1c1c1e;
+
+                border-color:
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.08
+                    );
+
+                box-shadow:
+                    0 20px 60px rgba(
+                        0,
+                        0,
+                        0,
+                        0.35
+                    );
+            }
+
+
+            .description {
+                color:
+                    #a1a1a6;
+            }
+
+
+            .status {
+                color:
+                    #a1a1a6;
+            }
+
+
+            .back-button {
+                background:
+                    #2c2c2e;
+
+                color:
+                    #f5f5f7;
+            }
+
+        }
+
+
+        /* ====================================================
+           SMALL SCREENS
+        ==================================================== */
+
+        @media (
+            max-width: 480px
+        ) {
+
+            body {
+                padding:
+                    16px;
+            }
+
+
+            .offline-card {
+                padding:
+                    34px 22px 28px;
+
+                border-radius:
+                    24px;
+            }
+
+
+            .app-icon {
+                width:
+                    76px;
+
+                height:
+                    76px;
+
+                border-radius:
+                    19px;
+            }
+
+
+            h1 {
+                font-size:
+                    25px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <main class="offline-container">
+
+        <section class="offline-card">
+
+            <img
+                class="app-icon"
+                src="{{ url_for('static', filename='icons/7.png') }}"
+                alt="BizTrace IMS"
+            >
+
+
+            <div class="offline-icon">
+                ⌁
+            </div>
+
+
+            <h1>
+                You're Offline
+            </h1>
+
+
+            <p class="description">
+                BizTrace IMS cannot connect to the server right now.
+                Check your internet connection and try again.
+            </p>
+
+
+            <div class="status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    No internet connection
+                </span>
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    type="button"
+                    class="retry-button"
+                    onclick="retryConnection()"
+                >
+                    Try Again
+                </button>
+
+
+                <button
+                    type="button"
+                    class="back-button"
+                    onclick="goBack()"
+                >
+                    Go Back
+                </button>
+
+            </div>
+
+
+            <div class="footer">
+                BizTrace IMS
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        function retryConnection() {
+
+            if (
+                navigator.onLine
+            ) {
+
+                window.location.reload();
+
+                return;
+
+            }
+
+
+            /*
+             * Give the browser a moment to detect
+             * a newly restored connection.
+             */
+
+            const button =
+                document.querySelector(
+                    ".retry-button"
+                );
+
+
+            button.textContent =
+                "Still Offline";
+
+
+            setTimeout(
+                () => {
+
+                    button.textContent =
+                        "Try Again";
+
+                },
+                1500
+            );
+
+        }
+
+
+        function goBack() {
+
+            if (
+                window.history.length > 1
+            ) {
+
+                window.history.back();
+
+            }
+            else {
+
+                window.location.href = "/";
+
+            }
+
+        }
+
+
+        /*
+         * Automatically return to the application
+         * when internet connectivity comes back.
+         */
+
+        window.addEventListener(
+            "online",
+            () => {
+
+                window.location.reload();
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>

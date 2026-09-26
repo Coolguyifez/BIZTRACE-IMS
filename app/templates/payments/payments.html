@@ -1,0 +1,931 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Payments
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                SALES MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                Payments
+            </h1>
+
+            <p class="page-subtitle">
+                View payments received from sales.
+            </p>
+
+        </div>
+
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('receivables.receivables') }}"
+                class="btn btn-light border rounded-pill"
+            >
+                <i class="bi bi-arrow-down-left-circle me-2"></i>
+                View Receivables
+            </a>
+
+
+            <a
+                href="{{ url_for('sales.sales') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-cart3 me-1"></i>
+                View Sales
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- TOTAL PAYMENTS -->
+
+        <div class="col-12 col-sm-6 col-xl-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Payments
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(total_amount) }}
+                            </h3>
+
+                            <div class="stats-card-meta">
+
+                                Total Net Payment:
+
+                                <span class="text-primary">
+                                    {{ format_currency(net_payments) }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-primary-subtle text-primary">
+
+                            <i class="bi bi-credit-card-fill"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TODAY'S PAYMENTS -->
+
+        <div class="col-12 col-sm-6 col-xl-6">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Today's Payments
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(today_total) }}
+                            </h3>
+
+                            <div class="stats-card-meta">
+
+                                Today's Net Payment:
+
+                                <span class="text-success">
+                                    {{ format_currency(today_total - today_expenses) }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-success-subtle text-muted">
+
+                            <i class="bi bi-calendar-check"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CASH -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(cash_total) }}
+                            </h3>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-success-subtle text-success">
+
+                            <i class="bi bi-cash-stack"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BANK TRANSFER -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Bank Transfer
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(bank_transfer_total) }}
+                            </h3>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+
+                            <i class="bi bi-bank"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- POS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                POS
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(pos_total) }}
+                            </h3>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-info-subtle text-info">
+
+                            <i class="bi bi-credit-card"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CARD -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Card
+                            </div>
+
+                            <h3 class="stats-card-value responsive-money">
+                                {{ format_currency(card_total) }}
+                            </h3>
+
+                        </div>
+
+
+                        <div class="stats-card-icon bg-secondary-subtle text-secondary">
+
+                            <i class="bi bi-credit-card-2-front"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTERS
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('payments.payments') }}"
+            >
+
+                <div class="row g-3 align-items-end">
+
+
+                    <!-- SEARCH -->
+
+                    <div class="col-lg-5">
+
+                        <label class="form-label small fw-semibold mb-2">
+                            Search Payments
+                        </label>
+
+
+                        <div class="search-field">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="q"
+                                value="{{ search }}"
+                                class="form-control"
+                                placeholder="Invoice, customer, reference..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PERIOD -->
+
+                    <div class="col-lg-3">
+
+                        <label
+                            for="period"
+                            class="form-label small fw-semibold mb-2"
+                        >
+                            Payments Period
+                        </label>
+
+                        <select
+                            name="period"
+                            id="period"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if period == "all" %}
+                                    selected
+                                {% endif %}
+                            >
+                                All Payments
+                            </option>
+
+
+                            <option
+                                value="daily"
+                                {% if period == "daily" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Today
+                            </option>
+
+
+                            <option
+                                value="weekly"
+                                {% if period == "weekly" %}
+                                    selected
+                                {% endif %}
+                            >
+                                This Week
+                            </option>
+
+
+                            <option
+                                value="monthly"
+                                {% if period == "monthly" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Monthly
+                            </option>
+
+
+                            <option
+                                value="yearly"
+                                {% if period == "yearly" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Yearly
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- MONTH -->
+
+                    <div
+                        class="col-lg-2"
+                        id="month-container"
+                    >
+
+                        <label
+                            for="month"
+                            class="form-label small fw-semibold mb-2"
+                        >
+                            Month
+                        </label>
+
+                        <select
+                            name="month"
+                            id="month"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Select month
+                            </option>
+
+
+                            {% set months = [
+                                (1, "January"),
+                                (2, "February"),
+                                (3, "March"),
+                                (4, "April"),
+                                (5, "May"),
+                                (6, "June"),
+                                (7, "July"),
+                                (8, "August"),
+                                (9, "September"),
+                                (10, "October"),
+                                (11, "November"),
+                                (12, "December")
+                            ] %}
+
+
+                            {% for month_number, month_name in months %}
+
+                                <option
+                                    value="{{ month_number }}"
+                                    {% if month == month_number %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ month_name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- YEAR -->
+
+                    <div
+                        class="col-lg-2"
+                        id="year-container"
+                    >
+
+                        <label
+                            for="year"
+                            class="form-label small fw-semibold mb-2"
+                        >
+                            Year
+                        </label>
+
+                        <select
+                            name="year"
+                            id="year"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Select year
+                            </option>
+
+
+                            {% for y in years %}
+
+                                <option
+                                    value="{{ y }}"
+                                    {% if year == y %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ y }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- FILTER BUTTON -->
+
+                    <div class="col-lg-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-light border w-100"
+                        >
+
+                            <i class="bi bi-funnel me-2"></i>
+
+                            Filter
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT TABLE
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-semibold mb-1">
+                        Payment Records
+                    </h5>
+
+                    <span class="text-primary">
+
+                        {{ payments|length }}
+
+                        <small class="text-muted">
+
+                            payment{{ '' if payments|length == 1 else 's' }}
+
+                        </small>
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if payments %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Invoice
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th class="text-center">
+                                    Method
+                                </th>
+
+                                <th>
+                                    Bank Paid Into
+                                </th>
+
+                                <th>
+                                    Reference No
+                                </th>
+
+                                <th class="text-center">
+                                    Amount
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for payment in payments %}
+
+                                <tr>
+
+
+                                    <!-- INVOICE -->
+
+                                    <td class="ps-4">
+
+                                        <a
+                                            href="{{ url_for(
+                                                'sales.view_sale',
+                                                sale_id=payment.sale.id
+                                            ) }}"
+                                            class="fw-semibold text-decoration-none text-dark"
+                                        >
+                                            {{ payment.sale.invoice_number }}
+                                        </a>
+
+                                    </td>
+
+
+                                    <!-- CUSTOMER -->
+
+                                    <td class="text-dark">
+
+                                        {% if payment.sale.customer %}
+
+                                            {{ payment.sale.customer.name }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Walk-in Customer
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- DATE -->
+
+                                    <td class="text-dark">
+
+                                        {% if payment.payment_date %}
+
+                                            <div>
+                                                {{ format_company_date(payment.payment_date) }}
+                                            </div>
+
+                                            <small class="text-muted">
+                                                {{ format_company_time(payment.payment_date) }}
+                                            </small>
+
+                                        {% else %}
+
+                                            —
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- METHOD -->
+
+                                    <td class="text-center">
+
+                                        {% if payment.method == "Cash" %}
+
+                                            <span class="badge bg-success-subtle text-success">
+
+                                                <i class="bi bi-cash me-1"></i>
+
+                                                Cash
+
+                                            </span>
+
+
+                                        {% elif payment.method == "Bank Transfer" %}
+
+                                            <span class="badge bg-warning-subtle text-warning">
+
+                                                <i class="bi bi-bank me-1"></i>
+
+                                                Bank Transfer
+
+                                            </span>
+
+
+                                        {% elif payment.method == "POS" %}
+
+                                            <span class="badge bg-info-subtle text-info">
+
+                                                <i class="bi bi-credit-card me-1"></i>
+
+                                                POS
+
+                                            </span>
+
+
+                                        {% elif payment.method == "Card" %}
+
+                                            <span class="badge bg-secondary-subtle text-muted">
+
+                                                <i class="bi bi-credit-card-2-front me-1"></i>
+
+                                                Card
+
+                                            </span>
+
+
+                                        {% else %}
+
+                                            <span
+                                                class="badge"
+                                                style="
+                                                    background: rgba(111,66,193,.12);
+                                                    color: #6f42c1;
+                                                "
+                                            >
+                                                {{ payment.method }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- BANK -->
+
+                                    <td class="text-primary">
+
+                                        {{ payment.bank_name or "None" }}
+
+                                    </td>
+
+
+                                    <!-- REFERENCE -->
+
+                                    <td class="text-muted">
+
+                                        {{ payment.reference or "—" }}
+
+                                    </td>
+
+
+                                    <!-- AMOUNT -->
+
+                                    <td class="text-center fw-bold text-dark">
+
+                                        {{ format_currency(payment.amount) }}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            {% else %}
+
+                <!-- =================================================
+                     EMPTY STATE
+                ================================================== -->
+
+                <div class="empty-state text-center">
+
+                    <div class="empty-state-icon mb-3">
+
+                        <i class="bi bi-credit-card-2-front"></i>
+
+                    </div>
+
+
+                    <h5>
+                        No payments found
+                    </h5>
+
+
+                    <p class="text-muted mb-4">
+
+                        {% if search or period != "all" %}
+
+                            No payment records match your current filters.
+
+                        {% else %}
+
+                            Payments recorded through sales will appear here.
+
+                        {% endif %}
+
+                    </p>
+
+
+                    {% if search or period != "all" %}
+
+                        <a
+                            href="{{ url_for('payments.payments') }}"
+                            class="btn btn-outline-secondary rounded-pill me-2"
+                        >
+
+                            <i class="bi bi-x-lg me-2"></i>
+
+                            Clear Filters
+
+                        </a>
+
+                    {% endif %}
+
+
+                    <a
+                        href="{{ url_for('sales.new_sale') }}"
+                        class="btn btn-primary rounded-pill px-4"
+                    >
+
+                        <i class="bi bi-plus-lg me-2"></i>
+
+                        Create Sale
+
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PERIOD FILTER SCRIPT
+========================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const period = document.getElementById("period");
+    const monthContainer = document.getElementById("month-container");
+    const yearContainer = document.getElementById("year-container");
+
+    if (!period || !monthContainer || !yearContainer) {
+        return;
+    }
+
+    function updatePeriodFields() {
+
+        const value = period.value;
+
+        // -------------------------------------------------
+        // MONTH
+        // -------------------------------------------------
+
+        monthContainer.style.display =
+            value === "monthly"
+                ? ""
+                : "none";
+
+
+        // -------------------------------------------------
+        // YEAR
+        // -------------------------------------------------
+
+        yearContainer.style.display =
+            value === "monthly" ||
+            value === "yearly"
+                ? ""
+                : "none";
+    }
+
+
+    period.addEventListener(
+        "change",
+        updatePeriodFields
+    );
+
+
+    updatePeriodFields();
+
+});
+
+</script>
+
+{% endblock %}

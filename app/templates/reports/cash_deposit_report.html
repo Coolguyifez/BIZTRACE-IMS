@@ -1,0 +1,1681 @@
+{% extends "base.html" %}
+
+{% block title %}
+Cash Deposit Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-bank fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Cash Deposit Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Cash collected from sales and deposited into the bank
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printCashDepositReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+                    &nbsp; | &nbsp;
+                {% endif %}
+
+                {% if current_user.company.email %}
+                    {{ current_user.company.email }}
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Cash Deposit Report
+            </h2>
+
+            <div>
+
+                Reporting Period:
+
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="GET"
+            action="{{ url_for('reports.cash_deposit_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label
+                        for="start_date"
+                        class="form-label small fw-semibold"
+                    >
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ start_date }}"
+                    >
+
+                </div>
+
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label
+                        for="end_date"
+                        class="form-label small fw-semibold"
+                    >
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ end_date }}"
+                    >
+
+                </div>
+
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.cash_deposit_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL CASH RECEIVED -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash Received
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(total_cash_received) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-primary">
+                                From cash sales
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL DEPOSITED -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Deposited
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(total_cash_deposited) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-success">
+                                Deposited into bank
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-bank"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CASH AVAILABLE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash Available
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(cash_available) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-warning">
+                                Remaining cash
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DEPOSIT COUNT -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Deposits
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ deposit_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-info">
+
+                                {{ "{:,.2f}".format(deposit_percentage) }}%
+                                of cash deposited
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-arrow-down-square"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DEPOSIT STATUS
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+
+                <div>
+
+                    <div class="fw-bold mb-1">
+                        Cash Deposit Progress
+                    </div>
+
+                    <div class="text-secondary small">
+                        Percentage of cash sales payments deposited into the bank
+                    </div>
+
+                </div>
+
+                <div class="fw-bold">
+
+                    {{ "{:,.2f}".format(deposit_percentage) }}%
+
+                </div>
+
+            </div>
+
+            <div
+                class="progress mt-3"
+                style="height: 10px;"
+            >
+
+                <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    style="width: {{ deposit_percentage if deposit_percentage <= 100 else 100 }}%;"
+                    aria-valuenow="{{ deposit_percentage }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- DAILY DEPOSIT TREND -->
+
+        <div class="col-12 col-xl-8">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Deposit Trend
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Daily cash deposits for the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="dailyDepositChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BANK BREAKDOWN -->
+
+        <div class="col-12 col-xl-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Bank Breakdown
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Cash deposited by bank
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 300px;"
+                    >
+
+                        <canvas id="bankBreakdownChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BANK BREAKDOWN TABLE
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <h5 class="fw-bold mb-1">
+                Bank Deposit Summary
+            </h5>
+
+            <p class="text-secondary small mb-0">
+                Breakdown of deposits made into each bank
+            </p>
+
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Bank
+                            </th>
+
+                            <th class="text-center">
+                                Deposits
+                            </th>
+
+                            <th class="text-end">
+                                Amount
+                            </th>
+
+                            <th class="text-end">
+                                Percentage
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in bank_breakdown %}
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="d-flex align-items-center gap-2">
+
+                                        <div
+                                            class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                                            style="width: 36px; height: 36px;"
+                                        >
+                                            <i class="bi bi-bank"></i>
+                                        </div>
+
+                                        <span class="fw-semibold text-dark">
+                                            {{ row.bank }}
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td class="text-center text-secondary">
+                                    {{ row.count }}
+                                </td>
+
+
+                                <td class="text-end fw-semibold text-dark">
+
+                                    {{ format_currency(row.total) }}
+
+                                </td>
+
+
+                                <td class="text-end text-dark">
+
+                                    {% if total_cash_deposited > 0 %}
+
+                                        {{ "{:,.2f}".format(
+                                            (row.total / total_cash_deposited * 100)
+                                        ) }}%
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            0.00%
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="text-center py-5 text-secondary"
+                                >
+
+                                    <i class="bi bi-bank fs-1 d-block mb-2"></i>
+
+                                    No bank deposits found
+                                    for the selected period.
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+
+                    {% if bank_breakdown %}
+
+                        <tfoot>
+
+                            <tr class="fw-bold">
+
+                                <td class="text-dark">
+                                    Total
+                                </td>
+
+                                <td class="text-center text-dark">
+                                    {{ deposit_count }}
+                                </td>
+
+                                <td class="text-end text-primary">
+
+                                    {{ format_currency(total_cash_deposited) }}
+
+                                </td>
+
+                                <td class="text-end text-success">
+                                    100.00%
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    {% endif %}
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Cash Deposit Report
+                </div>
+
+                <div class="small">
+
+                    Cash Received represents customer payments recorded
+                    using the Cash payment method during the selected period.
+                    Total Deposited represents cash deposits recorded during
+                    the same period. Cash Available is the difference between
+                    cash received and cash deposited.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="cashDepositExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+                        {{ current_user.company.email }}
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Cash Deposit Report
+                </h3>
+
+                <div>
+
+                    Reporting Period:
+
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Cash Received
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_cash_received) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Deposited
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_cash_deposited) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Cash Available
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(cash_available) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Deposits
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ deposit_count }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Cash Deposit Analysis
+                </h4>
+
+
+                <!-- DAILY TREND -->
+
+                <div class="border rounded p-3 mb-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Deposit Trend
+                    </h5>
+
+                    <img
+                        id="exportDailyDeposit"
+                        class="img-fluid w-100"
+                        alt="Daily cash deposit trend chart"
+                    >
+
+                </div>
+
+
+                <!-- BANK BREAKDOWN -->
+
+                <div class="border rounded p-3">
+
+                    <h5 class="fw-bold mb-3">
+                        Bank Deposit Breakdown
+                    </h5>
+
+                    <img
+                        id="exportBankBreakdown"
+                        class="img-fluid w-100"
+                        alt="Bank deposit breakdown chart"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT TABLE -->
+
+            <div>
+
+                <h4 class="fw-bold mb-3">
+                    Cash Deposit Transactions
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Bank
+                                </th>
+
+                                <th>
+                                    Amount
+                                </th>
+
+                                <th>
+                                    Reference
+                                </th>
+
+                                <th>
+                                    Recorded By
+                                </th>
+
+                                <th>
+                                    Notes
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for row in export_rows %}
+
+                                <tr>
+
+                                    <td>
+
+                                        {% if row.date.strftime is defined %}
+
+                                            {{ row.date.strftime("%d %b %Y") }}
+
+                                        {% else %}
+
+                                            {{ row.date }}
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ row.bank }}
+                                    </td>
+
+
+                                    <td class="fw-semibold">
+
+                                        {{ format_currency(row.amount) }}
+
+                                    </td>
+
+
+                                    <td>
+                                        {{ row.reference }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ row.recorded_by }}
+                                    </td>
+
+
+                                    <td>
+                                        {{ row.notes }}
+                                    </td>
+
+                                </tr>
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="text-center py-4"
+                                    >
+
+                                        No cash deposits found
+                                        for the selected period.
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+
+                        {% if export_rows %}
+
+                            <tfoot>
+
+                                <tr class="fw-bold">
+
+                                    <td
+                                        colspan="2"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </td>
+
+                                    <td>
+
+                                        {{ format_currency(total_cash_deposited) }}
+
+                                    </td>
+
+                                    <td colspan="3"></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        {% endif %}
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT NOTE -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Cash Received represents customer payments recorded
+                    as cash sales payments. Total Deposited represents
+                    bank deposits recorded during the selected reporting
+                    period. Cash Available represents the remaining cash
+                    after recorded deposits.
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT FOOTER -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     COMPANY SETTINGS FOR JAVASCRIPT
+====================================================== -->
+
+<script>
+
+window.BizFlowSettings = {
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+};
+
+
+/* =====================================================
+   COMPANY CURRENCY FORMATTER
+====================================================== */
+
+function formatMoney(value) {
+
+    const numericValue =
+        Number(value || 0);
+
+    const decimalPlaces =
+        Number.isInteger(
+            Number(
+                window.BizFlowSettings.decimalPlaces
+            )
+        )
+            ? Number(
+                window.BizFlowSettings.decimalPlaces
+            )
+            : 2;
+
+
+    const formatted =
+        numericValue.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits:
+                    decimalPlaces,
+
+                maximumFractionDigits:
+                    decimalPlaces
+            }
+        );
+
+
+    if (
+        window.BizFlowSettings.currencyPosition ===
+        "after"
+    ) {
+
+        return (
+            formatted
+            + " "
+            + window.BizFlowSettings.currencySymbol
+        );
+
+    }
+
+
+    return (
+        window.BizFlowSettings.currencySymbol
+        + formatted
+    );
+}
+
+</script>
+
+
+<!-- =====================================================
+     CHART.JS
+====================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /* =====================================================
+           DATA FROM FLASK
+        ====================================================== */
+
+        const dailyDepositTrend =
+            {{ daily_deposit_trend | tojson }};
+
+
+        const bankBreakdown =
+            {{ bank_breakdown | tojson }};
+
+
+        /* =====================================================
+           DAILY DEPOSIT TREND
+        ====================================================== */
+
+        const dailyDepositCanvas =
+            document.getElementById(
+                "dailyDepositChart"
+            );
+
+
+        let dailyDepositChartInstance = null;
+
+
+        if (dailyDepositCanvas) {
+
+            dailyDepositChartInstance =
+                new Chart(
+                    dailyDepositCanvas,
+                    {
+                        type: "line",
+
+                        data: {
+
+                            labels:
+                                dailyDepositTrend.map(
+                                    item => item.date
+                                ),
+
+                            datasets: [
+
+                                {
+
+                                    label:
+                                        "Deposits",
+
+                                    data:
+                                        dailyDepositTrend.map(
+                                            item =>
+                                                Number(
+                                                    item.total || 0
+                                                )
+                                        ),
+
+                                    tension: 0.35,
+
+                                    fill: false,
+
+                                    backgroundColor:
+                                        "rgba(10, 132, 255, 0.15)",
+
+                                    borderColor:
+                                        "#198754",
+
+                                    pointBackgroundColor:
+                                        "#198754",
+
+                                    pointBorderColor:
+                                        "#198754",
+
+                                    pointHoverBackgroundColor:
+                                        "#198754",
+
+                                    pointHoverBorderColor:
+                                        "#ffffff",
+
+                                    borderWidth: 2
+
+                                }
+
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            interaction: {
+
+                                intersect: false,
+
+                                mode: "index"
+
+                            },
+
+                            plugins: {
+
+                                legend: {
+
+                                    position: "bottom"
+
+                                },
+
+                                tooltip: {
+
+                                    callbacks: {
+
+                                        label:
+                                            function(context) {
+
+                                                return (
+                                                    context.dataset.label
+                                                    + ": "
+                                                    + formatMoney(
+                                                        context.raw
+                                                    )
+                                                );
+
+                                            }
+
+                                    }
+
+                                }
+
+                            },
+
+                            scales: {
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    ticks: {
+
+                                        callback:
+                                            function(value) {
+
+                                                return formatMoney(
+                                                    value
+                                                );
+
+                                            }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =====================================================
+           BANK BREAKDOWN
+        ====================================================== */
+
+        const bankBreakdownCanvas =
+            document.getElementById(
+                "bankBreakdownChart"
+            );
+
+
+        let bankBreakdownChartInstance = null;
+
+
+        if (bankBreakdownCanvas) {
+
+            bankBreakdownChartInstance =
+                new Chart(
+                    bankBreakdownCanvas,
+                    {
+                        type: "doughnut",
+
+                        data: {
+
+                            labels:
+                                bankBreakdown.map(
+                                    item =>
+                                        item.bank
+                                ),
+
+                            datasets: [
+
+                                {
+
+                                    data:
+                                        bankBreakdown.map(
+                                            item =>
+                                                Number(
+                                                    item.total || 0
+                                                )
+                                        ),
+
+                                    backgroundColor: [
+
+                                        "#0a84ff",
+                                        "#198754",
+                                        "#ffc107",
+                                        "#dc3545",
+                                        "#6f42c1",
+                                        "#fd7e14",
+                                        "#20c997",
+                                        "#6c757d"
+
+                                    ],
+
+                                    borderWidth: 0
+
+                                }
+
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            plugins: {
+
+                                legend: {
+
+                                    position: "bottom"
+
+                                },
+
+                                tooltip: {
+
+                                    callbacks: {
+
+                                        label:
+                                            function(context) {
+
+                                                const value =
+                                                    Number(
+                                                        context.raw || 0
+                                                    );
+
+
+                                                return (
+                                                    context.label
+                                                    + ": "
+                                                    + formatMoney(
+                                                        value
+                                                    )
+                                                );
+
+                                            }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =====================================================
+           PREPARE CHARTS FOR EXPORT / PRINT
+        ====================================================== */
+
+        window.prepareCashDepositExport =
+            function () {
+
+                const exportDailyDeposit =
+                    document.getElementById(
+                        "exportDailyDeposit"
+                    );
+
+
+                const exportBankBreakdown =
+                    document.getElementById(
+                        "exportBankBreakdown"
+                    );
+
+
+                if (
+                    exportDailyDeposit &&
+                    dailyDepositChartInstance
+                ) {
+
+                    exportDailyDeposit.src =
+                        dailyDepositChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+
+                if (
+                    exportBankBreakdown &&
+                    bankBreakdownChartInstance
+                ) {
+
+                    exportBankBreakdown.src =
+                        bankBreakdownChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+            };
+
+
+        /* =====================================================
+           DATE FILTER
+        ====================================================== */
+
+        const startDate =
+            document.getElementById(
+                "start_date"
+            );
+
+
+        const endDate =
+            document.getElementById(
+                "end_date"
+            );
+
+
+        if (
+            startDate &&
+            endDate
+        ) {
+
+            startDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        endDate.min =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+
+            endDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        startDate.max =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           PRINT CASH DEPOSIT REPORT
+        ====================================================== */
+
+        window.printCashDepositReport =
+            function () {
+
+                if (
+                    typeof window.prepareCashDepositExport ===
+                    "function"
+                ) {
+
+                    window.prepareCashDepositExport();
+
+                }
+
+
+                const exportSection =
+                    document.getElementById(
+                        "cashDepositExportSection"
+                    );
+
+
+                if (!exportSection) {
+
+                    return;
+
+                }
+
+
+                const originalBody =
+                    document.body.innerHTML;
+
+
+                const exportContent =
+                    exportSection.innerHTML;
+
+
+                document.body.innerHTML =
+                    exportContent;
+
+
+                window.print();
+
+
+                document.body.innerHTML =
+                    originalBody;
+
+
+                window.location.reload();
+
+            };
+
+    }
+
+);
+
+</script>
+
+{% endblock %}

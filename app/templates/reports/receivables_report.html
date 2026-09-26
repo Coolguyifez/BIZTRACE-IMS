@@ -1,0 +1,2123 @@
+{% extends "base.html" %}
+
+{% block title %}
+Receivables Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-arrow-down-left-circle fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Receivables Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Customer outstanding balances and collection analysis
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printReceivablesReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+
+                    {{ current_user.company.phone }}
+
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+
+                    &nbsp; | &nbsp;
+
+                {% endif %}
+
+                {% if current_user.company.email %}
+
+                    {{ current_user.company.email }}
+
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Receivables Report
+            </h2>
+
+            <div>
+
+                Reporting Period:
+
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.receivables_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        id="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        id="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.receivables_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL RECEIVABLES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Receivables
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_receivables) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-danger">
+                                    {{ outstanding_invoice_count }}
+                                </span>
+
+                                outstanding invoice{{ "" if outstanding_invoice_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-arrow-down-left-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CUSTOMERS OWING -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Customers Owing
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ customers_owing_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Customers with balances
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OVERDUE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Overdue
+                            </div>
+
+                            <div class="stats-card-value responsive-money text-danger">
+                                {{ format_currency(overdue_amount) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-danger">
+                                    {{ overdue_invoice_count }}
+                                </span>
+
+                                overdue invoice{{ "" if overdue_invoice_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PARTIALLY PAID -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Partially Paid
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(partially_paid_amount) }}
+                            </div>
+
+                            <div class="text-secondary small mt-2">
+
+                                <span class="text-warning">
+                                    {{ partially_paid_count }}
+                                </span>
+
+                                invoice{{ "" if partially_paid_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SECONDARY SUMMARY
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- SALES INVOICED -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Sales Invoiced
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_invoice_amount) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Total sales invoice value
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-receipt"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AMOUNT COLLECTED -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Amount Collected
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_paid) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Payments received from sales
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- UNPAID -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Unpaid Invoices
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ unpaid_count }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                No payment received
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-receipt-cutoff fs-5"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PAID VS OUTSTANDING -->
+
+        <div class="col-12 col-xl-5">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Paid vs Outstanding
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales invoice collection position
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="paymentStatusChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECEIVABLES BY CUSTOMER -->
+
+        <div class="col-12 col-xl-7">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Receivables by Customer
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Top customers by outstanding balance
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="customerChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECEIVABLES AGING -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Receivables Aging
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Outstanding balances grouped by invoice age
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="agingChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CUSTOMER SUMMARY
+    ====================================================== -->
+
+    <div class="row g-4 mb-4 d-print-none">
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Customer Receivables
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Customers with outstanding balances
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if customer_breakdown %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Customer
+                                        </th>
+
+                                        <th class="text-center">
+                                            Invoices
+                                        </th>
+
+                                        <th class="text-end">
+                                            Outstanding
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for row in customer_breakdown %}
+
+                                        <tr>
+
+                                            <td class="fw-semibold text-dark">
+                                                {{ row.customer }}
+                                            </td>
+
+                                            <td class="text-center text-dark">
+                                                {{ row.invoice_count }}
+                                            </td>
+
+                                            <td class="text-end fw-semibold text-dark">
+                                                {{ format_currency(row.total) }}
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                                <tfoot>
+
+                                    <tr class="fw-bold">
+
+                                        <td class="text-dark">
+                                            Total
+                                        </td>
+
+                                        <td class="text-center text-dark">
+                                            {{ outstanding_invoice_count }}
+                                        </td>
+
+                                        <td class="text-end text-danger">
+                                            {{ format_currency(total_receivables) }}
+                                        </td>
+
+                                    </tr>
+
+                                </tfoot>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-center py-5">
+
+                            <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+
+                            <div class="fw-semibold">
+                                No outstanding receivables
+                            </div>
+
+                            <div class="text-secondary small">
+                                There are no customers with outstanding balances
+                                for the selected period.
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Receivables Report
+                </div>
+
+                <div class="small">
+
+                    Receivables are calculated from sales invoices
+                    and their outstanding balances.
+
+                    Purchase transactions and supplier balances
+                    are excluded.
+
+                    Since the current sales model does not contain
+                    a dedicated due-date field, outstanding invoices
+                    dated before today are classified as overdue.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="receivablesExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- =================================================
+                 EXPORT HEADER
+            ================================================== -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+
+                        {{ current_user.company.phone }}
+
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+
+                        &nbsp; | &nbsp;
+
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+
+                        {{ current_user.company.email }}
+
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Receivables Report
+                </h3>
+
+                <div>
+
+                    Reporting Period:
+
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT SUMMARY
+            ================================================== -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Receivables
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_receivables) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Amount Collected
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_paid) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Overdue
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(overdue_amount) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Customers Owing
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ customers_owing_count }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT CHARTS
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Receivables Analysis
+                </h4>
+
+                <!-- PAID VS OUTSTANDING -->
+
+                <div class="border rounded p-3 mb-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Paid vs Outstanding
+                    </h5>
+
+                    <img
+                        id="exportPaymentStatus"
+                        class="img-fluid w-100"
+                        alt="Paid versus outstanding chart"
+                    >
+
+                </div>
+
+
+                <!-- CUSTOMER + AGING -->
+
+                <div class="row g-4">
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Receivables by Customer
+                            </h5>
+
+                            <img
+                                id="exportCustomerChart"
+                                class="img-fluid w-100"
+                                alt="Receivables by customer chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Receivables Aging
+                            </h5>
+
+                            <img
+                                id="exportAgingChart"
+                                class="img-fluid w-100"
+                                alt="Receivables aging chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CUSTOMER BREAKDOWN
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Customer Receivables
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Customer
+                            </th>
+
+                            <th>
+                                Outstanding Invoices
+                            </th>
+
+                            <th class="text-end">
+                                Outstanding Balance
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in customer_breakdown %}
+
+                            <tr>
+
+                                <td>
+                                    {{ row.customer }}
+                                </td>
+
+                                <td>
+                                    {{ row.invoice_count }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(row.total) }}
+                                </td>
+
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="3"
+                                    class="text-center py-3"
+                                >
+                                    No outstanding customer balances.
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                    {% if customer_breakdown %}
+
+                        <tfoot>
+
+                            <tr class="fw-bold">
+
+                                <td>
+                                    Total
+                                </td>
+
+                                <td>
+                                    {{ outstanding_invoice_count }}
+                                </td>
+
+                                <td class="text-end text-danger">
+                                    {{ format_currency(total_receivables) }}
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    {% endif %}
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 DETAILED RECEIVABLE TRANSACTIONS
+            ================================================== -->
+
+            <div>
+
+                <h4 class="fw-bold mb-3">
+                    Receivables Transactions
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Invoice
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th>
+                                    Invoice Total
+                                </th>
+
+                                <th>
+                                    Paid
+                                </th>
+
+                                <th>
+                                    Balance
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in export_rows %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ row.date.strftime("%d %b %Y") }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.invoice }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.customer }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        {{ format_currency(row.total) }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        {{ format_currency(row.paid) }}
+                                    </td>
+
+                                    <td class="text-end fw-semibold">
+                                        {{ format_currency(row.balance) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.status }}
+                                    </td>
+
+                                </tr>
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="7"
+                                        class="text-center py-4"
+                                    >
+                                        No sales transactions found
+                                        for the selected period.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                        {% if export_rows %}
+
+                            <tfoot>
+
+                                <tr class="fw-bold">
+
+                                    <td
+                                        colspan="3"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </td>
+
+                                    <td class="text-end">
+                                        {{ format_currency(total_invoice_amount) }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        {{ format_currency(total_paid) }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        {{ format_currency(total_receivables) }}
+                                    </td>
+
+                                    <td></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        {% endif %}
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 AGING SUMMARY
+            ================================================== -->
+
+            <div class="mt-5">
+
+                <h4 class="fw-bold mb-3">
+                    Receivables Aging Summary
+                </h4>
+
+                <table class="table table-bordered table-sm">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Age
+                            </th>
+
+                            <th class="text-end">
+                                Outstanding Amount
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td>
+                                0–30 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_0_30) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                31–60 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_31_60) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                61–90 Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_61_90) }}
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td>
+                                91+ Days
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(aging_91_plus) }}
+                            </td>
+
+                        </tr>
+
+                        <tr class="fw-bold">
+
+                            <td>
+                                Total
+                            </td>
+
+                            <td class="text-end">
+                                {{ format_currency(total_receivables) }}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT NOTE
+            ================================================== -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Receivables are based on outstanding balances
+                    from sales invoices recorded during the selected
+                    reporting period.
+
+                    Purchase transactions and supplier balances
+                    are excluded.
+
+                    Since the current sales model does not contain
+                    a dedicated due-date field, invoice age is
+                    calculated from the sale date.
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT FOOTER
+            ================================================== -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="text-center small text-secondary mt-4">
+
+                    {{ current_user.company.name }}
+                    · Receivables Report
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     COMPANY CURRENCY SETTINGS
+========================================================== -->
+
+<script>
+
+const COMPANY_SETTINGS = {
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+};
+
+
+/* =========================================================
+   JAVASCRIPT CURRENCY FORMATTER
+========================================================= */
+
+function formatMoney(value) {
+
+    const numericValue =
+        Number(value || 0);
+
+    const decimalPlaces =
+        Number.isInteger(
+            Number(
+                COMPANY_SETTINGS.decimalPlaces
+            )
+        )
+            ? Number(
+                COMPANY_SETTINGS.decimalPlaces
+            )
+            : 2;
+
+    const formatted =
+        numericValue.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits:
+                    decimalPlaces,
+
+                maximumFractionDigits:
+                    decimalPlaces
+            }
+        );
+
+    if (
+        COMPANY_SETTINGS.currencyPosition ===
+        "after"
+    ) {
+
+        return (
+            formatted +
+            " " +
+            COMPANY_SETTINGS.currencySymbol
+        );
+
+    }
+
+    return (
+        COMPANY_SETTINGS.currencySymbol +
+        formatted
+    );
+}
+
+</script>
+
+
+<!-- =========================================================
+     CHART.JS
+========================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =====================================================
+           DATA FROM FLASK
+        ====================================================== */
+
+        const paymentStatusData =
+            {{ payment_status_chart | tojson }};
+
+
+        const customerData =
+            {{ customer_chart | tojson }};
+
+
+        const agingData =
+            {{ aging_chart | tojson }};
+
+
+        /* =====================================================
+           PAID VS OUTSTANDING CHART
+        ====================================================== */
+
+        const paymentStatusCanvas =
+            document.getElementById(
+                "paymentStatusChart"
+            );
+
+
+        if (paymentStatusCanvas) {
+
+            const paymentStatusChart =
+                new Chart(
+                    paymentStatusCanvas,
+                    {
+                        type: "doughnut",
+
+                        data: {
+
+                            labels:
+                                paymentStatusData.map(
+                                    item => item.status
+                                ),
+
+                            datasets: [
+
+                                {
+
+                                    data:
+                                        paymentStatusData.map(
+                                            item => item.total
+                                        ),
+
+                                    backgroundColor:
+                                        paymentStatusData.map(
+                                            item => {
+
+                                                if (
+                                                    item.status ===
+                                                    "Paid"
+                                                ) {
+                                                    return "#198754";
+                                                }
+
+                                                if (
+                                                    item.status ===
+                                                    "Outstanding"
+                                                ) {
+                                                    return "#dc3545";
+                                                }
+
+                                                return "#6c757d";
+
+                                            }
+                                        ),
+
+                                    borderWidth: 0
+
+                                }
+
+                            ]
+
+                        },
+
+                        options: {
+
+                            responsive: true,
+
+                            maintainAspectRatio: false,
+
+                            plugins: {
+
+                                legend: {
+
+                                    position: "bottom"
+
+                                },
+
+                                tooltip: {
+
+                                    callbacks: {
+
+                                        label:
+                                            function (
+                                                context
+                                            ) {
+
+                                                return (
+                                                    context.label +
+                                                    ": " +
+                                                    formatMoney(
+                                                        context.raw
+                                                    )
+                                                );
+
+                                            }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+
+            /* =================================================
+               RECEIVABLES BY CUSTOMER
+            ================================================== */
+
+            const customerCanvas =
+                document.getElementById(
+                    "customerChart"
+                );
+
+
+            if (customerCanvas) {
+
+                const customerChart =
+                    new Chart(
+                        customerCanvas,
+                        {
+                            type: "bar",
+
+                            data: {
+
+                                labels:
+                                    customerData.map(
+                                        item => item.customer
+                                    ),
+
+                                datasets: [
+
+                                    {
+
+                                        label:
+                                            "Outstanding",
+
+                                        data:
+                                            customerData.map(
+                                                item => item.total
+                                            ),
+
+                                        backgroundColor:
+                                            "#dd3c4c",
+
+                                        borderColor:
+                                            "#fd7e14",
+
+                                        borderWidth:
+                                            0.5
+
+                                    }
+
+                                ]
+
+                            },
+
+                            options: {
+
+                                indexAxis: "y",
+
+                                responsive: true,
+
+                                maintainAspectRatio: false,
+
+                                plugins: {
+
+                                    legend: {
+
+                                        display: false
+
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label:
+                                                function (
+                                                    context
+                                                ) {
+
+                                                    return (
+                                                        "Outstanding: " +
+                                                        formatMoney(
+                                                            context.raw
+                                                        )
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                },
+
+                                scales: {
+
+                                    x: {
+
+                                        beginAtZero: true,
+
+                                        ticks: {
+
+                                            callback:
+                                                function (
+                                                    value
+                                                ) {
+
+                                                    return formatMoney(
+                                                        value
+                                                    );
+
+                                                }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+                /* =================================================
+                   RECEIVABLES AGING
+                ================================================== */
+
+                const agingCanvas =
+                    document.getElementById(
+                        "agingChart"
+                    );
+
+
+                if (agingCanvas) {
+
+                    const agingChart =
+                        new Chart(
+                            agingCanvas,
+                            {
+                                type: "bar",
+
+                                data: {
+
+                                    labels:
+                                        agingData.map(
+                                            item => item.label
+                                        ),
+
+                                    datasets: [
+
+                                        {
+
+                                            label:
+                                                "Outstanding",
+
+                                            data:
+                                                agingData.map(
+                                                    item => item.total
+                                                ),
+
+                                            backgroundColor:
+                                                agingData.map(
+                                                    item => {
+
+                                                        if (
+                                                            item.label ===
+                                                            "0–30 Days"
+                                                        ) {
+                                                            return "#f4bec3";
+                                                        }
+
+                                                        if (
+                                                            item.label ===
+                                                            "31–60 Days"
+                                                        ) {
+                                                            return "#f0a8af";
+                                                        }
+
+                                                        if (
+                                                            item.label ===
+                                                            "61–90 Days"
+                                                        ) {
+                                                            return "#e87d88";
+                                                        }
+
+                                                        if (
+                                                            item.label ===
+                                                            "91+ Days"
+                                                        ) {
+                                                            return "#e05260";
+                                                        }
+
+                                                        return "#6c757d";
+
+                                                    }
+                                                ),
+
+                                            borderWidth: 0
+
+                                        }
+
+                                    ]
+
+                                },
+
+                                options: {
+
+                                    responsive: true,
+
+                                    maintainAspectRatio: false,
+
+                                    plugins: {
+
+                                        legend: {
+
+                                            display: false
+
+                                        },
+
+                                        tooltip: {
+
+                                            callbacks: {
+
+                                                label:
+                                                    function (
+                                                        context
+                                                    ) {
+
+                                                        return (
+                                                            "Outstanding: " +
+                                                            formatMoney(
+                                                                context.raw
+                                                            )
+                                                        );
+
+                                                    }
+
+                                            }
+
+                                        }
+
+                                    },
+
+                                    scales: {
+
+                                        y: {
+
+                                            beginAtZero: true,
+
+                                            ticks: {
+
+                                                callback:
+                                                    function (
+                                                        value
+                                                    ) {
+
+                                                        return formatMoney(
+                                                            value
+                                                        );
+
+                                                    }
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+                        );
+
+
+                    /* =============================================
+                       PREPARE EXPORT CHARTS
+                    ============================================== */
+
+                    window.prepareReceivablesExport =
+                        function () {
+
+                            document.getElementById(
+                                "exportPaymentStatus"
+                            ).src =
+                                paymentStatusChart.toBase64Image(
+                                    "image/png",
+                                    1
+                                );
+
+
+                            document.getElementById(
+                                "exportCustomerChart"
+                            ).src =
+                                customerChart.toBase64Image(
+                                    "image/png",
+                                    1
+                                );
+
+
+                            document.getElementById(
+                                "exportAgingChart"
+                            ).src =
+                                agingChart.toBase64Image(
+                                    "image/png",
+                                    1
+                                );
+
+                        };
+
+                }
+
+            }
+
+        }
+
+
+        /* =====================================================
+           DATE FILTER
+        ====================================================== */
+
+        const startDate =
+            document.getElementById(
+                "start_date"
+            );
+
+
+        const endDate =
+            document.getElementById(
+                "end_date"
+            );
+
+
+        if (
+            startDate &&
+            endDate
+        ) {
+
+            startDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        endDate.min =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+
+            endDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        startDate.max =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   PRINT / EXPORT RECEIVABLES REPORT
+========================================================= */
+
+function printReceivablesReport() {
+
+    if (
+        typeof window.prepareReceivablesExport ===
+        "function"
+    ) {
+
+        window.prepareReceivablesExport();
+
+    }
+
+
+    const exportSection =
+        document.getElementById(
+            "receivablesExportSection"
+        );
+
+
+    if (!exportSection) {
+
+        return;
+
+    }
+
+
+    const originalBody =
+        document.body.innerHTML;
+
+
+    const exportContent =
+        exportSection.innerHTML;
+
+
+    document.body.innerHTML =
+        exportContent;
+
+
+    window.print();
+
+
+    document.body.innerHTML =
+        originalBody;
+
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

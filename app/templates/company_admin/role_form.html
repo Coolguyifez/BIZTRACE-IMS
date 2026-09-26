@@ -1,0 +1,897 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if role %}
+        Edit {{ role.name }}
+    {% else %}
+        Create Role
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+
+                <a
+                    href="{{ url_for('company_admin.roles') }}"
+                    class="btn btn-sm btn-light border rounded-circle d-flex align-items-center justify-content-center"
+                    style="width: 36px; height: 36px;"
+                    title="Back to roles"
+                >
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <span class="text-muted small">
+                    Roles & Permissions
+                </span>
+
+            </div>
+
+            <h1 class="h4 fw-semibold mb-1">
+
+                {% if role %}
+                    Edit Role
+                {% else %}
+                    Create Role
+                {% endif %}
+
+            </h1>
+
+            <p class="text-muted small mb-0">
+
+                {% if role %}
+                    Update the role name, description and permissions.
+                {% else %}
+                    Create a custom role and define what users assigned to it can access.
+                {% endif %}
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FORM
+    ====================================================== -->
+
+    <form
+        method="POST"
+        id="roleForm"
+        novalidate
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+
+        <div class="row g-4">
+
+            <!-- =================================================
+                 ROLE INFORMATION
+            ================================================== -->
+
+            <div class="col-12 col-xl-4">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div
+                                class="d-flex align-items-center justify-content-center rounded-3"
+                                style="
+                                    width: 44px;
+                                    height: 44px;
+                                    background: rgba(10,132,255,.12);
+                                    color: #0a84ff;
+                                "
+                            >
+                                <i class="bi bi-shield-plus fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h2 class="h6 fw-semibold mb-1">
+                                    Role Information
+                                </h2>
+
+                                <div class="text-muted small">
+                                    Basic details about this role.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ROLE NAME -->
+
+                        <div class="mb-4">
+
+                            <label
+                                for="roleName"
+                                class="form-label fw-semibold small"
+                            >
+                                Role Name
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="roleName"
+                                name="name"
+                                class="form-control"
+                                maxlength="100"
+                                required
+                                value="{{ role.name if role else '' }}"
+                                placeholder="e.g. Sales Supervisor"
+                                autocomplete="off"
+                            >
+
+                            <div class="form-text text-muted">
+                                Choose a clear name that describes the user's responsibilities.
+                            </div>
+
+                        </div>
+
+
+                        <!-- DESCRIPTION -->
+
+                        <div class="mb-4">
+
+                            <label
+                                for="roleDescription"
+                                class="form-label fw-semibold small"
+                            >
+                                Description
+                            </label>
+
+                            <textarea
+                                id="roleDescription"
+                                name="description"
+                                class="form-control"
+                                rows="5"
+                                maxlength="255"
+                                placeholder="Describe what this role is responsible for..."
+                            >{{ role.description if role and role.description else '' }}</textarea>
+
+                            <div class="form-text text-muted">
+                                Optional. Maximum 255 characters.
+                            </div>
+
+                        </div>
+
+
+                        <!-- ROLE TYPE -->
+
+                        <div class="p-3 rounded-3 border">
+
+                            <div class="d-flex align-items-start gap-3">
+
+                                <i class="bi bi-info-circle text-primary mt-1"></i>
+
+                                <div>
+
+                                    <div class="fw-semibold small mb-1">
+                                        Custom Company Role
+                                    </div>
+
+                                    <div class="text-muted small">
+
+                                        This role belongs only to your company.
+                                        Its permissions will not affect other companies
+                                        using BizTrace IMS.
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     PERMISSION SUMMARY
+                ================================================== -->
+
+                <div class="card border-0 shadow-sm mt-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+
+                            <div>
+
+                                <div class="fw-semibold small">
+                                    Selected Permissions
+                                </div>
+
+                                <div class="text-muted small">
+                                    Permissions assigned to this role.
+                                </div>
+
+                            </div>
+
+                            <span
+                                id="selectedCount"
+                                class="badge rounded-pill text-bg-primary"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="progress"
+                            style="height: 7px;"
+                        >
+
+                            <div
+                                id="permissionProgress"
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: 0%;"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PERMISSIONS
+            ================================================== -->
+
+            <div class="col-12 col-xl-8">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body p-0">
+
+                        <!-- PERMISSION HEADER -->
+
+                        <div class="p-4 border-bottom">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                                <div>
+
+                                    <h2 class="h6 fw-semibold mb-1">
+                                        Permissions
+                                    </h2>
+
+                                    <div class="text-muted small">
+                                        Select the features and actions this role can access.
+                                    </div>
+
+                                </div>
+
+
+                                <div class="d-flex gap-2">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-primary rounded-pill px-4"
+                                        id="selectAllPermissions"
+                                    >
+                                        <i class="bi bi-check2-all me-2"></i>
+                                        Select All
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary rounded-pill px-4"
+                                        id="clearAllPermissions"
+                                    >
+                                        <i class="bi bi-x-lg me-2"></i>
+                                        Clear All
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PERMISSION GROUPS -->
+
+                        <div>
+
+                            {% for group, group_permissions in permission_groups.items() %}
+
+                                <div
+                                    class="permission-group border-bottom"
+                                    data-group="{{ loop.index }}"
+                                >
+
+                                    <!-- GROUP HEADER -->
+
+                                    <div class="px-4 py-3">
+
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+                                            <div class="d-flex align-items-center gap-2">
+
+                                                <div
+                                                    class="d-flex align-items-center justify-content-center rounded-2"
+                                                    style="
+                                                        width: 34px;
+                                                        height: 34px;
+                                                        background: rgba(10,132,255,.10);
+                                                        color: #0a84ff;
+                                                    "
+                                                >
+
+                                                    {% if group == "Dashboard" %}
+                                                        <i class="bi bi-grid-1x2-fill"></i>
+
+                                                    {% elif group == "Products" %}
+                                                       <i class="bi bi-box-seam-fill"></i>
+
+                                                    {% elif group == "Categories" %}
+                                                        <i class="bi bi-tags"></i>
+
+                                                    {% elif group == "Inventory" %}
+                                                        <i class="bi bi-boxes"></i>
+
+                                                    {% elif group == "Sales" %}
+                                                        <i class="bi bi-cart-check"></i>
+
+                                                    {% elif group == "Purchases" %}
+                                                        <i class="bi bi-bag-check"></i>
+
+                                                    {% elif group == "Customers" %}
+                                                        <i class="bi bi-people"></i>
+
+                                                    {% elif group == "Suppliers" %}
+                                                        <i class="bi bi-truck"></i>
+
+                                                    {% elif group == "Expenses" %}
+                                                        <i class="bi bi-wallet2"></i>
+
+                                                    {% elif group == "Payments" %}
+                                                        <i class="bi bi-credit-card-fill"></i>
+
+                                                    {% elif group == "Receivables" %}
+                                                        <i class="bi bi-arrow-down-left-circle"></i>
+
+                                                    {% elif group == "Payables" %}
+                                                        <i class="bi bi-arrow-up-right-circle"></i>
+
+                                                    {% elif group == "Production" %}
+                                                        <i class="bi bi-gear"></i>
+
+                                                    {% elif group == "Reports" %}
+                                                        <i class="bi bi-bar-chart"></i>
+
+                                                    {% elif group == "Users" %}
+                                                        <i class="bi bi-person-gear"></i>
+
+                                                    {% elif group == "Company" %}
+                                                        <i class="bi bi-building"></i>
+
+                                                    {% else %}
+                                                        <i class="bi bi-shield"></i>
+                                                    {% endif %}
+
+                                                </div>
+
+
+                                                <div>
+
+                                                    <div class="fw-semibold small">
+                                                        {{ group }}
+                                                    </div>
+
+                                                    <div class="text-muted permission-group-count small">
+                                                        {{ group_permissions|length }}
+                                                        permission{% if group_permissions|length != 1 %}s{% endif %}
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-link text-decoration-none p-0 group-toggle"
+                                                data-group-index="{{ loop.index }}"
+                                            >
+                                                Select group
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- GROUP PERMISSIONS -->
+
+                                    <div class="px-4 pb-4">
+
+                                        <div class="row g-2">
+
+                                            {% for permission in group_permissions %}
+
+                                                <div class="col-12 col-md-6">
+
+                                                    <label
+                                                        class="permission-item d-flex align-items-start gap-3 p-3 rounded-3 border h-100"
+                                                        for="permission-{{ permission.id }}"
+                                                    >
+
+                                                        <div class="form-check mt-1">
+
+                                                            <input
+                                                                class="form-check-input permission-checkbox"
+                                                                type="checkbox"
+                                                                name="permissions"
+                                                                value="{{ permission.id }}"
+                                                                id="permission-{{ permission.id }}"
+                                                                {% if permission.id|string in selected_permissions %}
+                                                                    checked
+                                                                {% endif %}
+                                                            >
+
+                                                        </div>
+
+
+                                                        <div class="flex-grow-1">
+
+                                                            <div class="fw-semibold small">
+                                                                {{ permission.name|replace("_", " ")|title }}
+                                                            </div>
+
+                                                            {% if permission.description %}
+
+                                                                <div class="text-muted small mt-1">
+                                                                    {{ permission.description }}
+                                                                </div>
+
+                                                            {% endif %}
+
+                                                        </div>
+
+                                                    </label>
+
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- FORM ACTIONS -->
+
+                        <div class="p-4">
+
+                            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+
+                                <a
+                                    href="{{ url_for('company_admin.roles') }}"
+                                    class="btn btn-light rounded-pill px-4 border"
+                                >
+                                    <i class="bi bi-x-lg me-1"></i>
+                                    Cancel
+                                </a>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary rounded-pill px-4"
+                                    id="saveRoleButton"
+                                >
+
+                                    
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    {% if role %}
+                                        Save Changes
+                                    {% else %}
+                                    
+                                        Create Role
+                                    {% endif %}
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     PAGE STYLES
+========================================================= -->
+
+<style>
+
+.permission-item {
+    cursor: pointer;
+    transition:
+        border-color .18s ease,
+        background-color .18s ease,
+        transform .18s ease;
+}
+
+.permission-item:hover {
+    border-color: rgba(10, 132, 255, .45) !important;
+    background: rgba(10, 132, 255, .035);
+}
+
+.permission-item:has(
+    .permission-checkbox:checked
+) {
+    border-color: rgba(10, 132, 255, .55) !important;
+    background: rgba(10, 132, 255, .06);
+}
+
+.permission-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.group-toggle {
+    font-size: .78rem;
+}
+
+#selectedCount {
+    min-width: 34px;
+}
+
+@media (max-width: 575.98px) {
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .permission-item {
+        padding: .75rem !important;
+    }
+
+    #selectAllPermissions,
+    #clearAllPermissions {
+        flex: 1;
+    }
+
+}
+
+</style>
+
+
+<!-- =========================================================
+     PAGE JAVASCRIPT
+========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("roleForm");
+
+    const checkboxes = Array.from(
+        document.querySelectorAll(".permission-checkbox")
+    );
+
+    const selectedCount = document.getElementById(
+        "selectedCount"
+    );
+
+    const progressBar = document.getElementById(
+        "permissionProgress"
+    );
+
+    const selectAllButton = document.getElementById(
+        "selectAllPermissions"
+    );
+
+    const clearAllButton = document.getElementById(
+        "clearAllPermissions"
+    );
+
+
+    // =====================================================
+    // UPDATE SUMMARY
+    // =====================================================
+
+    function updateSummary() {
+
+        const selected = checkboxes.filter(
+            checkbox => checkbox.checked
+        ).length;
+
+        const total = checkboxes.length;
+
+        selectedCount.textContent = selected;
+
+        const percentage = total > 0
+            ? (selected / total) * 100
+            : 0;
+
+        progressBar.style.width =
+            percentage + "%";
+
+
+        // Update group buttons
+
+        document.querySelectorAll(
+            ".permission-group"
+        ).forEach(function (groupElement) {
+
+            const groupCheckboxes =
+                Array.from(
+                    groupElement.querySelectorAll(
+                        ".permission-checkbox"
+                    )
+                );
+
+            const groupSelected =
+                groupCheckboxes.filter(
+                    checkbox => checkbox.checked
+                ).length;
+
+            const button =
+                groupElement.querySelector(
+                    ".group-toggle"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            if (
+                groupSelected ===
+                groupCheckboxes.length
+            ) {
+
+                button.textContent =
+                    "Clear group";
+
+                button.classList.remove(
+                    "text-primary"
+                );
+
+                button.classList.add(
+                    "text-secondary"
+                );
+
+            } else {
+
+                button.textContent =
+                    "Select group";
+
+                button.classList.remove(
+                    "text-secondary"
+                );
+
+                button.classList.add(
+                    "text-primary"
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // =====================================================
+    // CHECKBOX EVENTS
+    // =====================================================
+
+    checkboxes.forEach(function (checkbox) {
+
+        checkbox.addEventListener(
+            "change",
+            updateSummary
+        );
+
+    });
+
+
+    // =====================================================
+    // SELECT ALL
+    // =====================================================
+
+    selectAllButton.addEventListener(
+        "click",
+        function () {
+
+            checkboxes.forEach(
+                checkbox => {
+                    checkbox.checked = true;
+                }
+            );
+
+            updateSummary();
+
+        }
+    );
+
+
+    // =====================================================
+    // CLEAR ALL
+    // =====================================================
+
+    clearAllButton.addEventListener(
+        "click",
+        function () {
+
+            checkboxes.forEach(
+                checkbox => {
+                    checkbox.checked = false;
+                }
+            );
+
+            updateSummary();
+
+        }
+    );
+
+
+    // =====================================================
+    // GROUP SELECT / CLEAR
+    // =====================================================
+
+    document.querySelectorAll(
+        ".group-toggle"
+    ).forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const groupElement =
+                    button.closest(
+                        ".permission-group"
+                    );
+
+                if (!groupElement) {
+                    return;
+                }
+
+                const groupCheckboxes =
+                    Array.from(
+                        groupElement.querySelectorAll(
+                            ".permission-checkbox"
+                        )
+                    );
+
+                const allSelected =
+                    groupCheckboxes.length > 0 &&
+                    groupCheckboxes.every(
+                        checkbox =>
+                            checkbox.checked
+                    );
+
+                groupCheckboxes.forEach(
+                    checkbox => {
+                        checkbox.checked =
+                            !allSelected;
+                    }
+                );
+
+                updateSummary();
+
+            }
+        );
+
+    });
+
+
+    // =====================================================
+    // FORM VALIDATION
+    // =====================================================
+
+    form.addEventListener(
+        "submit",
+        function (event) {
+
+            const nameInput =
+                document.getElementById(
+                    "roleName"
+                );
+
+            const name =
+                nameInput.value.trim();
+
+            if (!name) {
+
+                event.preventDefault();
+
+                nameInput.focus();
+
+                nameInput.classList.add(
+                    "is-invalid"
+                );
+
+                return;
+
+            }
+
+            nameInput.classList.remove(
+                "is-invalid"
+            );
+
+        }
+    );
+
+
+    // Remove validation state when typing.
+
+    document.getElementById(
+        "roleName"
+    ).addEventListener(
+        "input",
+        function () {
+
+            if (this.value.trim()) {
+
+                this.classList.remove(
+                    "is-invalid"
+                );
+
+            }
+
+        }
+    );
+
+
+    // Initial state.
+
+    updateSummary();
+
+});
+
+</script>
+
+{% endblock %}

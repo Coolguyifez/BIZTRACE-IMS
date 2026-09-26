@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0a84ff"
+    >
+
+    <title>Create Account </title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+
+        :root {
+
+            --primary: #0a84ff;
+            --background: #f5f5f7;
+            --surface: rgba(255,255,255,.90);
+            --text: #1d1d1f;
+            --muted: #6e6e73;
+            --border: rgba(0,0,0,.08);
+
+        }
+
+
+
+        /* =====================================================
+        HIDE SCROLLBARS
+        ===================================================== */
+
+        /* Chrome, Edge, Safari */
+        html,
+        body,
+        .sidebar-inner {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        .sidebar-inner::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        html[data-theme="dark"],
+        html.system-dark {
+
+            --background: #0f1115;
+            --surface: rgba(24,26,32,.92);
+            --text: #f5f5f7;
+            --muted: #a1a1a6;
+            --border: rgba(255,255,255,.10);
+
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+
+            color: var(--text);
+
+            background: var(--background);
+
+        }
+
+        .register-page {
+
+            min-height: 100vh;
+
+            padding: 28px 18px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+        .orb {
+
+            position: absolute;
+
+            width: 420px;
+
+            height: 420px;
+
+            border-radius: 50%;
+
+            filter: blur(100px);
+
+            opacity: .16;
+
+            pointer-events: none;
+
+        }
+
+        .orb-one {
+
+            background: #0a84ff;
+
+            top: -200px;
+
+            left: -120px;
+
+        }
+
+        .orb-two {
+
+            background: #8b5cf6;
+
+            right: -200px;
+
+            bottom: -180px;
+
+        }
+
+        .register-card {
+
+            width: 100%;
+
+            max-width: 980px;
+
+            display: grid;
+
+            grid-template-columns: .8fr 1.2fr;
+
+            border: 1px solid var(--border);
+
+            border-radius: 30px;
+
+            overflow: hidden;
+
+            background: var(--surface);
+
+            backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.12);
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+        .register-side {
+
+            padding: 48px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(10,132,255,.14),
+                    transparent
+                );
+
+        }
+
+        .brand {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            color: var(--text);
+
+            text-decoration: none;
+
+            font-size: 20px;
+
+            font-weight: 750;
+
+        }
+
+        .brand-icon {
+
+            width: 42px;
+
+            height: 42px;
+
+            border-radius: 13px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: var(--primary);
+
+            color: white;
+
+        }
+
+        .register-side h1 {
+
+            margin-top: 110px;
+
+            font-size: 44px;
+
+            line-height: 1.05;
+
+            letter-spacing: -2px;
+
+            font-weight: 750;
+
+        }
+
+        .register-side p {
+
+            color: var(--muted);
+
+            line-height: 1.7;
+
+            margin-top: 18px;
+
+        }
+
+        .register-main {
+
+            padding: 48px;
+
+        }
+
+        .register-main h2 {
+
+            font-size: 30px;
+
+            font-weight: 750;
+
+            letter-spacing: -1px;
+
+            margin-bottom: 7px;
+
+        }
+
+        .subtitle {
+
+            color: var(--muted);
+
+            margin-bottom: 28px;
+
+        }
+
+        .section-label {
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+            font-weight: 750;
+
+            color: var(--primary);
+
+            margin-bottom: 16px;
+
+        }
+
+        .form-label {
+
+            font-size: 13px;
+
+            font-weight: 650;
+
+            margin-bottom: 7px;
+
+        }
+
+        .modern-input {
+
+            width: 100%;
+
+            min-height: 52px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 14px;
+
+            background: rgba(127,127,127,.06);
+
+            color: var(--text);
+
+            padding: 0 15px;
+
+            outline: none;
+
+        }
+
+        .modern-input:focus {
+
+            border-color: var(--primary);
+
+            box-shadow:
+                0 0 0 4px rgba(10,132,255,.12);
+
+        }
+
+        .password-wrapper {
+
+            position: relative;
+
+        }
+
+        .password-wrapper .modern-input {
+
+            padding-right: 48px;
+
+        }
+
+        .toggle-password {
+
+            position: absolute;
+
+            right: 8px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            width: 38px;
+
+            height: 38px;
+
+            border: 0;
+
+            background: transparent;
+
+            color: var(--muted);
+
+            border-radius: 10px;
+
+        }
+
+        .toggle-password:hover {
+
+            background: rgba(127,127,127,.10);
+
+        }
+
+        .btn-create {
+
+            width: 100%;
+
+            min-height: 54px;
+
+            border: 0;
+
+            border-radius: 15px;
+
+            background: var(--primary);
+
+            color: white;
+
+            font-weight: 700;
+
+            box-shadow:
+                0 10px 24px rgba(10,132,255,.22);
+
+        }
+
+        .bottom-link {
+
+            text-align: center;
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+            margin-top: 22px;
+
+        }
+
+        .bottom-link a {
+
+            color: var(--primary);
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+        }
+
+        .alert {
+
+            border: 0;
+
+            border-radius: 14px;
+
+            font-size: 13px;
+
+        }
+
+        @media (max-width: 850px) {
+
+            .register-card {
+
+                max-width: 600px;
+
+                grid-template-columns: 1fr;
+
+            }
+
+            .register-side {
+
+                display: none;
+
+            }
+
+            .register-main {
+
+                padding: 35px 26px;
+
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            .register-page {
+
+                padding: 10px;
+
+            }
+
+            .register-card {
+
+                border-radius: 22px;
+
+            }
+
+            .register-main {
+
+                padding: 28px 18px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="register-page">
+
+    <div class="orb orb-one"></div>
+
+    <div class="orb orb-two"></div>
+
+
+    <div class="register-card">
+
+
+        <!-- =====================================================
+             LEFT PANEL
+        ====================================================== -->
+
+        <aside class="register-side">
+
+            <a
+                href="{{ url_for('auth.welcome') }}"
+                class="brand"
+            >
+
+                <span class="brand-icon">
+
+                    <i class="bi bi-bar-chart-fill"></i>
+                </span>
+
+                <span>BizTrace<small><small class="text-primary"> IMS</small></small></small></span>
+
+            </a>
+
+
+            <h1>
+                Start managing your business better.
+            </h1>
+
+
+            <p>
+
+                Create your company workspace and bring
+                sales, inventory, purchases and reporting
+                together in one place.
+
+            </p>
+
+        </aside>
+
+
+        <!-- =====================================================
+             REGISTRATION FORM
+        ====================================================== -->
+
+        <main class="register-main">
+
+            <h2>
+                Create your account
+            </h2>
+
+
+            <p class="subtitle">
+
+                Set up your company workspace in a few steps.
+
+            </p>
+
+
+            <!-- FLASH MESSAGES -->
+
+            {% with messages = get_flashed_messages(
+                with_categories=true
+            ) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div
+                            class="alert alert-{{ category }} mb-3"
+                        >
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <form
+                method="POST"
+                novalidate
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- =================================================
+                     COMPANY INFORMATION
+                ================================================== -->
+
+                <div class="section-label">
+
+                    Company information
+
+                </div>
+
+
+                <div class="row g-3 mb-4">
+
+
+                    <!-- COMPANY NAME -->
+
+                    <div class="col-12">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.company_name.id }}"
+                        >
+
+                            Company name
+
+                        </label>
+
+
+                        {{ form.company_name(
+                            class="modern-input",
+                            placeholder="Your company name"
+                        ) }}
+
+
+                        {% for error in form.company_name.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- COMPANY EMAIL -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.company_email.id }}"
+                        >
+
+                            Company email
+
+                        </label>
+
+
+                        {{ form.company_email(
+                            class="modern-input",
+                            placeholder="company@example.com"
+                        ) }}
+
+
+                        {% for error in form.company_email.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- COMPANY PHONE -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.company_phone.id }}"
+                        >
+
+                            Phone number
+
+                        </label>
+
+
+                        {{ form.company_phone(
+                            class="modern-input",
+                            placeholder="+234..."
+                        ) }}
+
+
+                        {% for error in form.company_phone.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- COMPANY ADDRESS -->
+
+                    <div class="col-12">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.company_address.id }}"
+                        >
+
+                            Business address
+
+                        </label>
+
+
+                        {{ form.company_address(
+                            class="modern-input",
+                            placeholder="Enter your business address",
+                            autocomplete="street-address"
+                        ) }}
+
+
+                        {% for error in form.company_address.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     ADMINISTRATOR ACCOUNT
+                ================================================== -->
+
+                <div class="section-label">
+
+                    Administrator account
+
+                </div>
+
+
+                <div class="row g-3">
+
+
+                    <!-- USERNAME -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.username.id }}"
+                        >
+
+                            Username
+
+                        </label>
+
+
+                        {{ form.username(
+                            class="modern-input",
+                            placeholder="Choose a username",
+                            autocomplete="username"
+                        ) }}
+
+
+                        {% for error in form.username.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- LOGIN EMAIL -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.email.id }}"
+                        >
+
+                            Login email
+
+                        </label>
+
+
+                        {{ form.email(
+                            class="modern-input",
+                            placeholder="you@example.com",
+                            autocomplete="email"
+                        ) }}
+
+
+                        {% for error in form.email.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.password.id }}"
+                        >
+
+                            Password
+
+                        </label>
+
+
+                        <div class="password-wrapper">
+
+
+                            {{ form.password(
+                                class="modern-input",
+                                placeholder="Minimum 8 characters",
+                                autocomplete="new-password",
+                                id="registerPassword"
+                            ) }}
+
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                onclick="togglePassword(
+                                    'registerPassword',
+                                    this
+                                )"
+                                aria-label="Show password"
+                            >
+
+                                <i class="bi bi-eye"></i>
+
+                            </button>
+
+
+                        </div>
+
+
+                        {% for error in form.password.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- CONFIRM PASSWORD -->
+
+                    <div class="col-md-6">
+
+                        <label
+                            class="form-label"
+                            for="{{ form.confirm_password.id }}"
+                        >
+
+                            Confirm password
+
+                        </label>
+
+
+                        <div class="password-wrapper">
+
+
+                            {{ form.confirm_password(
+                                class="modern-input",
+                                placeholder="Repeat password",
+                                autocomplete="new-password",
+                                id="confirmPassword"
+                            ) }}
+
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                onclick="togglePassword(
+                                    'confirmPassword',
+                                    this
+                                )"
+                                aria-label="Show password"
+                            >
+
+                                <i class="bi bi-eye"></i>
+
+                            </button>
+
+
+                        </div>
+
+
+                        {% for error in form.confirm_password.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="btn-create mt-4"
+                >
+
+                    <i class="bi bi-building-add me-2"></i>
+
+                    Create company workspace
+
+                </button>
+
+
+            </form>
+
+
+            <!-- LOGIN LINK -->
+
+            <div class="bottom-link">
+
+                Already have an account?
+
+                <a
+                    href="{{ url_for('auth.login') }}"
+                >
+
+                    Sign in
+
+                </a>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PASSWORD TOGGLE
+========================================================== -->
+
+<script>
+
+function togglePassword(
+    inputId,
+    button
+) {
+
+    const input =
+        document.getElementById(inputId);
+
+    const icon =
+        button.querySelector("i");
+
+
+    if (
+        input.type === "password"
+    ) {
+
+        input.type = "text";
+
+        icon.className =
+            "bi bi-eye-slash";
+
+        button.setAttribute(
+            "aria-label",
+            "Hide password"
+        );
+
+    } else {
+
+        input.type = "password";
+
+        icon.className =
+            "bi bi-eye";
+
+        button.setAttribute(
+            "aria-label",
+            "Show password"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+(function () {
+
+    const root = document.documentElement;
+
+    const mediaQuery = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+    );
+
+
+    function applyTheme() {
+
+        const savedTheme =
+            localStorage.getItem("theme") || "system";
+
+
+        /* Remove previous theme states */
+
+        root.removeAttribute("data-theme");
+
+        root.classList.remove("system-dark");
+
+
+        /* DARK */
+
+        if (savedTheme === "dark") {
+
+            root.setAttribute(
+                "data-theme",
+                "dark"
+            );
+
+            return;
+        }
+
+
+        /* LIGHT */
+
+        if (savedTheme === "light") {
+
+            root.setAttribute(
+                "data-theme",
+                "light"
+            );
+
+            return;
+        }
+
+
+        /* SYSTEM */
+
+        if (savedTheme === "system") {
+
+            if (mediaQuery.matches) {
+
+                root.classList.add(
+                    "system-dark"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* Apply theme immediately */
+
+    applyTheme();
+
+
+    /* Watch for OS theme changes */
+
+    mediaQuery.addEventListener(
+        "change",
+        function () {
+
+            const savedTheme =
+                localStorage.getItem("theme") || "system";
+
+            if (savedTheme === "system") {
+
+                applyTheme();
+
+            }
+
+        }
+    );
+
+
+    /* Allow other pages/components to trigger a theme update */
+
+    window.addEventListener(
+        "themechange",
+        applyTheme
+    );
+
+
+})();
+
+</script>
+
+</body>
+
+</html>
+

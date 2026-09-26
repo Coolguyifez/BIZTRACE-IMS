@@ -1,0 +1,242 @@
+{% extends "system_admin/app_base.html" %}
+
+{% if company %}
+    {% set page_heading = "Edit Company" %}
+    {% set page_description = "Update company information" %}
+{% else %}
+    {% set page_heading = "Create Company" %}
+    {% set page_description = "Register a new company on BizTrace IMS" %}
+{% endif %}
+
+{% block title %}
+{{ page_heading }}
+{% endblock %}
+
+{% block page_title %}
+{{ page_heading }}
+{% endblock %}
+
+{% block page_subtitle %}
+{{ page_description }}
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-12 col-xl-8">
+
+        <div class="sa-card sa-section-card">
+
+            <div class="sa-section-header">
+
+                <div>
+
+                    <h2 class="sa-section-title">
+                        Company Information
+                    </h2>
+
+                    <div class="text-secondary small mt-1">
+                        Enter the company's basic information
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="sa-section-body">
+
+                <form
+                    method="POST"
+                    novalidate
+                >
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+
+                    <!-- COMPANY NAME -->
+
+                    <div class="mb-4">
+
+                        <label
+                            for="name"
+                            class="form-label fw-semibold"
+                        >
+                            Company Name
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="name"
+                            name="name"
+                            value="{{ company.name if company else '' }}"
+                            required
+                            autofocus
+                            placeholder="Enter company name"
+                        >
+
+                    </div>
+
+
+                    <div class="row g-3">
+
+                        <!-- EMAIL -->
+
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="email"
+                                class="form-label fw-semibold"
+                            >
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                value="{{ company.email if company and company.email else '' }}"
+                                placeholder="company@example.com"
+                            >
+
+                        </div>
+
+
+                        <!-- PHONE -->
+
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="phone"
+                                class="form-label fw-semibold"
+                            >
+                                Phone Number
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="phone"
+                                name="phone"
+                                value="{{ company.phone if company and company.phone else '' }}"
+                                placeholder="+234..."
+                            >
+
+                        </div>
+
+
+                        <!-- ADDRESS -->
+
+                        <div class="col-12">
+
+                            <label
+                                for="address"
+                                class="form-label fw-semibold"
+                            >
+                                Address
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                id="address"
+                                name="address"
+                                rows="3"
+                                placeholder="Company address"
+                            >{{ company.address if company and company.address else '' }}</textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if company %}
+
+                        <div class="mt-4 p-3 rounded-3 bg-body-secondary">
+
+                            <div class="d-flex align-items-center justify-content-between">
+
+                                <div>
+
+                                    <div class="fw-semibold">
+                                        Company Status
+                                    </div>
+
+                                    <div class="small text-secondary mt-1">
+                                        Control whether this company can access BizTrace IMS.
+                                    </div>
+
+                                </div>
+
+
+                                {% if company.is_active %}
+
+                                    <span class="badge text-bg-success">
+                                        Active
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge text-bg-secondary">
+                                        Inactive
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- ACTIONS -->
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
+
+                        <a
+                            href="{{ url_for('system_admin.companies') }}"
+                            class="btn btn-light border rounded-pill"
+                        >
+                            Cancel
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary rounded-pill px-4"
+                        >
+
+                            {% if company %}
+
+                                <i class="bi bi-check-lg me-1"></i>
+                                Save Changes
+
+                            {% else %}
+
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Create Company
+
+                            {% endif %}
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,663 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Admin Users
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                Users
+            </h2>
+
+            <p class="text-muted mb-0">
+                Manage users across all BizTrace companies.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTERS
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('system_admin.users') }}"
+            >
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- SEARCH -->
+
+                    <div class="col-12 col-lg-4">
+
+                        <label class="form-label fw-semibold">
+                            Search
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input
+                                type="search"
+                                name="search"
+                                class="form-control"
+                                placeholder="Username, email or company..."
+                                value="{{ search }}"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="col-12 col-md-4 col-lg-2">
+
+                        <label class="form-label fw-semibold">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if status == "all" %}selected{% endif %}
+                            >
+                                All
+                            </option>
+
+                            <option
+                                value="active"
+                                {% if status == "active" %}selected{% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="inactive"
+                                {% if status == "inactive" %}selected{% endif %}
+                            >
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ROLE -->
+
+                    <div class="col-12 col-md-4 col-lg-2">
+
+                        <label class="form-label fw-semibold">
+                            Role
+                        </label>
+
+                        <select
+                            name="role"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if role == "all" %}selected{% endif %}
+                            >
+                                All Roles
+                            </option>
+
+                            {% for role_item in roles %}
+
+                                <option
+                                    value="{{ role_item }}"
+                                    {% if role == role_item %}selected{% endif %}
+                                >
+                                    {{ role_item }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- COMPANY -->
+
+                    <div class="col-12 col-md-4 col-lg-2">
+
+                        <label class="form-label fw-semibold">
+                            Company
+                        </label>
+
+                        <select
+                            name="company_id"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if company_id == "all" %}selected{% endif %}
+                            >
+                                All Companies
+                            </option>
+
+                            {% for company in companies %}
+
+                                <option
+                                    value="{{ company.id }}"
+                                    {% if company_id|string == company.id|string %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ company.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+
+                    <div class="col-12 col-lg-2">
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary flex-grow-1"
+                            >
+                                <i class="bi bi-funnel me-1"></i>
+                                Filter
+                            </button>
+
+                            <a
+                                href="{{ url_for('system_admin.users') }}"
+                                class="btn btn-outline-secondary"
+                                title="Clear filters"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         USERS TABLE
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-bold mb-1">
+                        Platform Users
+                    </h5>
+
+                    <small class="text-muted">
+                        {{ users|length }}
+                        user{% if users|length != 1 %}s{% endif %}
+                        found
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if users %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    User
+                                </th>
+
+                                <th>
+                                    Company
+                                </th>
+
+                                <th>
+                                    Role
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Created
+                                </th>
+
+                                <th class="text-end pe-4">
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for user in users %}
+
+                                <tr>
+
+                                    <!-- USER -->
+
+                                    <td class="ps-4">
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            <div
+                                                class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                                style="
+                                                    width: 42px;
+                                                    height: 42px;
+                                                    background: rgba(10,132,255,.12);
+                                                    color: #0a84ff;
+                                                "
+                                            >
+
+                                                <i class="bi bi-person-fill"></i>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <div class="fw-semibold">
+
+                                                    {{ user.username }}
+
+                                                    {% if user.id == current_user.id %}
+
+                                                        <span class="badge rounded-pill bg-primary ms-1">
+                                                            You
+                                                        </span>
+
+                                                    {% endif %}
+
+                                                </div>
+
+                                                <div class="small text-muted">
+                                                    {{ user.email }}
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- COMPANY -->
+
+                                    <td>
+
+                                        {% if user.is_system_admin %}
+
+                                            <span class="text-muted">
+                                                <i class="bi bi-shield-lock me-1"></i>
+                                                Platform
+                                            </span>
+
+                                        {% elif user.company %}
+
+                                            <a
+                                                href="{{ url_for(
+                                                    'system_admin.company_view',
+                                                    company_id=user.company.id
+                                                ) }}"
+                                                class="text-decoration-none fw-medium"
+                                            >
+                                                {{ user.company.name }}
+                                            </a>
+
+                                            {% if not user.company.is_active %}
+
+                                                <span class="badge rounded-pill bg-danger ms-1">
+                                                    Inactive
+                                                </span>
+
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Not assigned
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- ROLE -->
+
+                                    <td>
+
+                                        {% if user.is_system_admin %}
+
+                                            <span class="badge rounded-pill bg-dark">
+                                                <i class="bi bi-shield-check me-1"></i>
+                                                System Administrator
+                                            </span>
+
+                                        {% elif user.is_company_admin %}
+
+                                            <span class="badge rounded-pill bg-primary">
+                                                Company Administrator
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge rounded-pill bg-secondary">
+                                                {{ user.role }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- STATUS -->
+
+                                    <td>
+
+                                        {% if user.is_active %}
+
+                                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- CREATED -->
+
+                                    <td>
+
+                                        <span class="text-muted small">
+
+                                            {% if user.created_at %}
+
+                                                {{ user.created_at.strftime("%d %b %Y") }}
+
+                                            {% else %}
+
+                                                —
+
+                                            {% endif %}
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ACTIONS -->
+
+                                    <td class="text-end pe-4">
+
+                                        <div class="dropdown">
+
+                                            <button
+                                                class="btn btn-sm btn-outline-secondary"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                            >
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                                                <li>
+
+                                                    <a
+                                                        class="dropdown-item"
+                                                        href="{{ url_for(
+                                                            'system_admin.user_view',
+                                                            user_id=user.id
+                                                        ) }}"
+                                                    >
+                                                        <i class="bi bi-eye me-2"></i>
+                                                        View
+                                                    </a>
+
+                                                </li>
+
+
+                                                <li>
+
+                                                    <a
+                                                        class="dropdown-item"
+                                                        href="{{ url_for(
+                                                            'system_admin.user_edit',
+                                                            user_id=user.id
+                                                        ) }}"
+                                                    >
+                                                        <i class="bi bi-pencil me-2"></i>
+                                                        Edit
+                                                    </a>
+
+                                                </li>
+
+
+                                                {% if not user.is_system_admin %}
+
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+
+                                                    <li>
+
+                                                        <form
+                                                            method="POST"
+                                                            action="{{ url_for(
+                                                                'system_admin.user_toggle',
+                                                                user_id=user.id
+                                                            ) }}"
+                                                            onsubmit="return confirm(
+                                                                '{% if user.is_active %}Deactivate{% else %}Activate{% endif %} {{ user.username }}?'
+                                                            );"
+                                                        >
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="csrf_token"
+                                                                value="{{ csrf_token() }}"
+                                                            >
+
+                                                            <button
+                                                                type="submit"
+                                                                class="dropdown-item {% if user.is_active %}text-danger{% else %}text-success{% endif %}"
+                                                            >
+
+                                                                {% if user.is_active %}
+
+                                                                    <i class="bi bi-person-x me-2"></i>
+                                                                    Deactivate
+
+                                                                {% else %}
+
+                                                                    <i class="bi bi-person-check me-2"></i>
+                                                                    Activate
+
+                                                                {% endif %}
+
+                                                            </button>
+
+                                                        </form>
+
+                                                    </li>
+
+                                                {% endif %}
+
+                                            </ul>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <!-- EMPTY STATE -->
+
+                <div class="text-center py-5 px-3">
+
+                    <div
+                        class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                        style="
+                            width: 64px;
+                            height: 64px;
+                            background: rgba(10,132,255,.10);
+                            color: #0a84ff;
+                        "
+                    >
+
+                        <i class="bi bi-people fs-3"></i>
+
+                    </div>
+
+                    <h5 class="fw-bold">
+                        No users found
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Try changing your search or filter options.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MOBILE TABLE IMPROVEMENTS
+========================================================= -->
+
+<style>
+
+    .table th {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--bs-secondary-color);
+        white-space: nowrap;
+    }
+
+    .table td {
+        white-space: nowrap;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .dropdown-menu {
+        border: 0;
+        border-radius: 12px;
+        padding: 0.4rem;
+    }
+
+    .dropdown-item {
+        border-radius: 8px;
+        padding: 0.55rem 0.75rem;
+    }
+
+    .dropdown-item:hover {
+        background: rgba(10, 132, 255, 0.08);
+    }
+
+    @media (max-width: 767.98px) {
+
+        .table {
+            min-width: 900px;
+        }
+
+        .card-body.p-0 {
+            overflow-x: auto;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

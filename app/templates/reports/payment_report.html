@@ -1,0 +1,1785 @@
+{% extends "base.html" %}
+
+{% block title %}
+Sales Payment Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-credit-card-fill fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Payment Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Payment collection and bank analysis
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printPaymentReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+                    &nbsp; | &nbsp;
+                {% endif %}
+
+                {% if current_user.company.email %}
+                    {{ current_user.company.email }}
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Payment Report
+            </h2>
+
+            <div>
+
+                Reporting Period:
+
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.payment_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        id="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        id="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.payment_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ format_company_date(start_date) }}
+                    to
+                    {{ format_company_date(end_date) }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL PAYMENTS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Payments
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_payments) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-primary">
+                                    {{ total_payment_count }}
+                                </span>
+
+                                transaction{{ "" if total_payment_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CASH -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(cash_total) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Cash received
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- POS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                POS
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(pos_total) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                POS collections
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BANK TRANSFER -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Bank Transfer
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(bank_transfer_total) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Bank collections
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-bank"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYMENT METHOD CHART
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- PAYMENT METHODS -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Payment Methods
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Total amount collected by payment method
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="paymentMethodChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- POS BY BANK -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        POS by Bank
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        POS collections grouped by receiving bank
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="posBankChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BANK TRANSFER BY BANK -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Bank Transfer by Bank
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Bank transfers grouped by receiving bank
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+
+                        <canvas id="transferBankChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BANK SUMMARY
+    ====================================================== -->
+
+    <div class="row g-4 mb-4 d-print-none">
+
+        <!-- POS SUMMARY -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        POS Bank Summary
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Amount received through each POS bank
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if pos_bank_breakdown %}
+
+                        <div class="list-group list-group-flush">
+
+                            {% for row in pos_bank_breakdown %}
+
+                                <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+
+                                    <span class="fw-semibold">
+                                        {{ row.bank }}
+                                    </span>
+
+                                    <span class="fw-bold">
+                                        {{ format_currency(row.total) }}
+                                    </span>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-secondary text-center py-4">
+                            No POS bank payments found.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TRANSFER SUMMARY -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Bank Transfer Summary
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Amount received into each bank
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if transfer_bank_breakdown %}
+
+                        <div class="list-group list-group-flush">
+
+                            {% for row in transfer_bank_breakdown %}
+
+                                <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+
+                                    <span class="fw-semibold">
+                                        {{ row.bank }}
+                                    </span>
+
+                                    <span class="fw-bold">
+                                        {{ format_currency(row.total) }}
+                                    </span>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="text-secondary text-center py-4">
+                            No bank transfer payments found.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Payment Report
+                </div>
+
+                <div class="small">
+
+                    POS and bank transfer payments are separated
+                    by the receiving bank. For example, Zenith Bank
+                    POS payments remain separate from Zenith Bank
+                    transfer payments.
+
+                    Detailed payment records are included when
+                    exporting or printing this report.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="paymentExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+                        {{ current_user.company.email }}
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Payment Report
+                </h3>
+
+                <div>
+
+                    Reporting Period:
+
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Payments
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_payments) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Cash
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(cash_total) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            POS
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(pos_total) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Bank Transfer
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(bank_transfer_total) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Payment Analysis
+                </h4>
+
+
+                <!-- PAYMENT METHODS -->
+
+                <div class="border rounded p-3 mb-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Payment Methods
+                    </h5>
+
+                    <img
+                        id="exportPaymentMethod"
+                        class="img-fluid w-100"
+                        alt="Payment methods chart"
+                    >
+
+                </div>
+
+
+                <!-- BANK CHARTS -->
+
+                <div class="row g-4">
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                POS by Bank
+                            </h5>
+
+                            <img
+                                id="exportPosBank"
+                                class="img-fluid w-100"
+                                alt="POS bank chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Bank Transfer by Bank
+                            </h5>
+
+                            <img
+                                id="exportTransferBank"
+                                class="img-fluid w-100"
+                                alt="Bank transfer chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 BANK BREAKDOWN
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Bank Breakdown
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Payment Method
+                            </th>
+
+                            <th>
+                                Receiving Bank
+                            </th>
+
+                            <th class="text-end">
+                                Amount
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in bank_breakdown %}
+
+                            <tr>
+
+                                <td>
+                                    {{ row.method }}
+                                </td>
+
+                                <td>
+                                    {{ row.bank }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(row.total) }}
+                                </td>
+
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="3"
+                                    class="text-center py-3"
+                                >
+                                    No bank payments found.
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 DETAILED PAYMENT TRANSACTIONS
+            ================================================== -->
+
+            <div>
+
+                <h4 class="fw-bold mb-3">
+                    Payment Transactions
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Reference
+                                </th>
+
+                                <th>
+                                    Method
+                                </th>
+
+                                <th>
+                                    Bank
+                                </th>
+
+                                <th>
+                                    Account Name
+                                </th>
+
+                                <th>
+                                    Account Number
+                                </th>
+
+                                <th>
+                                    Amount
+                                </th>
+
+                                <th>
+                                    Related Transaction
+                                </th>
+
+                                <th>
+                                    Remark
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for row in export_rows %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ format_company_datetime(row.date) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.reference }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.method }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.bank_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.account_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.account_number }}
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        {{ format_currency(row.amount) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.related_transaction }}
+                                    </td>
+
+                                    <!--
+                                        REMARK IS INTENTIONALLY BLANK
+                                    -->
+
+                                    <td></td>
+
+                                </tr>
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="9"
+                                        class="text-center py-4"
+                                    >
+                                        No payment transactions found
+                                        for the selected period.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                        {% if export_rows %}
+
+                            <tfoot>
+
+                                <tr class="fw-bold">
+
+                                    <td
+                                        colspan="6"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_payments) }}
+                                    </td>
+
+                                    <td></td>
+
+                                    <td></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        {% endif %}
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT NOTE
+            ================================================== -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Payment totals are based on payment transactions
+                    recorded during the selected reporting period.
+                    POS and bank transfer amounts are additionally
+                    grouped according to their recorded receiving bank.
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT FOOTER
+            ================================================== -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="text-center small text-secondary mt-4">
+
+                    {{ current_user.company.name }}
+                    · Payment Report
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CHART.JS
+========================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       COMPANY CURRENCY SETTINGS
+    ====================================================== */
+
+    const COMPANY_SETTINGS = {
+
+        currencyCode:
+            {{ get_currency_code()|tojson }},
+
+        currencySymbol:
+            {{ get_currency_symbol()|tojson }},
+
+        decimalPlaces:
+            {{ get_decimal_places()|tojson }},
+
+        currencyPosition:
+            {{ get_currency_position()|tojson }},
+
+        dateFormat:
+            {{ get_date_format()|tojson }},
+
+        timeFormat:
+            {{ get_time_format()|tojson }},
+
+        timezone:
+            {{ get_company_timezone_name()|tojson }}
+
+    };
+
+
+    /* =====================================================
+       CURRENCY FORMATTER
+    ====================================================== */
+
+    function money(value) {
+
+        const numericValue =
+            Number(value || 0);
+
+        const decimalPlaces =
+            Number.isInteger(
+                Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+            )
+                ? Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+                : 2;
+
+
+        const formatted =
+            numericValue.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits:
+                        decimalPlaces,
+
+                    maximumFractionDigits:
+                        decimalPlaces
+                }
+            );
+
+
+        if (
+            COMPANY_SETTINGS.currencyPosition ===
+            "after"
+        ) {
+
+            return (
+                formatted +
+                " " +
+                COMPANY_SETTINGS.currencySymbol
+            );
+
+        }
+
+
+        return (
+            COMPANY_SETTINGS.currencySymbol +
+            formatted
+        );
+
+    }
+
+
+    /* =====================================================
+       DATA FROM FLASK
+    ====================================================== */
+
+    const paymentMethods =
+        {{ payment_method_chart | tojson }};
+
+
+    const posBanks =
+        {{ pos_bank_breakdown | tojson }};
+
+
+    const transferBanks =
+        {{ transfer_bank_breakdown | tojson }};
+
+
+    /* =====================================================
+       PAYMENT METHOD CHART
+    ====================================================== */
+
+    const paymentMethodCanvas =
+        document.getElementById(
+            "paymentMethodChart"
+        );
+
+
+    const paymentMethodChart =
+        new Chart(
+            paymentMethodCanvas,
+            {
+                type: "doughnut",
+
+                data: {
+
+                    labels: paymentMethods.map(
+                        item => item.method
+                    ),
+
+                    datasets: [
+
+                        {
+
+                            data: paymentMethods.map(
+                                item => item.total
+                            ),
+
+                            backgroundColor:
+                                paymentMethods.map(
+                                    item => {
+
+                                        if (
+                                            item.method ===
+                                            "Cash"
+                                        ) {
+                                            return "#198754";
+                                        }
+
+                                        if (
+                                            item.method ===
+                                            "Bank Transfer"
+                                        ) {
+                                            return "#ffa31a";
+                                        }
+
+                                        if (
+                                            item.method ===
+                                            "POS"
+                                        ) {
+                                            return "#009999";
+                                        }
+
+                                        if (
+                                            item.method ===
+                                            "Card"
+                                        ) {
+                                            return "#b3b3b3";
+                                        }
+
+                                        if (
+                                            item.method ===
+                                            "Other"
+                                        ) {
+                                            return "#cc99ff";
+                                        }
+
+                                        return "#6c757d";
+
+                                    }
+                                ),
+
+                            borderWidth: 0
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            position: "bottom"
+
+                        },
+
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    return (
+                                        context.label +
+                                        ": " +
+                                        money(
+                                            context.raw
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    /* =====================================================
+       POS BY BANK CHART
+    ====================================================== */
+
+    const posBankCanvas =
+        document.getElementById(
+            "posBankChart"
+        );
+
+
+    const posBankChart =
+        new Chart(
+            posBankCanvas,
+            {
+                type: "bar",
+
+                data: {
+
+                    labels: posBanks.map(
+                        item => item.bank
+                    ),
+
+                    datasets: [
+
+                        {
+
+                            label: "POS",
+
+                            data: posBanks.map(
+                                item => item.total
+                            ),
+
+                            backgroundColor: "#009999",
+
+                            borderWidth: 0
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            display: false
+
+                        },
+
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    return money(
+                                        context.raw
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback: function(value) {
+
+                                    return money(
+                                        value
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    /* =====================================================
+       BANK TRANSFER BY BANK CHART
+    ====================================================== */
+
+    const transferBankCanvas =
+        document.getElementById(
+            "transferBankChart"
+        );
+
+
+    const transferBankChart =
+        new Chart(
+            transferBankCanvas,
+            {
+                type: "bar",
+
+                data: {
+
+                    labels: transferBanks.map(
+                        item => item.bank
+                    ),
+
+                    datasets: [
+
+                        {
+
+                            label: "Bank Transfer",
+
+                            data: transferBanks.map(
+                                item => item.total
+                            ),
+
+                            backgroundColor: "#ffa31a",
+
+                            borderWidth: 0
+
+                        }
+
+                    ]
+
+                },
+
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            display: false
+
+                        },
+
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: function(context) {
+
+                                    return money(
+                                        context.raw
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback: function(value) {
+
+                                    return money(
+                                        value
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    /* =====================================================
+       PREPARE EXPORT CHARTS
+    ====================================================== */
+
+    window.preparePaymentExport = function () {
+
+        document.getElementById(
+            "exportPaymentMethod"
+        ).src =
+            paymentMethodChart.toBase64Image(
+                "image/png",
+                1
+            );
+
+
+        document.getElementById(
+            "exportPosBank"
+        ).src =
+            posBankChart.toBase64Image(
+                "image/png",
+                1
+            );
+
+
+        document.getElementById(
+            "exportTransferBank"
+        ).src =
+            transferBankChart.toBase64Image(
+                "image/png",
+                1
+            );
+
+    };
+
+
+    /* =====================================================
+       DATE FILTER
+    ====================================================== */
+
+    const startDate =
+        document.getElementById(
+            "start_date"
+        );
+
+
+    const endDate =
+        document.getElementById(
+            "end_date"
+        );
+
+
+    if (startDate && endDate) {
+
+        startDate.addEventListener(
+            "change",
+            function () {
+
+                if (this.value) {
+
+                    endDate.min =
+                        this.value;
+
+                }
+
+            }
+        );
+
+
+        endDate.addEventListener(
+            "change",
+            function () {
+
+                if (this.value) {
+
+                    startDate.max =
+                        this.value;
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+
+/* =========================================================
+   PRINT / EXPORT PAYMENT REPORT
+========================================================= */
+
+function printPaymentReport() {
+
+    if (
+        typeof window.preparePaymentExport ===
+        "function"
+    ) {
+
+        window.preparePaymentExport();
+
+    }
+
+
+    const exportSection =
+        document.getElementById(
+            "paymentExportSection"
+        );
+
+
+    if (!exportSection) {
+
+        return;
+
+    }
+
+
+    const originalBody =
+        document.body.innerHTML;
+
+
+    const exportContent =
+        exportSection.innerHTML;
+
+
+    document.body.innerHTML =
+        exportContent;
+
+
+    window.print();
+
+
+    document.body.innerHTML =
+        originalBody;
+
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

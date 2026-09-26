@@ -1,0 +1,1502 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sale.invoice_number }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 no-print">
+
+        <div>
+
+            <div class="page-eyebrow">
+                SALES / INVOICE
+            </div>
+
+            <h1 class="page-title mb-1">
+                {{ sale.invoice_number }}
+            </h1>
+
+            <p class="page-subtitle mb-0">
+                Sale transaction details and payment information.
+            </p>
+
+        </div>
+
+
+        <div class="d-flex gap-2">
+
+            <button
+                type="button"
+                class="btn btn-light border rounded-pill"
+                onclick="window.print()"
+            >
+
+                <i class="bi bi-printer me-2"></i>
+                Print
+
+            </button>
+
+
+            <a
+                href="{{ url_for('sales.sales') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+
+                <i class="bi bi-arrow-left me-2"></i>
+                Sales
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT REPORT HEADER
+         Visible only when printing
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+        </div>
+    </div>
+
+
+
+    <!-- =========================================================
+         INVOICE
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm invoice-card">
+
+        <div class="card-body p-4 p-lg-5">
+
+
+            <!-- =====================================================
+                 INVOICE HEADER
+                 ===================================================== -->
+
+            <div class="row g-4 mb-5">
+
+                <div class="col-md-6">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div class="qr-code-container">
+
+                            <h3>
+                                Scan to See Company's Info
+                            </h3>
+
+                            <img
+                                src="{{ qr_image_url }}"
+                                alt="Scan to see info of {{ company.name }}"
+                                width="100"
+                                height="100"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 text-md-end">
+
+                    <div class="text-muted small">
+                        INVOICE
+                    </div>
+
+                    <h3 class="fw-bold mb-1">
+                        {{ sale.invoice_number }}
+                    </h3>
+
+                    <div class="text-muted">
+                        {{ format_company_date(sale.sale_date) }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                CUSTOMER + PAYMENT STATUS
+                ===================================================== -->
+
+            <div class="row g-4 mb-5">
+
+                <div class="col-md-6">
+
+                    <div class="invoice-label text-secondary">
+                        BILL TO
+                    </div>
+
+                    <h6 class="fw-semibold mb-1">
+
+                        {% if sale.customer %}
+                            {{ sale.customer.name }}
+                        {% else %}
+                            Walk-in Customer
+                        {% endif %}
+
+                    </h6>
+
+
+                    {% if sale.customer %}
+
+                        {% if sale.customer.phone %}
+
+                            <div class="text-muted small">
+                                {{ sale.customer.phone }}
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if sale.customer.email %}
+
+                            <div class="text-muted small">
+                                {{ sale.customer.email }}
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if sale.customer.address %}
+
+                            <div class="text-muted small">
+                                {{ sale.customer.address }}
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+
+                    <!-- SOLD BY -->
+
+                    <div class="invoice-label text-secondary mt-3">
+                        SOLD BY
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ sale.created_by_user.username if sale.created_by_user else '—' }}
+                    </div>
+
+                    <div class="text-muted small">
+                        {{ sale.created_by_user.email if sale.created_by_user else '' }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6 text-md-end">
+
+                    <div class="invoice-label text-secondary">
+                        PAYMENT STATUS
+                    </div>
+
+
+                    {% if sale.payment_status == "Paid" %}
+
+                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                            Paid
+                        </span>
+
+                    {% elif sale.payment_status == "Partially Paid" %}
+
+                        <span class="badge bg-warning-subtle text-warning px-3 py-2">
+                            Partially Paid
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                            Unpaid
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 ITEMS
+                 ===================================================== -->
+
+            <div class="table-responsive mb-4">
+
+                <table class="table align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Product
+                            </th>
+
+                            <th class="text-end">
+                                Qty
+                            </th>
+
+                            <th class="text-end">
+                                Unit Price
+                            </th>
+
+                            <th class="text-end">
+                                Total
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for item in sale.items %}
+
+                        <tr>
+
+                            <td class="text-dark">
+                                {{ loop.index }}
+                            </td>
+
+
+                            <td>
+
+                                <div class="fw-semibold text-dark">
+                                    {{ item.product.name }}
+                                </div>
+
+                                <div class="small text-muted">
+
+                                    SKU:
+                                    <code>
+                                        {{ item.product.sku }}
+                                    </code>
+
+                                </div>
+
+                            </td>
+
+
+                            <td class="text-end text-dark">
+
+                                {{ "{:,.3f}".format(item.quantity) }}
+
+                                <span class="ms-1">
+                                    {{ item.product.unit }}
+                                </span>
+
+                            </td>
+
+
+                            <td class="text-end text-muted">
+
+                                {{ format_currency(item.unit_price) }}
+
+                            </td>
+
+
+                            <td class="text-end fw-semibold text-dark">
+
+                                {{ format_currency(item.total) }}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =====================================================
+                 TOTALS
+                 ===================================================== -->
+
+            <div class="row justify-content-end">
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="border rounded-3 p-3">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Subtotal
+                            </span>
+
+                            <span class="text-dark">
+
+                                {{ format_currency(sale.subtotal) }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Discount
+                            </span>
+
+                            <span class="text-dark">
+
+                                {{ format_currency(sale.discount) }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between mb-3">
+
+                            <span class="text-muted">
+                                Tax
+                            </span>
+
+                            <span class="text-dark">
+
+                                {{ format_currency(sale.tax) }}
+
+                            </span>
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+
+                            <span class="text-dark fw-bold">
+                                Total
+                            </span>
+
+                            <span class="text-dark fw-bold">
+
+                                {{ format_currency(sale.total) }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="text-muted">
+                                Paid
+                            </span>
+
+                            <span class="text-success fw-semibold">
+
+                                {{ format_currency(sale.paid_amount) }}
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="text-muted">
+                                Balance
+                            </span>
+
+                            <span class="text-danger fw-semibold">
+
+                                {{ format_currency(sale.balance) }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 PAYMENT DETAILS
+                 ===================================================== -->
+
+            {% if sale.payments %}
+
+            <div class="mt-5 pt-4 border-top">
+
+                <h5 class="fw-semibold mb-3">
+                    Payment Details
+                </h5>
+
+
+                {% for payment in sale.payments %}
+
+                <div class="border rounded-3 p-3 mb-3 ">
+
+                    <div class="row g-3">
+
+
+                        <!-- METHOD -->
+
+                        <div class="col-md-4">
+
+                            <div class="small text-muted">
+                                Method
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                {% if payment.method == "Bank Transfer" %}
+
+                                    <i class="bi bi-bank me-1"></i>
+
+                                {% elif payment.method == "POS" %}
+
+                                    <i class="bi bi-credit-card-2-front me-1"></i>
+
+                                {% elif payment.method == "Cash" %}
+
+                                    <i class="bi bi-cash-stack me-1"></i>
+
+                                {% elif payment.method == "Card" %}
+
+                                    <i class="bi bi-credit-card me-1"></i>
+
+                                {% else %}
+
+                                    <i class="bi bi-wallet2 me-1"></i>
+
+                                {% endif %}
+
+                                {{ payment.method }}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- AMOUNT -->
+
+                        <div class="col-md-4">
+
+                            <div class="small text-muted">
+                                Amount
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                {{ format_currency(payment.amount) }}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- DATE -->
+
+                        <div class="col-md-4">
+
+                            <div class="small text-muted">
+                                Date
+                            </div>
+
+                            <div>
+
+                                {{ format_company_datetime(payment.payment_date) }}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BANK TRANSFER
+                             ================================================= -->
+
+                        {% if payment.method == "Bank Transfer" %}
+
+                            <!-- BANK -->
+
+                            <div class="col-md-4">
+
+                                <div class="small text-muted">
+                                    Bank paid Into
+                                </div>
+
+                                <div>
+                                    {{ payment.bank_name or "None" }}
+                                </div>
+
+                            </div>
+
+
+                            <!-- ACCOUNT NAME -->
+
+                            <div class="col-md-4">
+
+                                <div class="small text-muted">
+                                    Account Name
+                                </div>
+
+                                <div>
+                                    {{ payment.account_name or "None" }}
+                                </div>
+
+                            </div>
+
+
+                            <!-- ACCOUNT NUMBER -->
+
+                            <div class="col-md-4">
+
+                                <div class="small text-muted">
+                                    Account Number
+                                </div>
+
+                                <div>
+                                    {{ payment.account_number or "None" }}
+                                </div>
+
+                            </div>
+
+
+                            <!-- TRANSFER REFERENCE -->
+
+                            {% if payment.reference %}
+
+                            <div class="col-md-12">
+
+                                <div class="small text-muted">
+                                    Transfer Reference
+                                </div>
+
+                                <div class="fw-semibold">
+
+                                    {{ payment.reference }}
+
+                                </div>
+
+                            </div>
+
+                            {% endif %}
+
+
+                        <!-- =================================================
+                             POS
+                             ================================================= -->
+
+                        {% elif payment.method == "POS" %}
+
+                            <!-- BANK -->
+
+                            <div class="col-md-6">
+
+                                <div class="small text-muted">
+                                    Bank Paid Into
+                                </div>
+
+                                <div>
+
+                                    {{ payment.bank_name or "None" }}
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- POS REFERENCE -->
+
+                            {% if payment.reference %}
+
+                            <div class="col-md-6">
+
+                                <div class="small text-muted">
+                                    POS Reference
+                                </div>
+
+                                <div class="fw-semibold">
+
+                                    {{ payment.reference }}
+
+                                </div>
+
+                            </div>
+
+                            {% endif %}
+
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- =====================================================
+                 NOTES
+                 ===================================================== -->
+
+            {% if sale.notes %}
+
+            <div class="mt-4 pt-4 border-top">
+
+                <div class="small text-muted mb-1">
+                    NOTES
+                </div>
+
+                <div>
+                    {{ sale.notes }}
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- =====================================================
+                 FOOTER
+                 ===================================================== -->
+
+            <div class="text-center text-muted small mt-5 pt-4 border-top">
+
+                Thank you for your patronage.
+
+            </div>
+
+            <div class="text-center text-dark small mt-5 pt-4">
+
+                <hr> Powered by BizTrace IMS <hr>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* =========================================================
+   SCREEN
+   ========================================================= */
+
+.invoice-card {
+
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+}
+
+
+.invoice-logo {
+
+    width: 48px;
+    height: 48px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--bs-primary-bg-subtle);
+
+    color: var(--bs-primary);
+
+    font-size: 1.4rem;
+
+}
+
+
+.invoice-label {
+
+    font-size: 0.7rem;
+
+    letter-spacing: 0.08em;
+
+    font-weight: 700;
+
+    color: var(--bs-secondary-color);
+
+    margin-bottom: 0.5rem;
+
+}
+
+
+.invoice-table thead th {
+
+    font-size: 0.75rem;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.04em;
+
+    color: var(--bs-secondary-color);
+
+    border-bottom-width: 1px;
+
+}
+
+
+.invoice-summary {
+
+    background: var(--bs-tertiary-bg);
+
+    padding: 1.25rem;
+
+    border-radius: 14px;
+
+}
+
+
+.payment-detail-card {
+
+    padding: 1rem;
+
+    border: 1px solid var(--bs-border-color);
+
+    border-radius: 14px;
+
+    background: var(--bs-tertiary-bg);
+
+}
+
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+
+
+    @page {
+
+        margin: 0;
+
+    }
+
+
+    html,
+    body {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        font-family: Arial, Helvetica, sans-serif !important;
+
+        font-size: 11px !important;
+
+        overflow: visible !important;
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+
+    body {
+
+        background: transparent !important;
+
+    }
+
+
+    /* =====================================================
+       HIDE WEBSITE UI
+       ===================================================== */
+
+    .sidebar,
+    .navbar,
+    .page-header,
+    button,
+    .btn,
+    .page-eyebrow,
+    .page-title,
+    .page-subtitle,
+    .no-print {
+
+        display: none !important;
+
+    }
+
+
+    /* =====================================================
+       CONTAINERS
+       ===================================================== */
+
+    .container-fluid,
+    .container {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       INVOICE
+       ===================================================== */
+
+    .invoice-card {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        border: none !important;
+
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+
+        background: transparent !important;
+
+        color: inherit !important;
+
+    }
+
+
+    .invoice-card .card-body {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 3mm !important;
+
+    }
+
+
+    /* =====================================================
+       ROWS
+       ===================================================== */
+
+    .invoice-card .row {
+
+        width: 100% !important;
+
+        margin-left: 0 !important;
+
+        margin-right: 0 !important;
+
+    }
+
+
+    .invoice-card .col,
+    .invoice-card [class*="col-"] {
+
+        min-width: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       HEADER COLUMNS
+       ===================================================== */
+
+    .invoice-card .col-md-6,
+    .invoice-card .col-lg-4 {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        flex: 0 0 100% !important;
+
+        text-align: left !important;
+
+    }
+
+
+    /* =====================================================
+       QR
+       ===================================================== */
+
+    .qr-code-container {
+
+        width: 100% !important;
+
+        text-align: center !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    .qr-code-container h3 {
+
+        font-size: 12px !important;
+
+        margin: 0 0 5px !important;
+
+    }
+
+
+    .qr-code-container img {
+
+        width: 70px !important;
+
+        height: 70px !important;
+
+        max-width: 100% !important;
+
+        object-fit: contain !important;
+
+    }
+
+
+    /* =====================================================
+       HEADINGS
+       ===================================================== */
+
+    .invoice-card h1 {
+        font-size: 18px !important;
+    }
+
+    .invoice-card h2 {
+        font-size: 16px !important;
+    }
+
+    .invoice-card h3 {
+        font-size: 15px !important;
+    }
+
+    .invoice-card h4 {
+        font-size: 14px !important;
+    }
+
+    .invoice-card h5 {
+        font-size: 13px !important;
+    }
+
+    .invoice-card h6 {
+        font-size: 11px !important;
+    }
+
+
+    /* =====================================================
+       TEXT
+       ===================================================== */
+
+    .invoice-card p,
+    .invoice-card span,
+    .invoice-card div {
+
+        max-width: 100% !important;
+
+    }
+
+
+    /* =====================================================
+       SPACING
+       ===================================================== */
+
+    .mb-5 {
+        margin-bottom: 10px !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 8px !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 6px !important;
+    }
+
+    .mb-2 {
+        margin-bottom: 4px !important;
+    }
+
+    .mb-1 {
+        margin-bottom: 2px !important;
+    }
+
+
+    .mt-5 {
+        margin-top: 10px !important;
+    }
+
+    .mt-4 {
+        margin-top: 8px !important;
+    }
+
+    .mt-3 {
+        margin-top: 6px !important;
+    }
+
+    .mt-2 {
+        margin-top: 4px !important;
+    }
+
+    .mt-1 {
+        margin-top: 2px !important;
+    }
+
+
+    .pt-5 {
+        padding-top: 10px !important;
+    }
+
+    .pt-4 {
+        padding-top: 4px !important;
+    }
+
+    .pt-3 {
+        padding-top: 3px !important;
+    }
+
+
+    .pb-5 {
+        padding-bottom: 10px !important;
+    }
+
+    .pb-4 {
+        padding-bottom: 4px !important;
+    }
+
+    .pb-3 {
+        padding-bottom: 3px !important;
+    }
+
+
+    .p-4,
+    .p-lg-5 {
+
+        padding: 3mm !important;
+
+    }
+
+
+    /* =====================================================
+       TABLE CONTAINER
+       ===================================================== */
+
+    .table-responsive {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        overflow: visible !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       INVOICE TABLE
+       ===================================================== */
+
+    .invoice-table {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        margin-bottom: 8px !important;
+
+        table-layout: auto !important;
+
+        border-collapse: collapse !important;
+
+        font-size: 9px !important;
+
+        page-break-inside: auto !important;
+
+    }
+
+
+    .invoice-table tr {
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    .invoice-table th,
+    .invoice-table td {
+
+        padding: 3px 2px !important;
+
+        color: inherit !important;
+
+        border-color: currentColor !important;
+
+        vertical-align: middle !important;
+
+        word-wrap: break-word !important;
+
+        overflow-wrap: anywhere !important;
+
+        white-space: normal !important;
+
+    }
+
+
+    .invoice-table th {
+
+        font-size: 8px !important;
+
+        font-weight: 700 !important;
+
+    }
+
+    /* =====================================================
+   PREVENT TABLE HEADER FROM REPEATING ON NEW PAGES
+   ===================================================== */
+
+   thead {
+        display: table-row-group !important;
+    }
+
+     thead tr {
+        display: table-row !important;
+    }
+
+     thead th {
+        display: table-cell !important;
+    }
+
+
+    /* =====================================================
+       TABLE COLUMN WIDTHS
+       ===================================================== */
+
+    .invoice-table th:nth-child(1),
+    .invoice-table td:nth-child(1) {
+
+        width: 7% !important;
+
+    }
+
+
+    .invoice-table th:nth-child(2),
+    .invoice-table td:nth-child(2) {
+
+        width: auto !important;
+
+    }
+
+
+    .invoice-table th:nth-child(3),
+    .invoice-table td:nth-child(3) {
+
+        width: 14% !important;
+
+    }
+
+
+    .invoice-table th:nth-child(4),
+    .invoice-table td:nth-child(4) {
+
+        width: 18% !important;
+
+    }
+
+
+    .invoice-table th:nth-child(5),
+    .invoice-table td:nth-child(5) {
+
+        width: 20% !important;
+
+    }
+
+
+    /* =====================================================
+       SKU
+       ===================================================== */
+
+    .invoice-table .small {
+
+        font-size: 8px !important;
+
+    }
+
+
+    /* =====================================================
+       TOTALS
+       ===================================================== */
+
+    .invoice-summary {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        padding: 7px !important;
+
+        margin: 0 !important;
+
+        border-radius: 0 !important;
+
+        background: inherit !important;
+
+        border: 1px solid currentColor !important;
+
+        color: inherit !important;
+
+        font-size: 10px !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    .invoice-summary .fs-5 {
+
+        font-size: 12px !important;
+
+    }
+
+
+    /* =====================================================
+       PAYMENT DETAILS
+       ===================================================== */
+
+    .payment-detail-card {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        padding: 6px !important;
+
+        margin-bottom: 6px !important;
+
+        border: 1px solid currentColor !important;
+
+        border-radius: 0 !important;
+
+        background: inherit !important;
+
+        color: inherit !important;
+
+        font-size: 9px !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    .payment-detail-card .row {
+
+        display: block !important;
+
+    }
+
+
+    .payment-detail-card .col-md-4,
+    .payment-detail-card .col-md-6,
+    .payment-detail-card .col-md-12 {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        margin-bottom: 3px !important;
+
+    }
+
+
+    /* =====================================================
+       PAYMENT DATE
+       ===================================================== */
+
+    .payment-detail-card .col-md-4:nth-child(3) {
+
+        display: none !important;
+
+    }
+
+
+    /* =====================================================
+       DIVIDERS
+       ===================================================== */
+
+    .invoice-card .border-top {
+
+        border-color: currentColor !important;
+
+    }
+
+
+    .invoice-card .border-bottom {
+
+        border-color: currentColor !important;
+
+    }
+
+
+    /* =====================================================
+       FOOTER
+       ===================================================== */
+
+    .invoice-card .text-center {
+
+        font-size: 9px !important;
+
+        margin-top: 8px !important;
+
+        padding-top: 6px !important;
+
+    }
+
+
+    /* =====================================================
+       IMAGES
+       ===================================================== */
+
+    .invoice-card img {
+
+        max-width: 100% !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    /* =====================================================
+       LINKS
+       ===================================================== */
+
+    .invoice-card a {
+
+        color: inherit !important;
+
+        text-decoration: none !important;
+
+    }
+
+
+    /* =====================================================
+       PAGE BREAK
+       ===================================================== */
+
+    .invoice-summary,
+    .payment-detail-card,
+    .qr-code-container {
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    /* =====================================================
+       OVERFLOW
+       ===================================================== */
+
+    .invoice-card,
+    .invoice-card *,
+    .container,
+    .container-fluid {
+
+        max-width: 100% !important;
+
+    }
+
+
+    /* =====================================================
+       REMOVE EFFECTS
+       ===================================================== */
+
+    .invoice-card,
+    .invoice-card * {
+
+        box-shadow: none !important;
+
+        text-shadow: none !important;
+
+    }
+
+
+    /* =====================================================
+       COLOUR PRINTING
+       ===================================================== */
+
+    body {
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+}
+
+</style>
+
+{% endblock %}

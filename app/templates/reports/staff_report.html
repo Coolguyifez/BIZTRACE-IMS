@@ -1,0 +1,1420 @@
+{% extends "base.html" %}
+
+{% block title %}
+Staff Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         SCREEN HEADER
+    ========================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <div
+                    class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                    style="width: 42px; height: 42px;"
+                >
+                    <i class="bi bi-people fs-5"></i>
+                </div>
+
+                <div>
+
+                    <h4 class="mb-1 fw-bold">
+                        Staff Report
+                    </h4>
+
+                    <div class="text-muted small">
+                        Staff activity, sales and transaction analysis
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printStaffReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRINT HEADER
+    ========================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h2 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h2>
+
+            {% if current_user.company.address %}
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.email %}
+
+                    {% if current_user.company.phone %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {{ current_user.company.email }}
+
+                {% endif %}
+
+            </div>
+
+            <hr>
+
+            <h4 class="fw-bold mb-1">
+                Staff Report
+            </h4>
+
+            <div>
+                Reporting period:
+                {{ start_date }} to {{ end_date }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         DATE FILTER
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.staff_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.staff_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================================
+         REPORTING PERIOD
+    ========================================================== -->
+
+    <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+        <i class="bi bi-info-circle-fill fs-5"></i>
+
+        <div>
+
+            <div class="fw-semibold">
+                Reporting Period
+            </div>
+
+            <div class="small mt-1">
+                Staff activity from
+                <strong>{{ start_date }}</strong>
+                to
+                <strong>{{ end_date }}</strong>.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRIMARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- STAFF -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Staff
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ total_staff }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-primary">
+                                    {{ active_staff_count }}
+                                </span>
+                                active
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SALES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Staff Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_sales) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-success">
+                                    {{ total_sales_count }}
+                                </span>
+                                sales
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENTS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Sales Payments
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_payments) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-info">
+                                    {{ total_payment_count }}
+                                </span>
+                                payment records
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TRANSACTIONS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Transactions
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ total_transactions }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Sales, sales payments, purchase payments
+                                and expenses
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-activity"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SECONDARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- ACTIVE STAFF -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Active Staff
+                            </div>
+
+                            <div class="stats-card-value text-success">
+                                {{ active_staff_count }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INACTIVE STAFF -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Inactive Staff
+                            </div>
+
+                            <div class="stats-card-value text-danger">
+                                {{ inactive_staff_count }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STAFF EXPENSES -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Staff Expenses
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_expenses) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-danger">
+                                    {{ total_expense_count }}
+                                </span>
+                                expense records
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CHARTS
+    ========================================================== -->
+
+    <div class="row g-4 mb-4 d-print-none">
+
+        <!-- SALES PERFORMANCE -->
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Staff Sales Performance
+                    </h6>
+
+                    <div class="small text-muted">
+                        Sales value recorded by staff
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="staffSalesChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVITY -->
+
+        <div class="col-12 col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Staff Activity
+                    </h6>
+
+                    <div class="small text-muted">
+                        Number of transactions handled
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="staffActivityChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ROLES -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Staff by Role
+                    </h6>
+
+                    <div class="small text-muted">
+                        Current staff role distribution
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 320px;"
+                    >
+                        <canvas id="staffRoleChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         INFORMATION
+    ========================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Staff Report Note
+                </div>
+
+                <div class="small">
+                    Staff activity is calculated from sales, payments
+                    and expense records created during the selected
+                    reporting period.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         EXPORT / PRINT ONLY
+    ========================================================== -->
+
+    <div
+        id="staffExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+
+                        {% if current_user.company.phone %}
+                            &nbsp; | &nbsp;
+                        {% endif %}
+
+                        {{ current_user.company.email }}
+
+                    {% endif %}
+
+                </div>
+
+                <hr>
+
+                <h3 class="fw-bold">
+                    Staff Report
+                </h3>
+
+                <div>
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row mb-4">
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Total Staff
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ total_staff }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Total Sales
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_sales) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Payments
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_payments) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Transactions
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ total_transactions }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="row mb-4">
+
+                <div class="col-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Staff Sales Performance
+                    </h5>
+
+                    <img
+                        id="staffSalesExportImage"
+                        class="img-fluid"
+                        alt="Staff Sales Performance"
+                    >
+
+                </div>
+
+                <div class="col-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Staff Activity
+                    </h5>
+
+                    <img
+                        id="staffActivityExportImage"
+                        class="img-fluid"
+                        alt="Staff Activity"
+                    >
+
+                </div>
+
+                <div class="col-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Staff by Role
+                    </h5>
+
+                    <img
+                        id="staffRoleExportImage"
+                        class="img-fluid"
+                        alt="Staff by Role"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 STAFF TABLE — PRINT ONLY
+            ================================================== -->
+
+            <h5 class="fw-bold mb-3">
+                Detailed Staff Activity
+            </h5>
+
+            <table class="table table-bordered align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Staff
+                        </th>
+
+                        <th>
+                            Email
+                        </th>
+
+                        <th>
+                            Role
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-end">
+                            Sales
+                        </th>
+
+                        <th class="text-end">
+                            Sales Value
+                        </th>
+
+                        <th class="text-end">
+                            Payments
+                        </th>
+
+                        <th class="text-end">
+                            Payment Value
+                        </th>
+
+                        <th class="text-end">
+                            Expenses
+                        </th>
+
+                        <th class="text-end">
+                            Transactions
+                        </th>
+
+                        <th>
+                            Remark
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in export_rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.username }}
+                        </td>
+
+                        <td>
+                            {{ row.email }}
+                        </td>
+
+                        <td>
+                            {{ row.role }}
+                        </td>
+
+                        <td>
+                            {{ row.status }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ row.sales_count }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_sales) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ row.payment_count }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_payments) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_expenses) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ row.total_transactions }}
+                        </td>
+
+                        <td>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <!-- FOOTER -->
+
+            <div class="mt-4 small text-muted">
+
+                <strong>Report Note:</strong>
+
+                Staff activity is based on transactions recorded
+                during the selected reporting period.
+
+            </div>
+
+            <div class="mt-5 pt-3 border-top d-flex justify-content-between">
+
+                <div>
+                    Prepared by:
+                    <strong>{{ current_user.username }}</strong>
+                </div>
+
+                <div>
+                    {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =============================================================
+     COMPANY SETTINGS FOR JAVASCRIPT
+============================================================= -->
+
+<script>
+
+window.BizFlowSettings = {
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+};
+
+
+/* =============================================================
+   JAVASCRIPT CURRENCY FORMATTER
+============================================================= */
+
+function formatMoney(value) {
+
+    const numericValue =
+        Number(value || 0);
+
+    const decimalPlaces =
+        Number.isInteger(
+            Number(
+                window.BizFlowSettings.decimalPlaces
+            )
+        )
+            ? Number(
+                window.BizFlowSettings.decimalPlaces
+            )
+            : 2;
+
+    const formatted =
+        numericValue.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits:
+                    decimalPlaces,
+
+                maximumFractionDigits:
+                    decimalPlaces
+            }
+        );
+
+    const symbol =
+        window.BizFlowSettings.currencySymbol || "";
+
+    const position =
+        window.BizFlowSettings.currencyPosition || "before";
+
+    if (position === "after") {
+
+        return formatted + " " + symbol;
+
+    }
+
+    return symbol + formatted;
+}
+
+</script>
+
+
+<!-- =============================================================
+     CHART.JS
+============================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const salesData =
+            {{ sales_chart | tojson }};
+
+        const activityData =
+            {{ activity_chart | tojson }};
+
+        const roleData =
+            {{ role_chart | tojson }};
+
+
+        /* =====================================================
+           SALES PERFORMANCE
+        ===================================================== */
+
+        const salesCanvas =
+            document.getElementById(
+                "staffSalesChart"
+            );
+
+        if (salesCanvas) {
+
+            new Chart(
+                salesCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels: salesData.map(
+                            item => item.staff
+                        ),
+
+                        datasets: [
+                            {
+                                label: "Sales",
+
+                                data: salesData.map(
+                                    item => item.total
+                                ),
+
+                                backgroundColor: "#198754",
+
+                                borderRadius: 6
+                            }
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label: function(context) {
+
+                                        const value =
+                                            Number(
+                                                context.raw || 0
+                                            );
+
+                                        return "Sales: " +
+                                            formatMoney(value);
+
+                                    }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback: function(value) {
+
+                                        return formatMoney(
+                                            Number(value)
+                                        );
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           STAFF ACTIVITY
+        ===================================================== */
+
+        const activityCanvas =
+            document.getElementById(
+                "staffActivityChart"
+            );
+
+        if (activityCanvas) {
+
+            new Chart(
+                activityCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels: activityData.map(
+                            item => item.staff
+                        ),
+
+                        datasets: [
+                            {
+                                label: "Transactions",
+
+                                data: activityData.map(
+                                    item => item.transactions
+                                ),
+
+                                backgroundColor: "#0d6efd",
+
+                                borderRadius: 6
+                            }
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           ROLE DISTRIBUTION
+        ===================================================== */
+
+        const roleCanvas =
+            document.getElementById(
+                "staffRoleChart"
+            );
+
+        if (roleCanvas) {
+
+            new Chart(
+                roleCanvas,
+                {
+                    type: "doughnut",
+
+                    data: {
+
+                        labels: roleData.map(
+                            item => item.role
+                        ),
+
+                        datasets: [
+                            {
+                                data: roleData.map(
+                                    item => item.count
+                                ),
+
+                                backgroundColor: [
+                                    "#0d6efd",
+                                    "#198754",
+                                    "#ffc107",
+                                    "#dc3545",
+                                    "#6f42c1",
+                                    "#009999",
+                                    "#6c757d"
+                                ],
+
+                                borderWidth: 0
+                            }
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+                                position: "bottom"
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+);
+
+
+/* =============================================================
+   PREPARE EXPORT
+============================================================= */
+
+function prepareStaffExport() {
+
+    const salesCanvas =
+        document.getElementById(
+            "staffSalesChart"
+        );
+
+    const activityCanvas =
+        document.getElementById(
+            "staffActivityChart"
+        );
+
+    const roleCanvas =
+        document.getElementById(
+            "staffRoleChart"
+        );
+
+
+    if (salesCanvas) {
+
+        const image =
+            document.getElementById(
+                "staffSalesExportImage"
+            );
+
+        if (image) {
+
+            image.src =
+                salesCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+
+    if (activityCanvas) {
+
+        const image =
+            document.getElementById(
+                "staffActivityExportImage"
+            );
+
+        if (image) {
+
+            image.src =
+                activityCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+
+    if (roleCanvas) {
+
+        const image =
+            document.getElementById(
+                "staffRoleExportImage"
+            );
+
+        if (image) {
+
+            image.src =
+                roleCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+}
+
+
+/* =============================================================
+   PRINT REPORT
+============================================================= */
+
+function printStaffReport() {
+
+    prepareStaffExport();
+
+    const originalBody =
+        document.body.innerHTML;
+
+    const exportSection =
+        document.getElementById(
+            "staffExportSection"
+        );
+
+    if (!exportSection) {
+        return;
+    }
+
+    document.body.innerHTML =
+        exportSection.innerHTML;
+
+    window.print();
+
+    document.body.innerHTML =
+        originalBody;
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

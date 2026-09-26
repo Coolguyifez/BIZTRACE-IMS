@@ -1,0 +1,850 @@
+{% extends "base.html" %}
+
+{% block title %}
+Profile
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h1 class="fw-bold mb-1">
+                Profile
+            </h1>
+
+            <p class="text-muted mb-0">
+                Manage your account, security, appearance and preferences.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PROFILE HEADER CARD
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap align-items-center gap-4">
+
+                <div
+                    class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold"
+                    style="
+                        width: 82px;
+                        height: 82px;
+                        font-size: 30px;
+                    "
+                >
+                    {{ user.username[0]|upper }}
+                </div>
+
+                <div class="flex-grow-1">
+
+                    <h3 class="fw-bold mb-1">
+                        {{ user.username }}
+                    </h3>
+
+                    <div class="text-muted mb-2">
+                        {{ user.email }}
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <span class="badge bg-primary-subtle text-primary">
+                            {{ user.role }}
+                        </span>
+
+                        {% if user.is_active %}
+                            <span class="badge bg-success-subtle text-success">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger">
+                                Inactive
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-4">
+
+        <!-- =================================================
+             LEFT COLUMN
+        ================================================== -->
+
+        <div class="col-xl-8">
+
+            <!-- =============================================
+                 PROFILE INFORMATION
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div
+                            class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
+                            style="width: 42px; height: 42px;"
+                        >
+                            <i class="bi bi-person fs-5"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Profile Information
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Update your personal account information.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('auth.profile') }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="update_profile"
+                        >
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="username"
+                                >
+                                    Username
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="username"
+                                    name="username"
+                                    value="{{ user.username }}"
+                                    maxlength="80"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="email"
+                                >
+                                    Email Address
+                                </label>
+
+                                <input
+                                    type="email"
+                                    class="form-control"
+                                    id="email"
+                                    name="email"
+                                    value="{{ user.email }}"
+                                    maxlength="150"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Role
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    value="{{ user.role }}"
+                                    readonly
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label fw-semibold">
+                                    Company
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    value="{% if company %}{{ company.name }}{% elif user.is_system_admin %}Platform / System Administration{% else %}Not assigned{% endif %}"
+                                    readonly
+                                >
+
+                            </div>
+
+
+                            <div class="col-12">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary rounded-pill px-4"
+                                >
+                                    <i class="bi bi-check2-circle me-2"></i>
+                                    Save Changes
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CHANGE PASSWORD
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div
+                            class="rounded-3 bg-danger-subtle text-danger d-flex align-items-center justify-content-center"
+                            style="width: 42px; height: 42px;"
+                        >
+                            <i class="bi bi-shield-lock fs-5"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Change Password
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Keep your account secure with a strong password.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('auth.profile') }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="change_password"
+                        >
+
+                        <div class="row g-3">
+
+                            <div class="col-12">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="current_password"
+                                >
+                                    Current Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="current_password"
+                                    name="current_password"
+                                    autocomplete="current-password"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="new_password"
+                                >
+                                    New Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="new_password"
+                                    name="new_password"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                                <div class="form-text text-muted">
+                                    Minimum 8 characters.
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label fw-semibold"
+                                    for="confirm_password"
+                                >
+                                    Confirm New Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="confirm_password"
+                                    name="confirm_password"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-12">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-danger rounded-pill px-4"
+                                >
+                                    <i class="bi bi-key me-2"></i>
+                                    Change Password
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 NOTIFICATION PREFERENCES
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div
+                            class="rounded-3 bg-warning-subtle text-warning d-flex align-items-center justify-content-center"
+                            style="width: 42px; height: 42px;"
+                        >
+                            <i class="bi bi-bell fs-5"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Notification Preferences
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Control how notifications are delivered to you.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('auth.profile') }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="update_notifications"
+                        >
+
+                        <div class="vstack gap-3">
+
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+
+                                <div>
+                                    <div class="fw-semibold">
+                                        Notifications
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Enable in-app notifications.
+                                    </div>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        name="notification_enabled"
+                                        {% if user.notification_enabled %}checked{% endif %}
+                                    >
+                                </div>
+
+                            </div>
+
+                            <hr class="my-1">
+
+
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+
+                                <div>
+                                    <div class="fw-semibold">
+                                        Email Notifications
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Receive supported notifications by email.
+                                    </div>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        name="email_notification_enabled"
+                                        {% if user.email_notification_enabled %}checked{% endif %}
+                                    >
+                                </div>
+
+                            </div>
+
+
+                            <hr class="my-1">
+
+
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+
+                                <div>
+                                    <div class="fw-semibold">
+                                        Notification Sounds
+                                    </div>
+
+                                    <div class="text-muted small">
+                                        Allow notification sounds.
+                                    </div>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        name="sound_notification_enabled"
+                                        {% if user.sound_notification_enabled %}checked{% endif %}
+                                    >
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary mt-4 rounded-pill px-4"
+                        >
+                            <i class="bi bi-check2-circle me-2"></i>
+                            Save Notification Settings
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 SOUND PREFERENCES
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div
+                            class="rounded-3 bg-info-subtle text-info d-flex align-items-center justify-content-center"
+                            style="width: 42px; height: 42px;"
+                        >
+                            <i class="bi bi-volume-up fs-5"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Sound Preferences
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Choose which notification events can play sounds.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('auth.profile') }}"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="update_sounds"
+                        >
+
+                        <div class="row g-3">
+
+                            {% set sound_options = [
+                                (
+                                    "success_sound_enabled",
+                                    "Success",
+                                    "Play a sound after successful actions.",
+                                    "bi-check-circle"
+                                ),
+                                (
+                                    "system_sound_enabled",
+                                    "System",
+                                    "Play sounds for system notifications.",
+                                    "bi-info-circle"
+                                ),
+                                (
+                                    "error_sound_enabled",
+                                    "Error",
+                                    "Play sounds for errors and failed actions.",
+                                    "bi-exclamation-circle"
+                                ),
+                                (
+                                    "low_stock_sound_enabled",
+                                    "Low Stock",
+                                    "Play a sound when stock reaches the low-stock threshold.",
+                                    "bi-box-seam"
+                                ),
+                                (
+                                    "gross_loss_sound_enabled",
+                                    "Gross Loss",
+                                    "Play a sound for gross-loss notifications.",
+                                    "bi-graph-down"
+                                ),
+                                (
+                                    "net_loss_sound_enabled",
+                                    "Net Loss",
+                                    "Play a sound for net-loss notifications.",
+                                    "bi-graph-down-arrow"
+                                )
+                            ] %}
+
+                            {% for field, label, description, icon in sound_options %}
+
+                            <div class="col-md-6">
+
+                                <div
+                                    class="border rounded-3 p-3 h-100"
+                                >
+
+                                    <div class="d-flex align-items-center justify-content-between gap-3">
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            <div
+                                                class="rounded-3 bg-body-secondary d-flex align-items-center justify-content-center text-secondary"
+                                                style="width: 80px; height: 50px;"
+                                            >
+                                                <i class="bi {{ icon }}"></i>
+                                            </div>
+
+                                            <div>
+
+                                                <div class="fw-semibold">
+                                                    {{ label }}
+                                                </div>
+
+                                                <div class="text-muted small">
+                                                    {{ description }}
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="form-check form-switch">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                name="{{ field }}"
+                                                {% if user|attr(field) %}checked{% endif %}
+                                            >
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary mt-4 rounded-pill px-4"
+                        >
+                            <i class="bi bi-check2-circle me-2"></i>
+                            Save Sound Settings
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RIGHT COLUMN
+        ================================================== -->
+
+        <div class="col-xl-4">
+
+            
+            <!-- =============================================
+                 ACCOUNT INFORMATION
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div
+                            class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center"
+                            style="width: 42px; height: 42px;"
+                        >
+                            <i class="bi bi-person-vcard fs-5"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Account Information
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Basic information about your account.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="vstack gap-3">
+
+                        <div>
+                            <div class="text-muted small">
+                                Account ID
+                            </div>
+
+                            <div class="fw-semibold">
+                                #{{ user.id }}
+                            </div>
+                        </div>
+
+
+                        <div>
+                            <div class="text-muted small">
+                                Account Type
+                            </div>
+
+                            <div class="fw-semibold">
+                                {% if user.is_system_admin %}
+                                    System Administrator
+                                {% elif user.is_company_admin %}
+                                    Company Administrator
+                                {% else %}
+                                    Company User
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div>
+                            <div class="text-muted small">
+                                Account Status
+                            </div>
+
+                            {% if user.is_active %}
+                                <span class="badge bg-success-subtle text-success">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </div>
+
+
+                        <div>
+                            <div class="text-muted small">
+                                Created
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                {% if user.created_at %}
+                                    {{ user.created_at.strftime("%d %b %Y, %I:%M %p") }}
+                                {% else %}
+                                    —
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 SECURITY NOTICE
+            ============================================== -->
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex gap-3">
+
+                        <div class="text-primary fs-4">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+
+                        <div>
+
+                            <h6 class="fw-bold">
+                                Account Security
+                            </h6>
+
+                            <p class="text-muted small mb-0">
+                                Never share your password with anyone.
+                                Use a unique password and update it regularly.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

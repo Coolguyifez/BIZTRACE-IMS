@@ -1,0 +1,779 @@
+{% extends "base.html" %}
+
+{% block title %}
+Payables
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                PURCHASE MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                Payables
+            </h1>
+
+            <p class="page-subtitle">
+                Track outstanding balances owed to suppliers.
+            </p>
+
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('purchases.purchases') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-bag-check me-1"></i>
+                View Purchases
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+         ===================================================== -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- OUTSTANDING PURCHASES -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Outstanding Purchases
+                            </div>
+
+                            <h4 class="stats-card-value">
+                                {{ purchases|length }}
+                            </h4>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-secondary-subtle text-secondary">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL PAYABLES -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Payables
+                            </div>
+
+                            <h4 class="stats-card-value responsive-money">
+                                {{ format_currency(total_payables or 0) }}
+                            </h4>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-danger-subtle text-danger">
+                            <i class="bi bi-arrow-up-right-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- UNPAID -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Unpaid
+                            </div>
+
+                            <h4 class="stats-card-value text-danger responsive-money">
+                                {{ format_currency(unpaid_total or 0) }}
+                            </h4>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-danger-subtle text-danger">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PARTIALLY PAID -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Partially Paid
+                            </div>
+
+                            <h4 class="stats-card-value text-warning responsive-money">
+                                {{ format_currency(partial_total or 0) }}
+                            </h4>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTERS
+         ===================================================== -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('payables.payables') }}"
+            >
+
+                <div class="row g-3 align-items-end">
+
+
+                    <!-- SEARCH -->
+                    <div class="col-lg-5">
+
+                        <label class="form-label small fw-semibold mb-2">
+                            Search Payables
+                        </label>
+
+                        <div class="search-field">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="q"
+                                value="{{ search }}"
+                                class="form-control"
+                                placeholder="Purchase, supplier or phone..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PERIOD -->
+                    <div class="col-lg-3">
+
+                        <label
+                            class="form-label small fw-semibold mb-2"
+                            for="period"
+                        >
+                            Payables Period
+                        </label>
+
+                        <select
+                            name="period"
+                            id="period"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if period == "all" %}selected{% endif %}
+                            >
+                                All Payables
+                            </option>
+
+                            <option
+                                value="daily"
+                                {% if period == "daily" %}selected{% endif %}
+                            >
+                                Today
+                            </option>
+
+                            <option
+                                value="weekly"
+                                {% if period == "weekly" %}selected{% endif %}
+                            >
+                                This Week
+                            </option>
+
+                            <option
+                                value="monthly"
+                                {% if period == "monthly" %}selected{% endif %}
+                            >
+                                Monthly
+                            </option>
+
+                            <option
+                                value="yearly"
+                                {% if period == "yearly" %}selected{% endif %}
+                            >
+                                Yearly
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- MONTH -->
+                    <div
+                        class="col-12 col-md-2"
+                        id="month-container"
+                    >
+
+                        <label
+                            class="form-label"
+                            for="month"
+                        >
+                            Month
+                        </label>
+
+                        <select
+                            name="month"
+                            id="month"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Select month
+                            </option>
+
+                            <option
+                                value="1"
+                                {% if month|int == 1 %}selected{% endif %}
+                            >
+                                January
+                            </option>
+
+                            <option
+                                value="2"
+                                {% if month|int == 2 %}selected{% endif %}
+                            >
+                                February
+                            </option>
+
+                            <option
+                                value="3"
+                                {% if month|int == 3 %}selected{% endif %}
+                            >
+                                March
+                            </option>
+
+                            <option
+                                value="4"
+                                {% if month|int == 4 %}selected{% endif %}
+                            >
+                                April
+                            </option>
+
+                            <option
+                                value="5"
+                                {% if month|int == 5 %}selected{% endif %}
+                            >
+                                May
+                            </option>
+
+                            <option
+                                value="6"
+                                {% if month|int == 6 %}selected{% endif %}
+                            >
+                                June
+                            </option>
+
+                            <option
+                                value="7"
+                                {% if month|int == 7 %}selected{% endif %}
+                            >
+                                July
+                            </option>
+
+                            <option
+                                value="8"
+                                {% if month|int == 8 %}selected{% endif %}
+                            >
+                                August
+                            </option>
+
+                            <option
+                                value="9"
+                                {% if month|int == 9 %}selected{% endif %}
+                            >
+                                September
+                            </option>
+
+                            <option
+                                value="10"
+                                {% if month|int == 10 %}selected{% endif %}
+                            >
+                                October
+                            </option>
+
+                            <option
+                                value="11"
+                                {% if month|int == 11 %}selected{% endif %}
+                            >
+                                November
+                            </option>
+
+                            <option
+                                value="12"
+                                {% if month|int == 12 %}selected{% endif %}
+                            >
+                                December
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- YEAR -->
+                    <div
+                        class="col-12 col-md-2"
+                        id="year-container"
+                    >
+
+                        <label
+                            class="form-label"
+                            for="year"
+                        >
+                            Year
+                        </label>
+
+                        <select
+                            name="year"
+                            id="year"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Select year
+                            </option>
+
+                            {% for y in years %}
+
+                                <option
+                                    value="{{ y }}"
+                                    {% if year|int == y|int %}selected{% endif %}
+                                >
+                                    {{ y }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- FILTER BUTTON -->
+                    <div class="col-lg-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-light border w-100"
+                        >
+                            <i class="bi bi-funnel me-2"></i>
+                            Filter
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PAYABLES TABLE
+         ===================================================== -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-transparent border-0 p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h5 class="fw-semibold mb-1">
+                        Outstanding Payables
+                    </h5>
+
+                    <span class="text-danger">
+                        {{ purchases|length }}
+                        <small class="text-muted">
+                            outstanding
+                        </small>
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if purchases %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    Purchase
+                                </th>
+
+                                <th>
+                                    Supplier
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th class="text-end">
+                                    Purchase Total
+                                </th>
+
+                                <th class="text-end">
+                                    Paid
+                                </th>
+
+                                <th class="text-end">
+                                    Balance
+                                </th>
+
+                                <th class="text-center">
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for purchase in purchases %}
+
+                                <tr>
+
+                                    <!-- PURCHASE -->
+                                    <td class="ps-4">
+
+                                        <a
+                                            href="{{ url_for(
+                                                'purchases.view_purchase',
+                                                purchase_id=purchase.id
+                                            ) }}"
+                                            class="fw-semibold text-decoration-none text-dark"
+                                        >
+                                            {{ purchase.purchase_number }}
+                                        </a>
+
+                                    </td>
+
+
+                                    <!-- SUPPLIER -->
+                                    <td>
+
+                                        {% if purchase.supplier %}
+
+                                            <div class="fw-semibold text-dark">
+                                                {{ purchase.supplier.name }}
+                                            </div>
+
+                                            {% if purchase.supplier.phone %}
+
+                                                <small class="text-muted">
+                                                    {{ purchase.supplier.phone }}
+                                                </small>
+
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                Supplier not specified
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- DATE -->
+                                    <td class="text-dark">
+
+                                        {% if purchase.purchase_date %}
+
+                                            {{ format_company_date(
+                                                purchase.purchase_date
+                                            ) }}
+
+                                        {% else %}
+
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- TOTAL -->
+                                    <td class="text-end text-dark responsive-money">
+
+                                        {{ format_currency(
+                                            purchase.total or 0
+                                        ) }}
+
+                                    </td>
+
+
+                                    <!-- PAID -->
+                                    <td class="text-end text-success responsive-money">
+
+                                        {{ format_currency(
+                                            purchase.paid_amount or 0
+                                        ) }}
+
+                                    </td>
+
+
+                                    <!-- BALANCE -->
+                                    <td class="text-end fw-bold text-danger responsive-money">
+
+                                        {{ format_currency(
+                                            purchase.balance or 0
+                                        ) }}
+
+                                    </td>
+
+
+                                    <!-- STATUS -->
+                                    <td class="text-center">
+
+                                        {% if purchase.payment_status == "Unpaid" %}
+
+                                            <span class="badge bg-danger-subtle text-danger">
+                                                Unpaid
+                                            </span>
+
+                                        {% elif purchase.payment_status == "Partially Paid" %}
+
+                                            <span class="badge bg-warning-subtle text-warning">
+                                                Partially Paid
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary-subtle text-secondary">
+                                                {{ purchase.payment_status }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-state text-center">
+
+                    <div class="empty-state-icon mb-3">
+                        <i class="bi bi-arrow-up-right-circle"></i>
+                    </div>
+
+                    <h5>
+                        No outstanding payables
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        {% if search or period != "all" %}
+
+                            No outstanding payables match your current filters.
+
+                        {% else %}
+
+                            All supplier purchases are currently settled.
+
+                        {% endif %}
+
+                    </p>
+
+
+                    {% if search or period != "all" %}
+
+                        <a
+                            href="{{ url_for('payables.payables') }}"
+                            class="btn btn-outline-secondary rounded-pill"
+                        >
+                            <i class="bi bi-x-lg me-2"></i>
+                            Clear Filters
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PERIOD FILTER JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const period =
+            document.getElementById("period");
+
+        const monthContainer =
+            document.getElementById(
+                "month-container"
+            );
+
+        const yearContainer =
+            document.getElementById(
+                "year-container"
+            );
+
+        if (
+            !period ||
+            !monthContainer ||
+            !yearContainer
+        ) {
+            return;
+        }
+
+        function updatePeriodFields() {
+
+            const value =
+                period.value;
+
+            monthContainer.style.display =
+                value === "monthly"
+                    ? ""
+                    : "none";
+
+            yearContainer.style.display =
+                value === "monthly" ||
+                value === "yearly"
+                    ? ""
+                    : "none";
+        }
+
+        period.addEventListener(
+            "change",
+            updatePeriodFields
+        );
+
+        updatePeriodFields();
+
+    }
+);
+
+</script>
+
+{% endblock %}

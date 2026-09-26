@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}BizTrace IMS{% endblock %}
+    </title>
+
+    <meta
+        name="theme-color"
+        content="#0a84ff"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+
+        :root {
+            --primary: #0a84ff;
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --text: #1d1d1f;
+            --muted: #6e6e73;
+            --border: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* =====================================================
+        HIDE SCROLLBARS
+        ===================================================== */
+
+        /* Chrome, Edge, Safari */
+        html,
+        body,
+        .sidebar-inner {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        .sidebar-inner::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+        }
+
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .brand-icon {
+            width: 64px;
+            height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: rgba(10, 132, 255, 0.10);
+            color: var(--primary);
+        }
+
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.07);
+        }
+
+        .form-control {
+            min-height: 48px;
+            border-radius: 12px;
+        }
+
+        .btn-primary {
+            min-height: 48px;
+            border-radius: 12px;
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            :root {
+                --bg: #0f1115;
+                --card: #181a20;
+                --text: #f5f5f7;
+                --muted: #98989d;
+                --border: rgba(255, 255, 255, 0.10);
+            }
+
+            .form-control {
+                background: #2c2c2e;
+                border-color: rgba(255, 255, 255, 0.12);
+                color: #ffffff;
+            }
+
+            .form-control::placeholder {
+                color: #8e8e93;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    {% block content %}
+    {% endblock %}
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+</body>
+
+</html>

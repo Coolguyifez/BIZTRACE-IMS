@@ -1,0 +1,1041 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Edit {{ user.username }} | Users | BizFlow IMS
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+
+<!-- HEADER -->
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+
+    <div>
+
+        <div class="d-flex align-items-center gap-2 mb-2">
+
+            <a
+                href="{{ url_for('system_admin.user_view', user_id=user.id) }}"
+                class="btn btn-sm btn-light border rounded-3"
+                title="Back to User"
+            >
+                <i class="bi bi-arrow-left"></i>
+            </a>
+
+            <span class="text-muted small">
+                System Administration
+            </span>
+
+            <i class="bi bi-chevron-right text-muted small"></i>
+
+            <span class="text-muted small">
+                Users
+            </span>
+
+            <i class="bi bi-chevron-right text-muted small"></i>
+
+            <span class="text-muted small">
+                Edit User
+            </span>
+
+        </div>
+
+        <h1 class="fw-bold mb-1">
+            Edit User
+        </h1>
+
+        <p class="text-muted mb-0">
+            Update account information, access role, company assignment,
+            or password.
+        </p>
+
+    </div>
+
+    <div>
+
+        <a
+            href="{{ url_for('system_admin.user_view', user_id=user.id) }}"
+            class="btn btn-outline-secondary rounded-3 px-3"
+        >
+            <i class="bi bi-x-lg me-1"></i>
+            Cancel
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- FORM -->
+<form
+    method="POST"
+    action="{{ url_for('system_admin.user_edit', user_id=user.id) }}"
+>
+
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}"
+    >
+
+    <div class="row g-4">
+
+        <!-- LEFT -->
+        <div class="col-12 col-xl-8">
+
+            <!-- ACCOUNT INFORMATION -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                <div class="card-header bg-transparent border-0 px-4 pt-4">
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <div class="section-icon">
+                            <i class="bi bi-person-vcard"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                Account Information
+                            </h5>
+
+                            <small class="text-muted">
+                                Basic information for this user account.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="row g-4">
+
+                        <!-- USERNAME -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="username"
+                                class="form-label fw-semibold"
+                            >
+                                Username
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="username"
+                                    name="username"
+                                    value="{{ user.username }}"
+                                    required
+                                    maxlength="80"
+                                    autocomplete="username"
+                                >
+
+                            </div>
+
+                            <div class="form-text">
+                                The name displayed throughout BizFlow IMS.
+                            </div>
+
+                        </div>
+
+
+                        <!-- EMAIL -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="email"
+                                class="form-label fw-semibold"
+                            >
+                                Email Address
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+
+                                <input
+                                    type="email"
+                                    class="form-control"
+                                    id="email"
+                                    name="email"
+                                    value="{{ user.email }}"
+                                    required
+                                    maxlength="150"
+                                    autocomplete="email"
+                                >
+
+                            </div>
+
+                            <div class="form-text">
+                                This email must be unique.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACCESS -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                <div class="card-header bg-transparent border-0 px-4 pt-4">
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <div class="section-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                Access & Company
+                            </h5>
+
+                            <small class="text-muted">
+                                Control the user's role and company access.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="row g-4">
+
+                        <!-- ROLE -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="role"
+                                class="form-label fw-semibold"
+                            >
+                                User Role
+                            </label>
+
+                            {% if user.is_system_admin %}
+
+                                <input
+                                    type="hidden"
+                                    name="role"
+                                    value="System Administrator"
+                                >
+
+                                <div class="protected-field">
+
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <div class="protected-icon">
+                                            <i class="bi bi-shield-lock"></i>
+                                        </div>
+
+                                        <div>
+
+                                            <div class="fw-semibold">
+                                                System Administrator
+                                            </div>
+
+                                            <small class="text-muted">
+                                                Platform-level role is protected.
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <select
+                                    class="form-select"
+                                    id="role"
+                                    name="role"
+                                    required
+                                >
+
+                                    <option
+                                        value="Company Administrator"
+                                        {% if user.role == "Company Administrator" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Company Administrator
+                                    </option>
+
+                                    <option
+                                        value="Staff"
+                                        {% if user.role == "Staff" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Staff
+                                    </option>
+
+                                </select>
+
+                                <div class="form-text">
+                                    Determines the user's access level.
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- COMPANY -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="company_id"
+                                class="form-label fw-semibold"
+                            >
+                                Company
+                            </label>
+
+                            {% if user.is_system_admin %}
+
+                                <div class="protected-field">
+
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <div class="protected-icon">
+                                            <i class="bi bi-building-slash"></i>
+                                        </div>
+
+                                        <div>
+
+                                            <div class="fw-semibold">
+                                                Platform Account
+                                            </div>
+
+                                            <small class="text-muted">
+                                                System Administrators are not
+                                                assigned to a company.
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <select
+                                    class="form-select"
+                                    id="company_id"
+                                    name="company_id"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select company
+                                    </option>
+
+                                    {% for company in companies %}
+
+                                        <option
+                                            value="{{ company.id }}"
+                                            {% if user.company_id == company.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+                                            {{ company.name }}
+                                            {% if not company.is_active %}
+                                                — Inactive
+                                            {% endif %}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                                <div class="form-text">
+                                    The user will belong to this company.
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+                    <div class="status-box mt-4">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="status-icon
+                                {% if user.is_active %}
+                                    status-active
+                                {% else %}
+                                    status-inactive
+                                {% endif %}
+                            ">
+
+                                {% if user.is_active %}
+                                    <i class="bi bi-check-circle"></i>
+                                {% else %}
+                                    <i class="bi bi-x-circle"></i>
+                                {% endif %}
+
+                            </div>
+
+                            <div class="flex-grow-1">
+
+                                <div class="fw-semibold">
+                                    Account Status
+                                </div>
+
+                                <div class="small text-muted">
+
+                                    {% if user.is_active %}
+                                        This account is currently active.
+                                    {% else %}
+                                        This account is currently inactive.
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                            <span
+                                class="badge rounded-pill
+                                {% if user.is_active %}
+                                    bg-success-subtle text-success
+                                {% else %}
+                                    bg-danger-subtle text-danger
+                                {% endif %}
+                                px-3 py-2"
+                            >
+                                {% if user.is_active %}
+                                    Active
+                                {% else %}
+                                    Inactive
+                                {% endif %}
+                            </span>
+
+                        </div>
+
+                        <div class="small text-muted mt-3">
+
+                            <i class="bi bi-info-circle me-1"></i>
+
+                            Use the User Details page to activate or
+                            deactivate the account.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 px-4 pt-4">
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <div class="section-icon">
+                            <i class="bi bi-key"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                Password
+                            </h5>
+
+                            <small class="text-muted">
+                                Reset the user's password if necessary.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="alert alert-warning border-0 rounded-3">
+
+                        <div class="d-flex gap-2">
+
+                            <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+
+                            <div class="small">
+
+                                Leave both password fields empty if you do
+                                not want to change the current password.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="row g-4">
+
+                        <!-- NEW PASSWORD -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="new_password"
+                                class="form-label fw-semibold"
+                            >
+                                New Password
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+
+                                <input
+                                    type="password"
+                                    class="form-control password-field"
+                                    id="new_password"
+                                    name="new_password"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    placeholder="Enter new password"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary toggle-password"
+                                    data-target="new_password"
+                                    title="Show password"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="form-text">
+                                Minimum 8 characters.
+                            </div>
+
+                        </div>
+
+
+                        <!-- CONFIRM PASSWORD -->
+                        <div class="col-12 col-md-6">
+
+                            <label
+                                for="confirm_password"
+                                class="form-label fw-semibold"
+                            >
+                                Confirm Password
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+
+                                <input
+                                    type="password"
+                                    class="form-control password-field"
+                                    id="confirm_password"
+                                    name="confirm_password"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    placeholder="Confirm new password"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary toggle-password"
+                                    data-target="confirm_password"
+                                    title="Show password"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="passwordMismatch"
+                        class="alert alert-danger mt-3 d-none"
+                    >
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        The passwords do not match.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT -->
+        <div class="col-12 col-xl-4">
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+
+                        <div class="user-avatar">
+                            {{ user.username[:1].upper() }}
+                        </div>
+
+                        <div class="min-w-0">
+
+                            <h5 class="fw-bold mb-1 text-break">
+                                {{ user.username }}
+                            </h5>
+
+                            <div class="small text-muted text-break">
+                                {{ user.email }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-detail">
+
+                        <div class="quick-detail-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="small text-muted">
+                                Current Role
+                            </div>
+
+                            <div class="fw-semibold">
+                                {{ user.role }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-detail">
+
+                        <div class="quick-detail-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="small text-muted">
+                                Company
+                            </div>
+
+                            <div class="fw-semibold text-break">
+
+                                {% if user.company %}
+                                    {{ user.company.name }}
+                                {% else %}
+                                    Platform
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-detail">
+
+                        <div class="quick-detail-icon">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="small text-muted">
+                                Account Created
+                            </div>
+
+                            <div class="fw-semibold">
+
+                                {% if user.created_at %}
+                                    {{ user.created_at.strftime('%d %b %Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SAVE CARD -->
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-body p-4">
+
+                    <h6 class="fw-bold mb-2">
+                        Save Changes
+                    </h6>
+
+                    <p class="small text-muted mb-4">
+                        Review the information before saving changes
+                        to this account.
+                    </p>
+
+                    <button
+                        type="submit"
+                        id="saveButton"
+                        class="btn btn-primary btn-lg w-100 rounded-3"
+                    >
+                        <i class="bi bi-check2-circle me-1"></i>
+                        Save Changes
+                    </button>
+
+                    <a
+                        href="{{ url_for(
+                            'system_admin.user_view',
+                            user_id=user.id
+                        ) }}"
+                        class="btn btn-light border w-100 rounded-3 mt-2"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+</div>
+
+<style>
+
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .user-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: rgba(10, 132, 255, 0.12);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .protected-field {
+        min-height: 58px;
+        padding: 10px 14px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 10px;
+        background: var(--bs-tertiary-bg);
+        display: flex;
+        align-items: center;
+    }
+
+    .protected-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(10, 132, 255, 0.10);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .status-box {
+        padding: 16px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 14px;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .status-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+
+    .status-inactive {
+        background: rgba(220, 53, 69, 0.12);
+        color: #dc3545;
+    }
+
+    .quick-detail {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .quick-detail:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .quick-detail:first-of-type {
+        padding-top: 0;
+    }
+
+    .quick-detail-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        background: var(--bs-tertiary-bg);
+        color: #0a84ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .min-w-0 {
+        min-width: 0;
+    }
+
+    html[data-theme="dark"] .protected-field,
+    html[data-theme="dark"] .status-box {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    @media (max-width: 575.98px) {
+
+        .container-fluid {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+        }
+
+        .card-body {
+            padding: 18px !important;
+        }
+
+    }
+
+</style>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // ==========================================
+        // SHOW / HIDE PASSWORD
+        // ==========================================
+
+        document.querySelectorAll(".toggle-password").forEach(function (button) {
+
+            button.addEventListener("click", function () {
+
+                const targetId = button.dataset.target;
+                const input = document.getElementById(targetId);
+
+                if (!input) {
+                    return;
+                }
+
+                const icon = button.querySelector("i");
+
+                if (input.type === "password") {
+
+                    input.type = "text";
+
+                    if (icon) {
+                        icon.classList.remove("bi-eye");
+                        icon.classList.add("bi-eye-slash");
+                    }
+
+                    button.setAttribute(
+                        "title",
+                        "Hide password"
+                    );
+
+                } else {
+
+                    input.type = "password";
+
+                    if (icon) {
+                        icon.classList.remove("bi-eye-slash");
+                        icon.classList.add("bi-eye");
+                    }
+
+                    button.setAttribute(
+                        "title",
+                        "Show password"
+                    );
+
+                }
+
+            });
+
+        });
+
+
+        // ==========================================
+        // PASSWORD MATCH VALIDATION
+        // ==========================================
+
+        const newPassword = document.getElementById("new_password");
+        const confirmPassword = document.getElementById("confirm_password");
+        const mismatch = document.getElementById("passwordMismatch");
+        const form = document.querySelector("form");
+        const saveButton = document.getElementById("saveButton");
+
+        function validatePasswords() {
+
+            if (!newPassword || !confirmPassword) {
+                return true;
+            }
+
+            const password = newPassword.value;
+            const confirmation = confirmPassword.value;
+
+            // Both empty = keep existing password
+            if (!password && !confirmation) {
+
+                mismatch.classList.add("d-none");
+
+                return true;
+            }
+
+            // One filled but not the other
+            if (!password || !confirmation) {
+
+                mismatch.classList.remove("d-none");
+
+                return false;
+            }
+
+            // Passwords don't match
+            if (password !== confirmation) {
+
+                mismatch.classList.remove("d-none");
+
+                return false;
+            }
+
+            mismatch.classList.add("d-none");
+
+            return true;
+        }
+
+
+        if (newPassword && confirmPassword) {
+
+            newPassword.addEventListener(
+                "input",
+                validatePasswords
+            );
+
+            confirmPassword.addEventListener(
+                "input",
+                validatePasswords
+            );
+
+        }
+
+
+        if (form) {
+
+            form.addEventListener("submit", function (event) {
+
+                if (!validatePasswords()) {
+
+                    event.preventDefault();
+
+                    if (confirmPassword) {
+                        confirmPassword.focus();
+                    }
+
+                    return;
+                }
+
+                if (saveButton) {
+
+                    saveButton.disabled = true;
+
+                    saveButton.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                        'Saving...';
+
+                }
+
+            });
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}

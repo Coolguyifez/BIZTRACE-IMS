@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+
+<!-- =====================================================
+     PAGE HEADER
+====================================================== -->
+
+<div class="page-header mb-4">
+
+    <div>
+
+        <div class="page-eyebrow">
+            INVENTORY MANAGEMENT
+        </div>
+
+        <h1 class="page-title">
+            Reserve / Release Stock
+        </h1>
+
+        <p class="page-subtitle">
+            Reserve available inventory or release stock that is
+            currently reserved.
+        </p>
+
+    </div>
+
+    <div>
+
+        <a
+            href="{{ url_for('inventory.inventory') }}"
+            class="btn btn-light border rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Inventory
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FORM
+====================================================== -->
+
+<div class="row justify-content-center">
+
+    <div class="col-xl-8 col-lg-10">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-4 p-lg-5">
+
+                <form
+                    method="POST"
+                    novalidate
+                >
+
+                    {{ form.hidden_tag() }}
+
+
+                    <!-- =================================================
+                         PRODUCT
+                    ================================================== -->
+
+                    <div class="mb-4">
+
+                        {{ form.product_id.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.product_id(
+                            class="form-select"
+                        ) }}
+
+                        <div class="form-text text-muted">
+                            Select the product whose inventory you want
+                            to reserve or release.
+                        </div>
+
+                        {% for error in form.product_id.errors %}
+
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- =================================================
+                         ACTION
+                    ================================================== -->
+
+                    <div class="mb-4">
+
+                        {{ form.action.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.action(
+                            class="form-select",
+                            id="reservationAction"
+                        ) }}
+
+                        <div
+                            id="reservationHelp"
+                            class="form-text mt-2 text-muted"
+                        >
+                            Select whether you want to reserve or
+                            release inventory.
+                        </div>
+
+                        {% for error in form.action.errors %}
+
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- =================================================
+                         QUANTITY
+                    ================================================== -->
+
+                    <div class="mb-4">
+
+                        {{ form.quantity.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.quantity(
+                            class="form-control",
+                            min="0.001",
+                            step="0.001",
+                            placeholder="Enter quantity"
+                        ) }}
+
+                        <div class="form-text text-muted">
+                            Enter the number of units to reserve or
+                            release.
+                        </div>
+
+                        {% for error in form.quantity.errors %}
+
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- =================================================
+                         NOTES
+                    ================================================== -->
+
+                    <div class="mb-4">
+
+                        {{ form.notes.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.notes(
+                            class="form-control",
+                            rows="4",
+                            placeholder="Reason for this reservation or release..."
+                        ) }}
+
+                        <div class="form-text text-muted">
+                            Optional. Add a reference or reason to make
+                            the inventory history easier to understand.
+                        </div>
+
+                        {% for error in form.notes.errors %}
+
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- =================================================
+                         INFORMATION
+                    ================================================== -->
+
+                    <div
+                        class="alert alert-info border-0 rounded-4 d-flex gap-3 align-items-start mb-4"
+                        role="alert"
+                    >
+
+                        <i class="bi bi-info-circle fs-5"></i>
+
+                        <div>
+
+                            <div class="fw-semibold mb-1">
+                                How reservations work
+                            </div>
+
+                            <div class="small">
+
+                                Reserving stock does not reduce the
+                                physical quantity. It increases the
+                                reserved quantity and reduces the
+                                quantity available for new sales.
+
+                                <br>
+
+                                Releasing a reservation decreases the
+                                reserved quantity and makes those units
+                                available again.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         ACTIONS
+                    ================================================== -->
+
+                    <div
+                        class="d-flex flex-column flex-sm-row justify-content-end gap-2"
+                    >
+
+                        <a
+                            href="{{ url_for('inventory.inventory') }}"
+                            class="btn btn-light rounded-pill px-4 border"
+                        >
+                            Cancel
+                        </a>
+
+                        {{ form.submit(
+                            class="btn btn-primary rounded-pill px-4",
+                            id="reservationSubmit"
+                        ) }}
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             QUICK EXPLANATION
+        ================================================== -->
+
+        <div class="row g-3 mt-2">
+
+            <div class="col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+
+                            <div
+                                class="rounded-3 bg-warning-subtle text-warning d-flex align-items-center justify-content-center"
+                                style="width: 44px; height: 44px;"
+                            >
+                                <i class="bi bi-bookmark-check fs-5"></i>
+                            </div>
+
+                            <div>
+                                <div class="fw-semibold">
+                                    Reserved Stock
+                                </div>
+
+                                <small class="text-muted">
+                                    Stock held for a purpose
+                                </small>
+                            </div>
+
+                        </div>
+
+                        <p class="text-muted small mb-0">
+                            Reserved units remain physically in your
+                            inventory but cannot be treated as available
+                            stock for another transaction.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+
+                            <div
+                                class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center"
+                                style="width: 44px; height: 44px;"
+                            >
+                                <i class="bi bi-boxes fs-5"></i>
+                            </div>
+
+                            <div>
+                                <div class="fw-semibold">
+                                    Available Stock
+                                </div>
+
+                                <small class="text-muted">
+                                    Stock available for use
+                                </small>
+                            </div>
+
+                        </div>
+
+                        <p class="text-muted small mb-0">
+                            Available stock is calculated as physical
+                            stock minus reserved stock.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- =====================================================
+     ACTION HELPER
+====================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const action =
+        document.getElementById("reservationAction");
+
+    const help =
+        document.getElementById("reservationHelp");
+
+    const submit =
+        document.getElementById("reservationSubmit");
+
+    if (!action || !help || !submit) {
+        return;
+    }
+
+    function updateReservationHelp() {
+
+        if (action.value === "reserve") {
+
+            help.innerHTML =
+                '<i class="bi bi-bookmark-plus me-1"></i>' +
+                'Reserve available stock. Physical stock will remain unchanged, ' +
+                'but the available quantity will decrease.';
+
+            submit.value = "Reserve Stock";
+
+        } else if (action.value === "release") {
+
+            help.innerHTML =
+                '<i class="bi bi-bookmark-dash me-1"></i>' +
+                'Release previously reserved stock. The physical quantity will ' +
+                'remain unchanged and available stock will increase.';
+
+            submit.value = "Release Reservation";
+
+        } else {
+
+            help.innerHTML =
+                'Select whether you want to reserve or release inventory.';
+
+            submit.value = "Save Reservation";
+
+        }
+
+    }
+
+    action.addEventListener(
+        "change",
+        updateReservationHelp
+    );
+
+    updateReservationHelp();
+
+});
+
+</script>
+
+{% endblock %}

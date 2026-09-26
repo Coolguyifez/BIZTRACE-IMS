@@ -1,0 +1,294 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+{{ company.name }}
+{% endblock %}
+
+{% block page_title %}
+{{ company.name }}
+{% endblock %}
+
+{% block page_subtitle %}
+Company details and users
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <!-- COMPANY DETAILS -->
+
+    <div class="col-12 col-xl-5">
+
+        <div class="sa-card sa-section-card">
+
+            <div class="sa-section-header">
+
+                <h2 class="sa-section-title">
+                    Company Details
+                </h2>
+
+                <a
+                    href="{{ url_for('system_admin.company_edit', company_id=company.id) }}"
+                    class="btn btn-sm btn-light rounded-pill border"
+                >
+                    <i class="bi bi-pencil me-1"></i>
+                    Edit
+                </a>
+
+            </div>
+
+
+            <div class="sa-section-body">
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        Company Name
+                    </div>
+
+                    <div class="fw-semibold mt-1">
+                        {{ company.name }}
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        Email
+                    </div>
+
+                    <div class="mt-1">
+                        {{ company.email or "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        Phone
+                    </div>
+
+                    <div class="mt-1">
+                        {{ company.phone or "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        Address
+                    </div>
+
+                    <div class="mt-1">
+                        {{ company.address or "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        Company ID
+                    </div>
+
+                    <div class="mt-1">
+                        #{{ company.id }}
+                    </div>
+
+                </div>
+
+
+                <div class="mb-4">
+
+                    <div class="small text-secondary">
+                        QR Code
+                    </div>
+
+                    <div class="mt-1">
+
+                        <code>
+                            {{ company.qr_code }}
+                        </code>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <div class="small text-secondary mb-2">
+                        Status
+                    </div>
+
+                    {% if company.is_active %}
+
+                        <span class="badge text-bg-success">
+                            Active
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge text-bg-danger">
+                            Inactive
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- USERS -->
+
+    <div class="col-12 col-xl-7">
+
+        <div class="sa-card sa-section-card">
+
+            <div class="sa-section-header">
+
+                <div>
+
+                    <h2 class="sa-section-title">
+                        Company Users
+                    </h2>
+
+                    <div class="text-secondary small mt-1">
+                        Users assigned to this company
+                    </div>
+
+                </div>
+
+                <span class="badge text-bg-light border text-dark">
+                    {{ company_users|length }}
+                </span>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table sa-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                User
+                            </th>
+
+                            <th>
+                                Role
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for user in company_users %}
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        {{ user.username }}
+                                    </div>
+
+                                    <div class="small text-secondary">
+                                        {{ user.email }}
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+                                    {{ user.role }}
+                                </td>
+
+
+                                <td>
+
+                                    {% if user.is_active %}
+
+                                        <span class="badge text-bg-success">
+                                            Active
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge text-bg-danger">
+                                            Inactive
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="3"
+                                    class="text-center py-5"
+                                >
+
+                                    <div class="text-secondary">
+                                        No users assigned to this company.
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="mt-4">
+
+    <a
+        href="{{ url_for('system_admin.companies') }}"
+        class="btn btn-light border rounded-pill"
+    >
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Companies
+    </a>
+
+</div>
+
+{% endblock %}

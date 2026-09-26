@@ -1,0 +1,1247 @@
+{% extends "base.html" %}
+
+{% block title %}
+Support
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+/* =========================================================
+   SUPPORT PAGE
+   ========================================================= */
+
+.support-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px 24px 50px;
+
+    /* Theme variables */
+    --support-text: #1d1d1f;
+    --support-text-secondary: #6e6e73;
+    --support-card-bg: #ffffff;
+    --support-border: #e5e5e7;
+    --support-muted-bg: #f5f5f7;
+}
+
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+[data-theme="dark"] .support-page {
+    --support-text: #f5f5f7;
+    --support-text-secondary: #a1a1a6;
+    --support-card-bg: #1c1c1e;
+    --support-border: #38383a;
+    --support-muted-bg: #2c2c2e;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.support-hero {
+    position: relative;
+    overflow: hidden;
+
+    min-height: 300px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 55px 60px;
+    margin-bottom: 28px;
+
+    border-radius: 28px;
+
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(255,255,255,.16),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #0a84ff 0%,
+            #147ef5 45%,
+            #5e5ce6 100%
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 20px 50px rgba(10,132,255,.18);
+}
+
+
+.support-hero-content {
+    position: relative;
+    z-index: 2;
+
+    max-width: 680px;
+}
+
+
+/* =========================================================
+   HERO BADGE
+   ========================================================= */
+
+.support-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 7px 13px;
+    margin-bottom: 20px;
+
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 100px;
+
+    background: rgba(255,255,255,.12);
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #5ee7a0;
+
+    box-shadow:
+        0 0 0 4px rgba(94,231,160,.15);
+}
+
+
+/* =========================================================
+   HERO TITLE
+   ========================================================= */
+
+.support-hero h1 {
+    margin: 0 0 14px;
+
+    color: #ffffff;
+
+    font-size: clamp(34px, 5vw, 52px);
+    font-weight: 800;
+
+    letter-spacing: -2px;
+    line-height: 1.05;
+}
+
+
+.support-hero h1 span {
+    color: rgba(255,255,255,.72);
+}
+
+
+.support-hero p {
+    max-width: 620px;
+
+    margin: 0;
+
+    color: rgba(255,255,255,.86);
+
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   HERO DECORATIONS
+   ========================================================= */
+
+.hero-decoration {
+    position: absolute;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    pointer-events: none;
+}
+
+
+.hero-decoration-one {
+    width: 330px;
+    height: 330px;
+
+    right: -100px;
+    top: -120px;
+}
+
+
+.hero-decoration-two {
+    width: 220px;
+    height: 220px;
+
+    right: 90px;
+    bottom: -150px;
+}
+
+
+/* =========================================================
+   CONTACT OPTIONS
+   ========================================================= */
+
+.support-options {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+
+/* =========================================================
+   CONTACT CARD
+   ========================================================= */
+
+.support-contact-card {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    min-height: 300px;
+
+    padding: 25px;
+
+    border: 1px solid var(--support-border);
+    border-radius: 22px;
+
+    background: var(--support-card-bg);
+
+    color: var(--support-text);
+
+    text-decoration: none;
+
+    overflow: hidden;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border-color .25s ease;
+}
+
+
+/* Decorative circle */
+
+.support-contact-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 150px;
+    height: 150px;
+
+    right: -80px;
+    bottom: -80px;
+
+    border-radius: 50%;
+
+    background: rgba(10,132,255,.05);
+
+    transition:
+        transform .3s ease;
+}
+
+
+/* Hover */
+
+.support-contact-card:hover {
+    transform: translateY(-5px);
+
+    border-color: rgba(10,132,255,.35);
+
+    color: var(--support-text);
+
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.08);
+}
+
+
+.support-contact-card:hover::before {
+    transform: scale(1.5);
+}
+
+
+[data-theme="dark"] .support-contact-card:hover {
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.35);
+}
+
+
+/* =========================================================
+   CONTACT CARD TOP
+   ========================================================= */
+
+.contact-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 30px;
+}
+
+
+/* =========================================================
+   CONTACT ICONS
+   ========================================================= */
+
+.contact-icon {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    font-size: 22px;
+}
+
+
+.email-icon {
+    color: #0a84ff;
+
+    background:
+        rgba(10,132,255,.10);
+}
+
+
+.whatsapp-icon {
+    color: #25d366;
+
+    background:
+        rgba(37,211,102,.10);
+}
+
+
+.phone-icon {
+    color: #5e5ce6;
+
+    background:
+        rgba(94,92,230,.10);
+}
+
+
+/* =========================================================
+   ARROW
+   ========================================================= */
+
+.contact-arrow {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: var(--support-text-secondary);
+
+    background: var(--support-muted-bg);
+
+    transition:
+        transform .25s ease,
+        background .25s ease,
+        color .25s ease;
+}
+
+
+.support-contact-card:hover .contact-arrow {
+    transform: translate(2px,-2px);
+
+    color: #0a84ff;
+
+    background:
+        rgba(10,132,255,.10);
+}
+
+
+/* =========================================================
+   CONTACT CONTENT
+   ========================================================= */
+
+.contact-content {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Small label */
+
+.contact-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--support-text-secondary);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.3px;
+}
+
+
+/* Heading */
+
+.contact-content h3 {
+    margin: 0 0 10px;
+
+    color: var(--support-text);
+
+    font-size: 21px;
+    font-weight: 750;
+
+    letter-spacing: -.4px;
+}
+
+
+/* Description */
+
+.contact-content p {
+    margin: 0 0 22px;
+
+    color: var(--support-text-secondary);
+
+    font-size: 14px;
+
+    line-height: 1.65;
+}
+
+
+/* Action */
+
+.contact-action {
+    margin-top: auto;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: #0a84ff;
+
+    font-size: 13px;
+    font-weight: 650;
+}
+
+
+.contact-action i {
+    transition:
+        transform .2s ease;
+}
+
+
+.support-contact-card:hover .contact-action i {
+    transform: translateX(4px);
+}
+
+
+/* =========================================================
+   LOWER SECTION
+   ========================================================= */
+
+.support-bottom {
+    display: grid;
+
+    grid-template-columns:
+        1.2fr .8fr;
+
+    gap: 18px;
+
+    margin-top: 18px;
+}
+
+
+/* =========================================================
+   HELP CARD + HOURS CARD
+   ========================================================= */
+
+.help-card,
+.hours-card {
+    border: 1px solid var(--support-border);
+
+    border-radius: 22px;
+
+    background: var(--support-card-bg);
+
+    color: var(--support-text);
+}
+
+
+/* =========================================================
+   HELP CARD
+   ========================================================= */
+
+.help-card {
+    display: flex;
+
+    gap: 22px;
+
+    padding: 30px;
+}
+
+
+.help-icon {
+    flex-shrink: 0;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background:
+        rgba(10,132,255,.10);
+
+    color: #0a84ff;
+
+    font-size: 21px;
+}
+
+
+.help-content {
+    min-width: 0;
+}
+
+
+.section-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--support-text-secondary);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.3px;
+}
+
+
+.help-content h2 {
+    margin: 0 0 12px;
+
+    color: var(--support-text);
+
+    font-size: 25px;
+    font-weight: 750;
+
+    letter-spacing: -.8px;
+
+    line-height: 1.2;
+}
+
+
+.help-content p {
+    max-width: 580px;
+
+    margin: 0;
+
+    color: var(--support-text-secondary);
+
+    font-size: 14px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   HOURS CARD
+   ========================================================= */
+
+.hours-card {
+    padding: 26px;
+}
+
+
+.hours-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 22px;
+}
+
+
+.hours-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+
+    background:
+        rgba(10,132,255,.10);
+
+    color: #0a84ff;
+
+    font-size: 19px;
+}
+
+
+.hours-header h4 {
+    margin: 0;
+
+    color: var(--support-text);
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+
+/* Hours rows */
+
+.hours-row {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 12px 0;
+
+    border-top: 1px solid var(--support-border);
+
+    color: var(--support-text);
+
+    font-size: 13px;
+}
+
+
+.hours-row span {
+    color: var(--support-text-secondary);
+}
+
+
+.hours-row strong {
+    color: var(--support-text);
+
+    font-weight: 650;
+}
+
+
+.hours-row.muted {
+    opacity: .55;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.support-footer {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 14px;
+
+    margin-top: 34px;
+
+    color: var(--support-text-secondary);
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: .5px;
+}
+
+
+.footer-line {
+    width: 60px;
+    height: 1px;
+
+    background:
+        var(--support-border);
+}
+
+
+.support-footer i {
+    margin-right: 5px;
+
+    color: #0a84ff;
+}
+
+
+/* =========================================================
+   DARK MODE ENHANCEMENTS
+   ========================================================= */
+
+[data-theme="dark"] .support-page {
+
+    --support-text: #f5f5f7;
+
+    --support-text-secondary: #b0b0b5;
+
+    --support-card-bg: #1c1c1e;
+
+    --support-border: #38383a;
+
+    --support-muted-bg: #2c2c2e;
+}
+
+
+/* Improve dark mode card separation */
+
+[data-theme="dark"] .support-contact-card,
+[data-theme="dark"] .help-card,
+[data-theme="dark"] .hours-card {
+    background: #1c1c1e;
+
+    border-color: #38383a;
+}
+
+
+/* Dark mode arrow */
+
+[data-theme="dark"] .contact-arrow {
+    background: #2c2c2e;
+
+    color: #b0b0b5;
+}
+
+
+/* Dark mode hover */
+
+[data-theme="dark"] .support-contact-card:hover {
+    border-color:
+        rgba(10,132,255,.45);
+}
+
+
+/* Dark mode hero shadow */
+
+[data-theme="dark"] .support-hero {
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.30);
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .support-options {
+        grid-template-columns: 1fr;
+    }
+
+    .support-contact-card {
+        min-height: auto;
+    }
+
+    .support-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .support-page {
+        padding: 12px 15px 35px;
+    }
+
+
+    .support-hero {
+        min-height: auto;
+
+        padding: 35px 25px;
+
+        border-radius: 22px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .support-hero h1 {
+        font-size: 36px;
+
+        letter-spacing: -1.5px;
+    }
+
+
+    .support-hero p {
+        font-size: 14px;
+    }
+
+
+    .support-contact-card {
+        padding: 22px;
+
+        border-radius: 19px;
+    }
+
+
+    .support-bottom {
+        gap: 14px;
+    }
+
+
+    .help-card {
+        flex-direction: column;
+
+        padding: 24px;
+
+        border-radius: 19px;
+    }
+
+
+    .help-content h2 {
+        font-size: 22px;
+    }
+
+
+    .hours-card {
+        padding: 22px;
+
+        border-radius: 19px;
+    }
+
+
+    .hours-row {
+        font-size: 12px;
+    }
+
+
+    .support-footer {
+        margin-top: 25px;
+    }
+
+}
+
+</style>
+
+
+<div class="support-page">
+
+    <!-- =====================================================
+         HERO
+         ====================================================== -->
+
+    <section class="support-hero">
+
+        <div class="support-hero-content">
+
+            <div class="support-badge">
+
+                <span class="status-dot"></span>
+
+                Support Center
+
+            </div>
+
+
+            <h1>
+
+                How can we
+
+                <span>help you?</span>
+
+            </h1>
+
+
+            <p>
+
+                Need assistance with BizTrace IMS?
+                Reach us directly through email, WhatsApp,
+                or phone. We're here to help you keep your
+                business running smoothly.
+
+            </p>
+
+        </div>
+
+
+        <div
+            class="hero-decoration hero-decoration-one">
+        </div>
+
+
+        <div
+            class="hero-decoration hero-decoration-two">
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CONTACT OPTIONS
+         ====================================================== -->
+
+    <section class="support-options">
+
+
+        <!-- =================================================
+             EMAIL
+             ================================================== -->
+
+        <a
+            href="mailto:ikukaiwee@gmail.com"
+            class="support-contact-card"
+        >
+
+            <div class="contact-card-top">
+
+                <div class="contact-icon email-icon">
+
+                    <i class="bi bi-envelope-fill"></i>
+
+                </div>
+
+
+                <div class="contact-arrow">
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="contact-content">
+
+                <span class="contact-label">
+                    EMAIL
+                </span>
+
+
+                <h3>
+                    Email Support
+                </h3>
+
+
+                <p>
+
+                    Send us a message and we'll get back
+                    to you with the help you need.
+
+                </p>
+
+
+                <span class="contact-action">
+
+                    Send an email
+
+                    <i class="bi bi-arrow-right"></i>
+
+                </span>
+
+            </div>
+
+        </a>
+
+
+        <!-- =================================================
+             WHATSAPP
+             ================================================== -->
+
+        <a
+            href="https://wa.me/2348154675347"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="support-contact-card"
+        >
+
+            <div class="contact-card-top">
+
+                <div class="contact-icon whatsapp-icon">
+
+                    <i class="bi bi-whatsapp"></i>
+
+                </div>
+
+
+                <div class="contact-arrow">
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="contact-content">
+
+                <span class="contact-label">
+                    CHAT
+                </span>
+
+
+                <h3>
+                    WhatsApp
+                </h3>
+
+
+                <p>
+
+                    Chat with us directly on WhatsApp
+                    for quick support and assistance.
+
+                </p>
+
+
+                <span class="contact-action">
+
+                    Start a conversation
+
+                    <i class="bi bi-arrow-right"></i>
+
+                </span>
+
+            </div>
+
+        </a>
+
+
+        <!-- =================================================
+             PHONE
+             ================================================== -->
+
+        <a
+            href="tel:+2348154675347"
+            class="support-contact-card"
+        >
+
+            <div class="contact-card-top">
+
+                <div class="contact-icon phone-icon">
+
+                    <i class="bi bi-telephone-fill"></i>
+
+                </div>
+
+
+                <div class="contact-arrow">
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="contact-content">
+
+                <span class="contact-label">
+                    PHONE
+                </span>
+
+
+                <h3>
+                    Call Support
+                </h3>
+
+
+                <p>
+
+                    Prefer to speak with someone?
+                    Give us a call and we'll assist you.
+
+                </p>
+
+
+                <span class="contact-action">
+
+                    Call us
+
+                    <i class="bi bi-arrow-right"></i>
+
+                </span>
+
+            </div>
+
+        </a>
+
+
+    </section>
+
+
+    <!-- =====================================================
+         LOWER SECTION
+         ====================================================== -->
+
+    <section class="support-bottom">
+
+
+        <!-- =================================================
+             HELP CARD
+             ================================================== -->
+
+        <div class="help-card">
+
+            <div class="help-icon">
+
+                <i class="bi bi-stars"></i>
+
+            </div>
+
+
+            <div class="help-content">
+
+                <span class="section-label">
+                    WE'RE HERE FOR YOU
+                </span>
+
+
+                <h2>
+
+                    Get the help you need,
+                    without the hassle.
+
+                </h2>
+
+
+                <p>
+
+                    Whether you're having trouble with sales,
+                    inventory, purchases, reports, or any other
+                    part of BizTrace IMS, we're ready to assist.
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             HOURS
+             ================================================== -->
+
+        <div class="hours-card">
+
+
+            <div class="hours-header">
+
+                <div class="hours-icon">
+
+                    <i class="bi bi-clock"></i>
+
+                </div>
+
+
+                <div>
+
+                    <span class="section-label">
+                        SUPPORT HOURS
+                    </span>
+
+
+                    <h4>
+                        We're available
+                    </h4>
+
+                </div>
+
+            </div>
+
+
+            <div class="hours-row">
+
+                <span>
+                    Monday – Friday
+                </span>
+
+                <strong>
+                    8:00 AM – 5:00 PM
+                </strong>
+
+            </div>
+
+
+            <div class="hours-row">
+
+                <span>
+                    Saturday
+                </span>
+
+                <strong>
+                    9:00 AM – 2:00 PM
+                </strong>
+
+            </div>
+
+
+            <div class="hours-row muted">
+
+                <span>
+                    Sunday
+                </span>
+
+                <strong>
+                    Closed
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER MESSAGE
+         ====================================================== -->
+
+    <div class="support-footer">
+
+        <div class="footer-line"></div>
+
+
+        <span>
+
+            <i class="bi bi-shield-check"></i>
+
+            BizTrace IMS Support
+
+        </span>
+
+
+        <div class="footer-line"></div>
+
+    </div>
+
+
+</div>
+
+{% endblock %}

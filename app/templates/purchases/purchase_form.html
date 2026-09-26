@@ -1,0 +1,2996 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if purchase %}
+Edit Purchase
+{% else %}
+New Purchase
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                {% if purchase %}
+                    Edit Purchase
+                {% else %}
+                    New Purchase
+                {% endif %}
+            </h2>
+
+            <p class="text-muted mb-0">
+                {% if purchase %}
+                    Update purchase details and inventory.
+                {% else %}
+                    Record products purchased from a supplier.
+                {% endif %}
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('purchases.purchases') }}"
+            class="btn btn-outline-secondary rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Purchases
+        </a>
+
+    </div>
+
+
+    <form method="POST" id="purchaseForm">
+
+        {{ form.hidden_tag() }}
+
+
+        <!-- =================================================
+             PURCHASE INFORMATION
+        ================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0 fw-semibold">
+                    Purchase Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <!-- SUPPLIER -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        {{ form.supplier_id.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.supplier_id(
+                            class="form-select"
+                        ) }}
+
+                        {% for error in form.supplier_id.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- PURCHASE DATE -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        {{ form.purchase_date.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.purchase_date(
+                            class="form-control",
+                            type="date"
+                        ) }}
+
+                        {% for error in form.purchase_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- EXPECTED DELIVERY DATE -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        {{ form.expected_delivery_date.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.expected_delivery_date(
+                            class="form-control",
+                            type="date"
+                        ) }}
+
+                        <div class="form-text text-muted">
+                            Optional supplier delivery date.
+                        </div>
+
+                        {% for error in form.expected_delivery_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- SUPPLIER INVOICE -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        {{ form.supplier_invoice_number.label(
+                            class="form-label fw-semibold"
+                        ) }}
+
+                        {{ form.supplier_invoice_number(
+                            class="form-control",
+                            placeholder="e.g. INV-2026-001"
+                        ) }}
+
+                        <div class="form-text text-muted">
+                            Optional supplier invoice or reference number.
+                        </div>
+
+                        {% for error in form.supplier_invoice_number.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PRODUCT SELECTION
+        ================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <h5 class="mb-0 fw-semibold">
+                    Add Products
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- PRODUCT -->
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <label
+                            for="productSelect"
+                            class="form-label fw-semibold"
+                        >
+                            Product
+                        </label>
+
+                        <select
+                            id="productSelect"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                Select product
+                            </option>
+
+                            {% for product in products %}
+
+                                <option
+                                    value="{{ product.id }}"
+                                    data-name="{{ product.name }}"
+                                    data-cost="{{ product.purchase_price or 0 }}"
+                                >
+                                    {{ product.name }}
+
+                                    {% if product.sku %}
+                                        — {{ product.sku }}
+                                    {% endif %}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- QUANTITY -->
+
+                    <div class="col-lg-2 col-md-3">
+
+                        <label
+                            for="productQuantity"
+                            class="form-label fw-semibold"
+                        >
+                            Quantity
+                        </label>
+
+                        <input
+                            type="number"
+                            id="productQuantity"
+                            class="form-control"
+                            min="0.001"
+                            step="0.001"
+                            value="1"
+                        >
+
+                    </div>
+
+
+                    <!-- UNIT COST -->
+
+                    <div class="col-lg-2 col-md-3">
+
+                        <label
+                            for="productCost"
+                            class="form-label fw-semibold"
+                        >
+                            Unit Cost
+                        </label>
+
+                        <input
+                            type="number"
+                            id="productCost"
+                            class="form-control"
+                            min="0"
+                            step="0.01"
+                            value="0"
+                        >
+
+                    </div>
+
+
+                    <!-- MANUFACTURING DATE -->
+
+                    <div class="col-lg-2 col-md-6">
+
+                        <label
+                            for="manufacturingDate"
+                            class="form-label fw-semibold"
+                        >
+                            Manufacturing Date
+                            <small class="text-muted">
+                                (Optional)
+                            </small>
+                        </label>
+
+                        <input
+                            type="date"
+                            id="manufacturingDate"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                    <!-- EXPIRY DATE -->
+
+                    <div class="col-lg-2 col-md-6">
+
+                        <label
+                            for="expiryDate"
+                            class="form-label fw-semibold"
+                        >
+                            Expiry Date
+                            <small class="text-muted">
+                                (Optional)
+                            </small>
+                        </label>
+
+                        <input
+                            type="date"
+                            id="expiryDate"
+                            class="form-control"
+                        >
+
+                    </div>
+
+
+                    <!-- ADD BUTTON -->
+
+                    <div class="col-12">
+
+                        <button
+                            type="button"
+                            id="addProductBtn"
+                            class="btn btn-primary rounded-pill px-4"
+                        >
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add Product
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PURCHASE ITEMS
+        ================================================== -->
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-header bg-transparent">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <h5 class="mb-0 fw-semibold">
+                        Purchase Items
+                    </h5>
+
+                    <span
+                        id="itemCount"
+                        class="badge bg-primary-subtle text-primary px-3 py-2"
+                    >
+                        0 Items
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table
+                        class="table table-hover align-middle mb-0"
+                        id="purchaseTable"
+                    >
+
+                        <thead>
+
+                            <tr>
+
+                                <th class="px-3">
+                                    Product
+                                </th>
+
+                                <th>
+                                    Quantity
+                                </th>
+
+                                <th>
+                                    Unit Cost
+                                </th>
+
+                                <th>
+                                    Manufacturing
+                                </th>
+
+                                <th>
+                                    Expiry
+                                </th>
+
+                                <th>
+                                    Total
+                                </th>
+
+                                <th class="text-end px-3">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="cartBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOTALS + PAYMENT
+        ================================================== -->
+
+        <div class="row g-4">
+
+            <!-- =================================================
+                 TOTALS
+            ================================================== -->
+
+            <div class="col-lg-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-transparent">
+
+                        <h5 class="mb-0 fw-semibold">
+                            Purchase Summary
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- SUBTOTAL -->
+
+                        <div class="d-flex justify-content-between mb-3">
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong>
+                                <span id="subtotalCurrency">
+                                    {{ get_currency_symbol() }}
+                                </span><span id="subtotalDisplay">0.00</span>
+                            </strong>
+
+                        </div>
+
+
+                        <!-- DISCOUNT -->
+
+                        <div class="mb-3">
+
+                            {{ form.discount.label(
+                                class="form-label"
+                            ) }}
+
+                            {{ form.discount(
+                                class="form-control",
+                                id="discount",
+                                min="0",
+                                step="0.01"
+                            ) }}
+
+                            {% for error in form.discount.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- TAX -->
+
+                        <div class="mb-3">
+
+                            {{ form.tax.label(
+                                class="form-label"
+                            ) }}
+
+                            {{ form.tax(
+                                class="form-control",
+                                id="tax",
+                                min="0",
+                                step="0.01"
+                            ) }}
+
+                            {% for error in form.tax.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <!-- TOTAL -->
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="fw-bold">
+                                Total
+                            </span>
+
+                            <strong class="fs-4">
+                                <span id="totalCurrency">
+                                    {{ get_currency_symbol() }}
+                                </span><span id="totalDisplay">0.00</span>
+                            </strong>
+
+                        </div>
+
+
+                        <!-- TOTAL PAID -->
+
+                        <div class="d-flex justify-content-between mt-3">
+
+                            <span>
+                                Total Paid
+                            </span>
+
+                            <strong class="text-success">
+                                <span id="paidCurrency">
+                                    {{ get_currency_symbol() }}
+                                </span><span id="paidDisplay">0.00</span>
+                            </strong>
+
+                        </div>
+
+
+                        <!-- BALANCE -->
+
+                        <div class="d-flex justify-content-between mt-3">
+
+                            <span>
+                                Balance
+                            </span>
+
+                            <strong
+                                id="balanceText"
+                                class="text-danger"
+                            >
+                                <span id="balanceCurrency">
+                                    {{ get_currency_symbol() }}
+                                </span><span id="balanceDisplay">0.00</span>
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PAYMENTS
+            ================================================== -->
+
+            <div class="col-lg-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-header bg-transparent">
+
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+
+                            <div>
+
+                                <h5 class="mb-0 fw-semibold">
+                                    Payments
+                                </h5>
+
+                                <small class="text-muted">
+                                    Add one or more payment methods.
+                                </small>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm rounded-pill px-3"
+                                id="addPaymentBtn"
+                            >
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Add Payment
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <!-- PAYMENT ROWS -->
+
+                        <div id="paymentsContainer"></div>
+
+
+                        <!-- NO PAYMENTS -->
+
+                        <div
+                            id="noPaymentsMessage"
+                            class="text-center text-muted py-4 border rounded-3"
+                        >
+
+                            <i class="bi bi-wallet2 fs-3 d-block mb-2"></i>
+
+                            No payments added yet.
+
+                            <div class="small mt-1">
+                                You can leave this empty for an unpaid purchase.
+                            </div>
+
+                        </div>
+
+
+                        <!-- PAYMENT TOTAL -->
+
+                        <div class="border-top mt-4 pt-3">
+
+                            <div class="d-flex justify-content-between">
+
+                                <span class="fw-semibold">
+                                    Total Payment
+                                </span>
+
+                                <strong class="fs-5">
+                                    <span id="paymentTotalCurrency">
+                                        {{ get_currency_symbol() }}
+                                    </span><span id="paymentTotalDisplay">0.00</span>
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- NOTES -->
+
+                        <div class="mt-4">
+
+                            {{ form.notes.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.notes(
+                                class="form-control",
+                                rows="4",
+                                placeholder="Optional purchase notes..."
+                            ) }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SUBMIT
+        ================================================== -->
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+
+            <a
+                href="{{ url_for('purchases.purchases') }}"
+                class="btn btn-outline-secondary rounded-pill px-4"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary rounded-pill px-4"
+                id="submitPurchase"
+            >
+
+                {% if purchase %}
+
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Save Changes
+
+                {% else %}
+
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Complete Purchase
+
+                {% endif %}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     COMPANY SETTINGS
+========================================================= -->
+
+<script>
+
+window.BizFlowPurchaseSettings = {
+    currencyCode: {{ get_currency_code()|tojson }},
+    currencySymbol: {{ get_currency_symbol()|tojson }},
+    decimalPlaces: {{ get_decimal_places()|tojson }},
+    currencyPosition: {{ get_currency_position()|tojson }}
+};
+
+</script>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       COMPANY CURRENCY SETTINGS
+    ====================================================== */
+
+    const COMPANY_SETTINGS = {
+        currencyCode: "NGN",
+        currencySymbol: "₦",
+        decimalPlaces: 2,
+        currencyPosition: "before"
+    };
+
+
+    if (
+        window.BizFlowSettings &&
+        typeof window.BizFlowSettings === "object"
+    ) {
+
+        Object.assign(
+            COMPANY_SETTINGS,
+            window.BizFlowSettings
+        );
+
+    }
+
+
+    if (
+        window.BizFlowPurchaseSettings &&
+        typeof window.BizFlowPurchaseSettings === "object"
+    ) {
+
+        Object.assign(
+            COMPANY_SETTINGS,
+            window.BizFlowPurchaseSettings
+        );
+
+    }
+
+
+    function getDecimalPlaces() {
+
+        const decimals =
+            Number(
+                COMPANY_SETTINGS.decimalPlaces
+            );
+
+        if (
+            Number.isInteger(decimals) &&
+            decimals >= 0 &&
+            decimals <= 6
+        ) {
+
+            return decimals;
+
+        }
+
+        return 2;
+
+    }
+
+
+    function getCurrencyLocale() {
+
+        const code =
+            String(
+                COMPANY_SETTINGS.currencyCode ||
+                "NGN"
+            ).toUpperCase();
+
+
+        const locales = {
+
+            NGN: "en-NG",
+
+            USD: "en-US",
+
+            GBP: "en-GB",
+
+            EUR: "de-DE",
+
+            GHS: "en-GH",
+
+            KES: "en-KE",
+
+            ZAR: "en-ZA",
+
+            CAD: "en-CA",
+
+            AUD: "en-AU",
+
+            INR: "en-IN"
+
+        };
+
+
+        return locales[code] || "en-US";
+
+    }
+
+
+    function getCurrencySymbol() {
+
+        return String(
+            COMPANY_SETTINGS.currencySymbol || ""
+        );
+
+    }
+
+
+    function getCurrencyPosition() {
+
+        return String(
+            COMPANY_SETTINGS.currencyPosition ||
+            "before"
+        ).toLowerCase();
+
+    }
+
+
+    function formatMoney(value) {
+
+        let amount =
+            Number(value);
+
+
+        if (
+            !Number.isFinite(amount)
+        ) {
+
+            amount = 0;
+
+        }
+
+
+        const decimals =
+            getDecimalPlaces();
+
+
+        const formatted =
+            amount.toLocaleString(
+                getCurrencyLocale(),
+                {
+                    minimumFractionDigits:
+                        decimals,
+
+                    maximumFractionDigits:
+                        decimals
+                }
+            );
+
+
+        return formatted;
+
+    }
+
+
+    function formatCurrency(value) {
+
+        const formatted =
+            formatMoney(value);
+
+
+        const symbol =
+            getCurrencySymbol();
+
+
+        if (
+            getCurrencyPosition() ===
+            "after"
+        ) {
+
+            return `${formatted} ${symbol}`.trim();
+
+        }
+
+
+        return `${symbol}${formatted}`;
+
+    }
+
+
+    /*
+     * Make the formatter available to other
+     * purchase-page scripts if required.
+     */
+
+    window.bizFlowFormatCurrency =
+        formatCurrency;
+
+
+    /* =====================================================
+       DOM ELEMENTS
+    ====================================================== */
+
+    const productSelect =
+        document.getElementById("productSelect");
+
+    const quantityInput =
+        document.getElementById("productQuantity");
+
+    const costInput =
+        document.getElementById("productCost");
+
+    const manufacturingInput =
+        document.getElementById("manufacturingDate");
+
+    const expiryInput =
+        document.getElementById("expiryDate");
+
+    const addButton =
+        document.getElementById("addProductBtn");
+
+    const cartBody =
+        document.getElementById("cartBody");
+
+    const itemCount =
+        document.getElementById("itemCount");
+
+    const discountInput =
+        document.getElementById("discount");
+
+    const taxInput =
+        document.getElementById("tax");
+
+    const purchaseForm =
+        document.getElementById("purchaseForm");
+
+    const paymentsContainer =
+        document.getElementById("paymentsContainer");
+
+    const addPaymentBtn =
+        document.getElementById("addPaymentBtn");
+
+    const noPaymentsMessage =
+        document.getElementById("noPaymentsMessage");
+
+
+    let cart = [];
+
+    let payments = [];
+
+
+    /* =====================================================
+       UPDATE STATIC CURRENCY SYMBOLS
+    ====================================================== */
+
+    function updateCurrencySymbols() {
+
+        const symbol =
+            getCurrencySymbol();
+
+
+        document
+            .querySelectorAll(
+                "#subtotalCurrency, " +
+                "#totalCurrency, " +
+                "#paidCurrency, " +
+                "#balanceCurrency, " +
+                "#paymentTotalCurrency"
+            )
+            .forEach(function (element) {
+
+                element.textContent =
+                    symbol;
+
+            });
+
+    }
+
+
+    updateCurrencySymbols();
+
+
+    /* =====================================================
+       EXISTING PURCHASE ITEMS
+    ====================================================== */
+
+    {% if purchase %}
+
+        {% for item in purchase.items %}
+
+            cart.push({
+                product_id: "{{ item.product_id }}",
+
+                name:
+                    {{ item.product.name|tojson }},
+
+                quantity:
+                    Number({{ item.quantity }}),
+
+                unit_cost:
+                    Number({{ item.unit_cost }}),
+
+                manufacturing_date:
+                    "{{ item.manufacturing_date.strftime('%Y-%m-%d') if item.manufacturing_date else '' }}",
+
+                expiry_date:
+                    "{{ item.expiry_date.strftime('%Y-%m-%d') if item.expiry_date else '' }}"
+            });
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    /* =====================================================
+       EXISTING PAYMENTS
+    ====================================================== */
+
+    {% if purchase %}
+
+        {% for payment in purchase.payments %}
+
+            payments.push({
+
+                id:
+                    {{ payment.id }},
+
+                method:
+                    {{ payment.method|tojson }},
+
+                amount:
+                    Number({{ payment.amount or 0 }}),
+
+                bank_name:
+                    {{ (payment.bank_name or "")|tojson }},
+
+                account_name:
+                    {{ (payment.account_name or "")|tojson }},
+
+                account_number:
+                    {{ (payment.account_number or "")|tojson }},
+
+                reference:
+                    {{ (payment.reference or "")|tojson }}
+
+            });
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    /* =====================================================
+       PRODUCT DEFAULT COST
+    ====================================================== */
+
+    productSelect.addEventListener(
+        "change",
+        function () {
+
+            const option =
+                this.options[
+                    this.selectedIndex
+                ];
+
+
+            if (
+                !option ||
+                !option.value
+            ) {
+
+                costInput.value = "0";
+
+                return;
+
+            }
+
+
+            costInput.value =
+                option.dataset.cost ||
+                "0";
+
+        }
+    );
+
+
+    /* =====================================================
+       ADD PRODUCT
+    ====================================================== */
+
+    addButton.addEventListener(
+        "click",
+        function () {
+
+            const productId =
+                productSelect.value;
+
+
+            if (!productId) {
+
+                alert(
+                    "Please select a product."
+                );
+
+                return;
+
+            }
+
+
+            const quantity =
+                parseFloat(
+                    quantityInput.value
+                );
+
+
+            const unitCost =
+                parseFloat(
+                    costInput.value
+                );
+
+
+            if (
+                !quantity ||
+                quantity <= 0
+            ) {
+
+                alert(
+                    "Please enter a valid quantity."
+                );
+
+                return;
+
+            }
+
+
+            if (
+                isNaN(unitCost) ||
+                unitCost < 0
+            ) {
+
+                alert(
+                    "Please enter a valid unit cost."
+                );
+
+                return;
+
+            }
+
+
+            const manufacturingDate =
+                manufacturingInput.value;
+
+
+            const expiryDate =
+                expiryInput.value;
+
+
+            if (
+                manufacturingDate &&
+                expiryDate &&
+                expiryDate < manufacturingDate
+            ) {
+
+                alert(
+                    "Expiry date cannot be before the manufacturing date."
+                );
+
+                return;
+
+            }
+
+
+            const option =
+                productSelect.options[
+                    productSelect.selectedIndex
+                ];
+
+
+            const name =
+                option.dataset.name ||
+                option.textContent.trim();
+
+
+            const existing =
+                cart.find(
+                    function (item) {
+
+                        return String(
+                            item.product_id
+                        ) ===
+                        String(productId);
+
+                    }
+                );
+
+
+            if (existing) {
+
+                existing.quantity +=
+                    quantity;
+
+                existing.unit_cost =
+                    unitCost;
+
+                existing.manufacturing_date =
+                    manufacturingDate;
+
+                existing.expiry_date =
+                    expiryDate;
+
+            } else {
+
+                cart.push({
+
+                    product_id:
+                        productId,
+
+                    name:
+                        name,
+
+                    quantity:
+                        quantity,
+
+                    unit_cost:
+                        unitCost,
+
+                    manufacturing_date:
+                        manufacturingDate,
+
+                    expiry_date:
+                        expiryDate
+
+                });
+
+            }
+
+
+            renderCart();
+
+
+            productSelect.value = "";
+
+            quantityInput.value =
+                "1";
+
+            costInput.value =
+                "0";
+
+            manufacturingInput.value =
+                "";
+
+            expiryInput.value =
+                "";
+
+        }
+    );
+
+
+    /* =====================================================
+       RENDER CART
+    ====================================================== */
+
+    function renderCart() {
+
+        cartBody.innerHTML = "";
+
+
+        if (
+            cart.length === 0
+        ) {
+
+            cartBody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="text-center text-muted py-5"
+                    >
+
+                        <i
+                            class="bi bi-cart3 d-block mb-2"
+                            style="font-size:2rem;"
+                        ></i>
+
+                        No products added yet.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            itemCount.textContent =
+                "0 Items";
+
+
+            calculateTotals();
+
+            return;
+
+        }
+
+
+        cart.forEach(
+            function (item, index) {
+
+                const row =
+                    document.createElement("tr");
+
+
+                const lineTotal =
+                    Number(
+                        item.quantity || 0
+                    ) *
+                    Number(
+                        item.unit_cost || 0
+                    );
+
+
+                row.innerHTML = `
+
+                    <td class="px-3 text-dark">
+
+                        <strong>
+                            ${escapeHtml(item.name)}
+                        </strong>
+
+                        <input
+                            type="hidden"
+                            name="product_id"
+                            value="${escapeHtml(item.product_id)}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="quantity"
+                            class="form-control form-control-sm cart-quantity"
+                            data-index="${index}"
+                            value="${item.quantity}"
+                            min="0.001"
+                            step="0.001"
+                            style="max-width:110px;"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            name="unit_cost"
+                            class="form-control form-control-sm cart-cost"
+                            data-index="${index}"
+                            value="${item.unit_cost}"
+                            min="0"
+                            step="0.01"
+                            style="max-width:130px;"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="date"
+                            name="manufacturing_date"
+                            class="form-control form-control-sm cart-manufacturing"
+                            data-index="${index}"
+                            value="${item.manufacturing_date || ''}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="date"
+                            name="expiry_date"
+                            class="form-control form-control-sm cart-expiry"
+                            data-index="${index}"
+                            value="${item.expiry_date || ''}"
+                        >
+
+                    </td>
+
+
+                    <td class="fw-semibold text-dark">
+
+                        ${formatCurrency(lineTotal)}
+
+                    </td>
+
+
+                    <td class="text-end px-3">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger remove-item"
+                            data-index="${index}"
+                            title="Remove product"
+                        >
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                cartBody.appendChild(
+                    row
+                );
+
+            }
+        );
+
+
+        itemCount.textContent =
+            `${cart.length} ${
+                cart.length === 1
+                    ? "Item"
+                    : "Items"
+            }`;
+
+
+        attachCartEvents();
+
+        calculateTotals();
+
+    }
+
+
+    /* =====================================================
+       CART EVENTS
+    ====================================================== */
+
+    function attachCartEvents() {
+
+        document
+            .querySelectorAll(".cart-quantity")
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "change",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            const value =
+                                parseFloat(
+                                    this.value
+                                );
+
+
+                            if (
+                                !value ||
+                                value <= 0
+                            ) {
+
+                                this.value =
+                                    cart[index]
+                                        .quantity;
+
+                                return;
+
+                            }
+
+
+                            cart[index]
+                                .quantity =
+                                value;
+
+
+                            updateLineTotal(
+                                index
+                            );
+
+
+                            calculateTotals();
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(".cart-cost")
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "change",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            const value =
+                                parseFloat(
+                                    this.value
+                                );
+
+
+                            if (
+                                isNaN(value) ||
+                                value < 0
+                            ) {
+
+                                this.value =
+                                    cart[index]
+                                        .unit_cost;
+
+                                return;
+
+                            }
+
+
+                            cart[index]
+                                .unit_cost =
+                                value;
+
+
+                            updateLineTotal(
+                                index
+                            );
+
+
+                            calculateTotals();
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".cart-manufacturing"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "change",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            cart[index]
+                                .manufacturing_date =
+                                this.value;
+
+
+                            validateItemDates(
+                                index
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".cart-expiry"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "change",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            cart[index]
+                                .expiry_date =
+                                this.value;
+
+
+                            validateItemDates(
+                                index
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".remove-item"
+            )
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            cart.splice(
+                                index,
+                                1
+                            );
+
+
+                            renderCart();
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* =====================================================
+       UPDATE LINE TOTAL
+    ====================================================== */
+
+    function updateLineTotal(index) {
+
+        const rows =
+            cartBody.querySelectorAll(
+                "tr"
+            );
+
+
+        const row =
+            rows[index];
+
+
+        if (!row) {
+
+            return;
+
+        }
+
+
+        const item =
+            cart[index];
+
+
+        const lineTotal =
+            Number(
+                item.quantity || 0
+            ) *
+            Number(
+                item.unit_cost || 0
+            );
+
+
+        const cells =
+            row.querySelectorAll(
+                "td"
+            );
+
+
+        if (
+            cells.length >= 6
+        ) {
+
+            cells[5].textContent =
+                formatCurrency(
+                    lineTotal
+                );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       DATE VALIDATION
+    ====================================================== */
+
+    function validateItemDates(index) {
+
+        const item =
+            cart[index];
+
+
+        if (
+            item.manufacturing_date &&
+            item.expiry_date &&
+            item.expiry_date <
+            item.manufacturing_date
+        ) {
+
+            alert(
+                `Expiry date cannot be before the manufacturing date for ${item.name}.`
+            );
+
+            return false;
+
+        }
+
+
+        return true;
+
+    }
+
+
+    /* =====================================================
+       ADD PAYMENT
+    ====================================================== */
+
+    addPaymentBtn.addEventListener(
+        "click",
+        function () {
+
+            payments.push({
+
+                id: null,
+
+                method: "Cash",
+
+                amount: 0,
+
+                bank_name: "",
+
+                account_name: "",
+
+                account_number: "",
+
+                reference: ""
+
+            });
+
+
+            renderPayments();
+
+        }
+    );
+
+
+    /* =====================================================
+       RENDER PAYMENTS
+    ====================================================== */
+
+    function renderPayments() {
+
+        paymentsContainer.innerHTML = "";
+
+
+        if (
+            payments.length === 0
+        ) {
+
+            noPaymentsMessage.style.display =
+                "block";
+
+
+            calculateTotals();
+
+            return;
+
+        }
+
+
+        noPaymentsMessage.style.display =
+            "none";
+
+
+        payments.forEach(
+            function (payment, index) {
+
+                const wrapper =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                wrapper.className =
+                    "payment-row border rounded-3 p-3 mb-3";
+
+
+                wrapper.innerHTML = `
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <h6 class="fw-semibold mb-0">
+
+                            <i class="bi bi-wallet2 me-1"></i>
+
+                            Payment ${index + 1}
+
+                        </h6>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger remove-payment"
+                            data-index="${index}"
+                            title="Remove payment"
+                        >
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </div>
+
+
+                    <input
+                        type="hidden"
+                        name="payment_id"
+                        value="${payment.id || ''}"
+                    >
+
+
+                    <div class="row g-3">
+
+                        <!-- METHOD -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Payment Method
+                            </label>
+
+                            <select
+                                name="payment_method"
+                                class="form-select payment-method"
+                                data-index="${index}"
+                            >
+
+                                <option
+                                    value="Cash"
+                                    ${payment.method === "Cash" ? "selected" : ""}
+                                >
+                                    Cash
+                                </option>
+
+                                <option
+                                    value="Bank Transfer"
+                                    ${payment.method === "Bank Transfer" ? "selected" : ""}
+                                >
+                                    Bank Transfer
+                                </option>
+
+                                <option
+                                    value="POS"
+                                    ${payment.method === "POS" ? "selected" : ""}
+                                >
+                                    POS
+                                </option>
+
+                                <option
+                                    value="Card"
+                                    ${payment.method === "Card" ? "selected" : ""}
+                                >
+                                    Card
+                                </option>
+
+                                <option
+                                    value="Other"
+                                    ${payment.method === "Other" ? "selected" : ""}
+                                >
+                                    Other
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- AMOUNT -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                Amount
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text payment-currency-symbol">
+                                    ${escapeHtml(getCurrencySymbol())}
+                                </span>
+
+                                <input
+                                    type="number"
+                                    name="payment_amount"
+                                    class="form-control payment-amount"
+                                    data-index="${index}"
+                                    value="${payment.amount || 0}"
+                                    min="0"
+                                    step="0.01"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BANK TRANSFER / POS FIELDS -->
+
+                        <div
+                            class="col-12 payment-details"
+                            data-index="${index}"
+                        ></div>
+
+
+                        <!-- REFERENCE FOR OTHER METHODS -->
+
+                        <div
+                            class="col-12 other-reference"
+                            data-index="${index}"
+                        ></div>
+
+                    </div>
+
+                `;
+
+
+                paymentsContainer.appendChild(
+                    wrapper
+                );
+
+
+                renderPaymentDetails(
+                    index
+                );
+
+            }
+        );
+
+
+        attachPaymentEvents();
+
+        calculateTotals();
+
+    }
+
+
+    /* =====================================================
+       PAYMENT DETAILS
+    ====================================================== */
+
+    function renderPaymentDetails(index) {
+
+        const payment =
+            payments[index];
+
+
+        const row =
+            paymentsContainer.querySelector(
+                `.payment-row:nth-child(${index + 1})`
+            );
+
+
+        if (!row) {
+
+            return;
+
+        }
+
+
+        const details =
+            row.querySelector(
+                ".payment-details"
+            );
+
+
+        const otherReference =
+            row.querySelector(
+                ".other-reference"
+            );
+
+
+        details.innerHTML = "";
+
+        otherReference.innerHTML = "";
+
+
+        /* =================================================
+           BANK TRANSFER
+        ================================================== */
+
+        if (
+            payment.method ===
+            "Bank Transfer"
+        ) {
+
+            details.innerHTML = `
+
+                <div class="border rounded-3 p-3">
+
+                    <h6 class="fw-semibold mb-3">
+
+                        <i class="bi bi-bank me-1"></i>
+
+                        Bank Transfer Details
+
+                    </h6>
+
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Bank Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="bank_name"
+                                class="form-control payment-bank-name"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.bank_name)}"
+                                placeholder="Bank name"
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Account Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="account_name"
+                                class="form-control payment-account-name"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.account_name)}"
+                                placeholder="Account holder name"
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Account Number
+                            </label>
+
+                            <input
+                                type="text"
+                                name="account_number"
+                                class="form-control payment-account-number"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.account_number)}"
+                                placeholder="Account number"
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Transfer Reference
+                            </label>
+
+                            <input
+                                type="text"
+                                name="payment_reference"
+                                class="form-control payment-reference"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.reference)}"
+                                placeholder="Transfer reference"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        /* =================================================
+           POS
+        ================================================== */
+
+        if (
+            payment.method ===
+            "POS"
+        ) {
+
+            details.innerHTML = `
+
+                <div class="border rounded-3 p-3">
+
+                    <h6 class="fw-semibold mb-3">
+
+                        <i class="bi bi-credit-card-2-front me-1"></i>
+
+                        POS Payment Details
+
+                    </h6>
+
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Bank Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="bank_name"
+                                class="form-control payment-bank-name"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.bank_name)}"
+                                placeholder="Bank name"
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                POS Reference
+                            </label>
+
+                            <input
+                                type="text"
+                                name="payment_reference"
+                                class="form-control payment-reference"
+                                data-index="${index}"
+                                value="${escapeHtml(payment.reference)}"
+                                placeholder="POS reference"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        /* =================================================
+           OTHER METHODS
+        ================================================== */
+
+        if (
+            payment.method === "Cash" ||
+            payment.method === "Card" ||
+            payment.method === "Other"
+        ) {
+
+            otherReference.innerHTML = `
+
+                <label class="form-label">
+
+                    Reference
+
+                    <small class="text-muted">
+                        (Optional)
+                    </small>
+
+                </label>
+
+
+                <input
+                    type="text"
+                    name="payment_reference"
+                    class="form-control payment-reference"
+                    data-index="${index}"
+                    value="${escapeHtml(payment.reference)}"
+                    placeholder="Optional payment reference"
+                >
+
+            `;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PAYMENT EVENTS
+    ====================================================== */
+
+    function attachPaymentEvents() {
+
+        document
+            .querySelectorAll(
+                ".payment-method"
+            )
+            .forEach(
+                function (select) {
+
+                    select.addEventListener(
+                        "change",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments[index]
+                                .method =
+                                this.value;
+
+
+                            /*
+                             * Clear fields that do not
+                             * belong to the new method.
+                             */
+
+                            if (
+                                this.value !==
+                                "Bank Transfer"
+                            ) {
+
+                                payments[index]
+                                    .account_name =
+                                    "";
+
+                                payments[index]
+                                    .account_number =
+                                    "";
+
+                            }
+
+
+                            if (
+                                this.value !==
+                                "Bank Transfer" &&
+                                this.value !==
+                                "POS"
+                            ) {
+
+                                payments[index]
+                                    .bank_name =
+                                    "";
+
+                            }
+
+
+                            renderPayments();
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".payment-amount"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "input",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            const value =
+                                parseFloat(
+                                    this.value
+                                );
+
+
+                            payments[index]
+                                .amount =
+                                isNaN(value)
+                                    ? 0
+                                    : Math.max(
+                                        0,
+                                        value
+                                    );
+
+
+                            calculateTotals();
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".payment-bank-name"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "input",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments[index]
+                                .bank_name =
+                                this.value;
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".payment-account-name"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "input",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments[index]
+                                .account_name =
+                                this.value;
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".payment-account-number"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "input",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments[index]
+                                .account_number =
+                                this.value;
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".payment-reference"
+            )
+            .forEach(
+                function (input) {
+
+                    input.addEventListener(
+                        "input",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments[index]
+                                .reference =
+                                this.value;
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".remove-payment"
+            )
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.dataset.index
+                                );
+
+
+                            payments.splice(
+                                index,
+                                1
+                            );
+
+
+                            renderPayments();
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* =====================================================
+       CALCULATE TOTALS
+    ====================================================== */
+
+    function calculateTotals() {
+
+        let subtotal = 0;
+
+
+        cart.forEach(
+            function (item) {
+
+                subtotal +=
+                    Number(
+                        item.quantity || 0
+                    ) *
+                    Number(
+                        item.unit_cost || 0
+                    );
+
+            }
+        );
+
+
+        const discount =
+            parseFloat(
+                discountInput.value
+            ) || 0;
+
+
+        const tax =
+            parseFloat(
+                taxInput.value
+            ) || 0;
+
+
+        const total =
+            Math.max(
+                0,
+                subtotal -
+                discount +
+                tax
+            );
+
+
+        let paid = 0;
+
+
+        payments.forEach(
+            function (payment) {
+
+                paid +=
+                    Number(
+                        payment.amount || 0
+                    );
+
+            }
+        );
+
+
+        const balance =
+            Math.max(
+                0,
+                total - paid
+            );
+
+
+        document.getElementById(
+            "subtotalDisplay"
+        ).textContent =
+            formatMoney(subtotal);
+
+
+        document.getElementById(
+            "totalDisplay"
+        ).textContent =
+            formatMoney(total);
+
+
+        document.getElementById(
+            "paidDisplay"
+        ).textContent =
+            formatMoney(paid);
+
+
+        document.getElementById(
+            "paymentTotalDisplay"
+        ).textContent =
+            formatMoney(paid);
+
+
+        document.getElementById(
+            "balanceDisplay"
+        ).textContent =
+            formatMoney(balance);
+
+
+        const balanceText =
+            document.getElementById(
+                "balanceText"
+            );
+
+
+        if (
+            balance <= 0 &&
+            total > 0
+        ) {
+
+            balanceText.classList.remove(
+                "text-danger"
+            );
+
+            balanceText.classList.add(
+                "text-success"
+            );
+
+        } else {
+
+            balanceText.classList.remove(
+                "text-success"
+            );
+
+            balanceText.classList.add(
+                "text-danger"
+            );
+
+        }
+
+    }
+
+
+    discountInput.addEventListener(
+        "input",
+        calculateTotals
+    );
+
+
+    taxInput.addEventListener(
+        "input",
+        calculateTotals
+    );
+
+
+    /* =====================================================
+       FORM SUBMISSION
+    ====================================================== */
+
+    purchaseForm.addEventListener(
+        "submit",
+        function (event) {
+
+            if (
+                cart.length === 0
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please add at least one product."
+                );
+
+                return;
+
+            }
+
+
+            /* ---------------------------------------------
+               VALIDATE PRODUCTS
+            --------------------------------------------- */
+
+            for (
+                let i = 0;
+                i < cart.length;
+                i++
+            ) {
+
+                const item =
+                    cart[i];
+
+
+                if (
+                    !item.quantity ||
+                    item.quantity <= 0
+                ) {
+
+                    event.preventDefault();
+
+                    alert(
+                        `Invalid quantity for ${item.name}.`
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    item.unit_cost < 0
+                ) {
+
+                    event.preventDefault();
+
+                    alert(
+                        `Invalid unit cost for ${item.name}.`
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !validateItemDates(i)
+                ) {
+
+                    event.preventDefault();
+
+                    return;
+
+                }
+
+            }
+
+
+            /* ---------------------------------------------
+               TOTALS
+            --------------------------------------------- */
+
+            const subtotal =
+                cart.reduce(
+                    function (sum, item) {
+
+                        return sum +
+                            (
+                                Number(
+                                    item.quantity
+                                ) *
+                                Number(
+                                    item.unit_cost
+                                )
+                            );
+
+                    },
+                    0
+                );
+
+
+            const discount =
+                parseFloat(
+                    discountInput.value
+                ) || 0;
+
+
+            const tax =
+                parseFloat(
+                    taxInput.value
+                ) || 0;
+
+
+            const total =
+                Math.max(
+                    0,
+                    subtotal -
+                    discount +
+                    tax
+                );
+
+
+            if (
+                discount > subtotal
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Discount cannot be greater than the subtotal."
+                );
+
+                return;
+
+            }
+
+
+            /* ---------------------------------------------
+               VALIDATE PAYMENTS
+            --------------------------------------------- */
+
+            let paid = 0;
+
+
+            for (
+                let i = 0;
+                i < payments.length;
+                i++
+            ) {
+
+                const payment =
+                    payments[i];
+
+
+                const amount =
+                    Number(
+                        payment.amount || 0
+                    );
+
+
+                if (
+                    isNaN(amount) ||
+                    amount < 0
+                ) {
+
+                    event.preventDefault();
+
+                    alert(
+                        `Invalid payment amount for Payment ${i + 1}.`
+                    );
+
+                    return;
+
+                }
+
+
+                paid += amount;
+
+
+                if (
+                    payment.method ===
+                    "Bank Transfer"
+                ) {
+
+                    if (
+                        !payment.bank_name.trim()
+                    ) {
+
+                        event.preventDefault();
+
+                        alert(
+                            `Please enter the bank name for Payment ${i + 1}.`
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (
+                        !payment.account_name.trim()
+                    ) {
+
+                        event.preventDefault();
+
+                        alert(
+                            `Please enter the account name for Payment ${i + 1}.`
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (
+                        !payment.account_number.trim()
+                    ) {
+
+                        event.preventDefault();
+
+                        alert(
+                            `Please enter the account number for Payment ${i + 1}.`
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+
+                if (
+                    payment.method ===
+                    "POS"
+                ) {
+
+                    if (
+                        !payment.bank_name.trim()
+                    ) {
+
+                        event.preventDefault();
+
+                        alert(
+                            `Please enter the bank name for POS Payment ${i + 1}.`
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+
+
+            if (
+                paid > total
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Total payment cannot be greater than the purchase total."
+                );
+
+                return;
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       HELPERS
+    ====================================================== */
+
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.textContent =
+            value ?? "";
+
+
+        return div.innerHTML;
+
+    }
+
+
+    /* =====================================================
+       INITIALIZE
+    ====================================================== */
+
+    updateCurrencySymbols();
+
+    renderCart();
+
+    renderPayments();
+
+    calculateTotals();
+
+});
+
+</script>
+
+{% endblock %}

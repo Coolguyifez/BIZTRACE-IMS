@@ -1,0 +1,843 @@
+{% extends "base.html" %}
+
+{% block title %}
+Inventory
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+    <div class="page-header mb-4">
+
+        <div>
+            <div class="page-eyebrow">
+                INVENTORY MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                Inventory
+            </h1>
+
+            <p class="page-subtitle">
+                Monitor stock levels, reserved quantities, inventory value
+                and stock movements.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a
+                href="{{ url_for('inventory.history') }}"
+                class="btn btn-light border rounded-pill"
+            >
+                <i class="bi bi-clock-history me-2"></i>
+                History
+            </a>
+
+            <a
+                href="{{ url_for('inventory.reserve_stock') }}"
+                class="btn btn-light border rounded-pill"
+            >
+                <i class="bi bi-bookmark-check me-2"></i>
+                Reserve Stock
+            </a>
+
+            <a
+                href="{{ url_for('inventory.adjust_stock') }}"
+                class="btn btn-primary rounded-pill px-4"
+            >
+                <i class="bi bi-sliders me-1"></i>
+                Adjust Stock
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STAT CARDS
+    ====================================================== -->
+    <div class="row g-4 mb-5">
+
+        <!-- PRODUCTS -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Products
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ total_products }}
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PHYSICAL STOCK -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Physical Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(total_units) }}
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-success-subtle text-success">
+                            <i class="bi bi-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESERVED STOCK -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Reserved Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(total_reserved) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                {{ reserved_products_count }}
+                                product{{ 's' if reserved_products_count != 1 else '' }}
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-bookmark-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AVAILABLE STOCK -->
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Available Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.1f}".format(total_available) }}
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-info-subtle text-info">
+                            <i class="bi bi-boxes"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STOCK VALUE -->
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Stock Value
+                            </div>
+
+                            <div
+                                class="stats-card-value responsive-money"
+                                data-value="{{ total_stock_value }}"
+                            >
+                                {{ format_currency(total_stock_value) }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                Based on purchase cost
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOW STOCK -->
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Low Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ low_stock_count }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                Products below minimum level
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OUT OF STOCK -->
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Out of Stock
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ out_of_stock_count }}
+                            </div>
+
+                            <div class="stats-card-meta">
+                                Products with no physical stock
+                            </div>
+
+                        </div>
+
+                        <div class="stats-card-icon bg-danger-subtle text-danger">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTERS
+    ====================================================== -->
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('inventory.inventory') }}"
+            >
+
+                <div class="row g-3">
+
+                    <!-- SEARCH -->
+                    <div class="col-lg-4">
+
+                        <label class="form-label">
+                            Search
+                        </label>
+
+                        <div class="search-field">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="search"
+                                class="form-control"
+                                placeholder="Search product, SKU or barcode..."
+                                value="{{ search }}"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CATEGORY -->
+                    <div class="col-lg-3">
+
+                        <label class="form-label">
+                            Category
+                        </label>
+
+                        <select
+                            name="category"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All Categories
+                            </option>
+
+                            {% for category in categories %}
+
+                                <option
+                                    value="{{ category.id }}"
+                                    {% if selected_category == category.id %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ category.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+                    <div class="col-lg-3">
+
+                        <label class="form-label">
+                            Stock Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                All
+                            </option>
+
+                            <option
+                                value="in"
+                                {% if selected_status == "in" %}
+                                    selected
+                                {% endif %}
+                            >
+                                In Stock
+                            </option>
+
+                            <option
+                                value="low"
+                                {% if selected_status == "low" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Low Stock
+                            </option>
+
+                            <option
+                                value="out"
+                                {% if selected_status == "out" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Out of Stock
+                            </option>
+
+                            <option
+                                value="reserved"
+                                {% if selected_status == "reserved" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Reserved
+                            </option>
+
+                            <option
+                                value="available"
+                                {% if selected_status == "available" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Available
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- FILTER BUTTON -->
+                    <div class="col-lg-2 d-flex align-items-end">
+
+                        <button
+                            type="submit"
+                            class="btn btn-light border w-100"
+                        >
+                            <i class="bi bi-funnel me-1"></i>
+                            Filter
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INVENTORY TABLE
+    ====================================================== -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Product
+                            </th>
+
+                            <th>
+                                SKU
+                            </th>
+
+                            <th>
+                                Category
+                            </th>
+
+                            <th>
+                                Physical
+                            </th>
+
+                            <th>
+                                Reserved
+                            </th>
+
+                            <th>
+                                Available
+                            </th>
+
+                            <th>
+                                Min. Stock
+                            </th>
+
+                            <th>
+                                Stock Value
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th class="text-end pe-4">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for product in products %}
+
+                        {% set physical = product.quantity or 0 %}
+                        {% set reserved = product.reserved_quantity or 0 %}
+                        {% set available = product.available_quantity or 0 %}
+                        {% set stock_value = physical * (product.purchase_price or 0) %}
+
+                        <tr>
+
+                            <!-- PRODUCT -->
+                            <td class="ps-4">
+
+                                <div class="fw-semibold text-dark">
+                                    {{ product.name }}
+                                </div>
+
+                                {% if product.barcode %}
+
+                                    <small class="text-muted">
+                                        {{ product.barcode }}
+                                    </small>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- SKU -->
+                            <td>
+
+                                <code>
+                                    {{ product.sku }}
+                                </code>
+
+                            </td>
+
+
+                            <!-- CATEGORY -->
+                            <td>
+
+                                {% if product.category %}
+
+                                    <span class="text-dark">
+                                        {{ product.category.name }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        Uncategorized
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- PHYSICAL STOCK -->
+                            <td>
+
+                                <strong class="text-dark">
+                                    {{ "{:,.1f}".format(physical) }}
+                                </strong>
+
+                                <small class="text-muted">
+                                    {{ product.unit }}
+                                </small>
+
+                            </td>
+
+
+                            <!-- RESERVED -->
+                            <td>
+
+                                {% if reserved > 0 %}
+
+                                    <span class="text-warning fw-semibold">
+                                        {{ "{:,.1f}".format(reserved) }}
+                                    </span>
+
+                                    <small class="text-muted">
+                                        {{ product.unit }}
+                                    </small>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- AVAILABLE -->
+                            <td>
+
+                                {% if available > 0 %}
+
+                                    <strong class="text-success">
+                                        {{ "{:,.1f}".format(available) }}
+                                    </strong>
+
+                                    <small class="text-muted">
+                                        {{ product.unit }}
+                                    </small>
+
+                                {% else %}
+
+                                    <strong class="text-danger">
+                                        0.0
+                                    </strong>
+
+                                    <small class="text-muted">
+                                        {{ product.unit }}
+                                    </small>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- MINIMUM STOCK -->
+                            <td>
+
+                                <span class="text-dark">
+                                    {{ "{:,.1f}".format(product.minimum_stock or 0) }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- STOCK VALUE -->
+                            <td>
+
+                                <span
+                                    class="text-dark responsive-money"
+                                    data-value="{{ stock_value }}"
+                                >
+                                    {{ format_currency(stock_value) }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- STATUS -->
+                            <td>
+
+                                {% if physical <= 0 %}
+
+                                    <span class="badge text-bg-danger">
+                                        Out of Stock
+                                    </span>
+
+                                {% elif product.is_low_stock %}
+
+                                    <span class="badge text-bg-warning">
+                                        Low Stock
+                                    </span>
+
+                                {% elif available <= 0 %}
+
+                                    <span class="badge text-bg-secondary">
+                                        Fully Reserved
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge text-bg-success">
+                                        In Stock
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- ACTIONS -->
+                            <td class="text-end pe-4">
+
+                                <div class="dropdown">
+
+                                    <button
+                                        class="btn btn-sm btn-light rounded-circle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                    >
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+
+                                        <!-- VIEW -->
+                                        <li>
+
+                                            <a
+                                                href="{{ url_for(
+                                                    'inventory.product_inventory',
+                                                    product_id=product.id
+                                                ) }}"
+                                                class="dropdown-item"
+                                            >
+                                                <i class="bi bi-eye me-2"></i>
+                                                View inventory
+                                            </a>
+
+                                        </li>
+
+
+                                        <!-- ADJUST -->
+                                        <li>
+
+                                            <a
+                                                href="{{ url_for(
+                                                    'inventory.adjust_stock'
+                                                ) }}?product={{ product.id }}"
+                                                class="dropdown-item"
+                                            >
+                                                <i class="bi bi-sliders me-2"></i>
+                                                Adjust Stock
+                                            </a>
+
+                                        </li>
+
+
+                                        <!-- RESERVE -->
+                                        <li>
+
+                                            <a
+                                                href="{{ url_for(
+                                                    'inventory.reserve_stock'
+                                                ) }}?product={{ product.id }}"
+                                                class="dropdown-item"
+                                            >
+                                                <i class="bi bi-bookmark-check me-2"></i>
+                                                Reserve Stock
+                                            </a>
+
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="10"
+                                class="text-center"
+                            >
+
+                                <div class="empty-state py-5">
+
+                                    <div class="empty-state-icon">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+
+                                    <h5 class="mt-3">
+                                        No inventory records
+                                    </h5>
+
+                                    <p class="text-muted mb-0">
+                                        No products match your current
+                                        filters.
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

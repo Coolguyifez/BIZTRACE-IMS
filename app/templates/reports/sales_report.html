@@ -1,0 +1,1910 @@
+{% extends "base.html" %}
+
+{% block title %}
+Sales Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-cart-check fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Sales Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Sales performance and transaction analysis
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printSalesReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+                    &nbsp; | &nbsp;
+                {% endif %}
+
+                {% if current_user.company.email %}
+                    {{ current_user.company.email }}
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Sales Report
+            </h2>
+
+            <div>
+                Reporting Period:
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="GET"
+            action="{{ url_for('reports.sales_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label
+                        for="start_date"
+                        class="form-label small fw-semibold"
+                    >
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ start_date }}"
+                    >
+
+                </div>
+
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label
+                        for="end_date"
+                        class="form-label small fw-semibold"
+                    >
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ end_date }}"
+                    >
+
+                </div>
+
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.sales_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL SALES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_sales) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-primary">
+                                    {{ total_transactions }}
+                                </span>
+
+                                transaction{{ "" if total_transactions == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AMOUNT PAID -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Amount Paid
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_paid) }}
+                            </div>
+
+                            <div class="stats-card-meta text-success">
+                                Collected
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECEIVABLES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Receivables
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_balance) }}
+                            </div>
+
+                            <div class="stats-card-meta text-warning">
+                                Outstanding
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AVERAGE SALE -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Average Sale
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(average_sale) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Per transaction
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-calculator"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- SALES TREND -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Sales Trend
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Daily sales performance for the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 360px;"
+                    >
+
+                        <canvas id="salesTrendChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENT STATUS -->
+
+        <div class="col-12 col-xl-5">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Payment Status
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales transaction payment status
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 320px;"
+                    >
+
+                        <canvas id="paymentStatusChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOP PRODUCTS BY SALES VALUE -->
+
+        <div class="col-12 col-xl-7">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Top Products
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Products generating the highest sales value
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 320px;"
+                    >
+
+                        <canvas id="topProductsChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOP PRODUCTS BY QUANTITY SOLD
+        ================================================== -->
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Top Products by Quantity Sold
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Products ranked by the number of units sold
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 360px;"
+                    >
+
+                        <canvas id="topProductsQuantityChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Sales Report
+                </div>
+
+                <div class="small">
+                    The charts above are based on sales transactions
+                    recorded during the selected reporting period.
+                    Detailed transaction records are included when
+                    exporting or printing this report.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="salesExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+                        {{ current_user.company.email }}
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Sales Report
+                </h3>
+
+                <div>
+                    Reporting Period:
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Sales
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_sales) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Amount Paid
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_paid) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Receivables
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_balance) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Transactions
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ total_transactions }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Sales Analysis
+                </h4>
+
+
+                <!-- SALES TREND -->
+
+                <div class="border rounded p-3 mb-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Sales Trend
+                    </h5>
+
+                    <img
+                        id="exportSalesTrend"
+                        class="img-fluid w-100"
+                        alt="Sales trend chart"
+                    >
+
+                </div>
+
+
+                <div class="row g-4">
+
+                    <!-- PAYMENT STATUS -->
+
+                    <div class="col-5">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Payment Status
+                            </h5>
+
+                            <img
+                                id="exportPaymentStatus"
+                                class="img-fluid w-100"
+                                alt="Payment status chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TOP PRODUCTS VALUE -->
+
+                    <div class="col-7">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Top Products by Sales Value
+                            </h5>
+
+                            <img
+                                id="exportTopProducts"
+                                class="img-fluid w-100"
+                                alt="Top products by sales value chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOP PRODUCTS QUANTITY -->
+
+                <div class="border rounded p-3 mt-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Top Products by Quantity Sold
+                    </h5>
+
+                    <img
+                        id="exportTopProductsQuantity"
+                        class="img-fluid w-100"
+                        alt="Top products by quantity sold chart"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT TABLE -->
+
+            <div>
+
+                <h4 class="fw-bold mb-3">
+                    Sales Transactions
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+                                <th>Invoice</th>
+                                <th>Customer</th>
+                                <th>Subtotal</th>
+                                <th>Discount</th>
+                                <th>Tax</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Payment Status</th>
+                                <th>Remark</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for row in export_rows %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ row.date.strftime("%d %b %Y") }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.invoice_number }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.customer }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.subtotal) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.discount) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.tax) }}
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        {{ format_currency(row.total) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.paid) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(row.balance) }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.payment_status }}
+                                    </td>
+
+                                    <td>
+                                        {{ row.remark }}
+                                    </td>
+
+                                </tr>
+
+                            {% else %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="11"
+                                        class="text-center py-4"
+                                    >
+                                        No sales transactions found
+                                        for the selected period.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+
+                        {% if export_rows %}
+
+                            <tfoot>
+
+                                <tr class="fw-bold">
+
+                                    <td
+                                        colspan="6"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_sales) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_paid) }}
+                                    </td>
+
+                                    <td>
+                                        {{ format_currency(total_balance) }}
+                                    </td>
+
+                                    <td colspan="2"></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        {% endif %}
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT NOTE -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Sales totals are based on transactions recorded
+                    during the selected reporting period.
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT FOOTER -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="text-center small text-secondary mt-4">
+
+                    {{ current_user.company.name }}
+                    · Sales Report
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     COMPANY SETTINGS FOR JAVASCRIPT
+====================================================== -->
+
+<script>
+
+const COMPANY_SETTINGS = {
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+};
+
+
+/* =====================================================
+   JAVASCRIPT CURRENCY FORMATTER
+====================================================== */
+
+function formatMoney(value) {
+
+    const numericValue =
+        Number(value || 0);
+
+    const decimalPlaces =
+        Number.isInteger(
+            Number(
+                COMPANY_SETTINGS.decimalPlaces
+            )
+        )
+            ? Number(
+                COMPANY_SETTINGS.decimalPlaces
+            )
+            : 2;
+
+    const formatted =
+        numericValue.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits:
+                    decimalPlaces,
+
+                maximumFractionDigits:
+                    decimalPlaces
+            }
+        );
+
+    if (
+        COMPANY_SETTINGS.currencyPosition ===
+        "after"
+    ) {
+        return (
+            formatted +
+            " " +
+            COMPANY_SETTINGS.currencySymbol
+        );
+    }
+
+    return (
+        COMPANY_SETTINGS.currencySymbol +
+        formatted
+    );
+}
+
+
+/* =====================================================
+   QUANTITY FORMATTER
+====================================================== */
+
+function formatNumber(value) {
+
+    return Number(
+        value || 0
+    ).toLocaleString(
+        undefined
+    );
+
+}
+
+</script>
+
+
+<!-- =====================================================
+     CHART.JS
+====================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /* =================================================
+           DATA FROM FLASK
+        ================================================= */
+
+        const dailySales =
+            {{ daily_sales | tojson }};
+
+
+        const topProducts =
+            {{ top_products | tojson }};
+
+
+        const topProductsByQuantity =
+            {{ top_products_by_quantity | tojson }};
+
+
+        const paymentStatus =
+            {{ payment_status_chart | tojson }};
+
+
+        /* =================================================
+           SALES TREND CHART
+        ================================================= */
+
+        const salesTrendCanvas =
+            document.getElementById(
+                "salesTrendChart"
+            );
+
+
+        const salesTrendChartInstance =
+            new Chart(
+                salesTrendCanvas,
+                {
+                    type: "line",
+
+                    data: {
+
+                        labels:
+                            dailySales.map(
+                                item => item.date
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label: "Sales",
+
+                                data:
+                                    dailySales.map(
+                                        item => item.total
+                                    ),
+
+                                tension: 0.35,
+
+                                fill: false,
+
+                                backgroundColor:
+                                    "rgba(10, 132, 255, 0.15)",
+
+                                borderColor:
+                                    "#0a84ff",
+
+                                pointBackgroundColor:
+                                    "#0a84ff",
+
+                                pointBorderColor:
+                                    "#0a84ff",
+
+                                pointHoverBackgroundColor:
+                                    "#0a84ff",
+
+                                pointHoverBorderColor:
+                                    "#ffffff",
+
+                                borderWidth: 2
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        interaction: {
+
+                            intersect: false,
+
+                            mode: "index"
+
+                        },
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom"
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                context.dataset.label
+                                                + ": "
+                                                + formatMoney(
+                                                    context.raw
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return formatMoney(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           PAYMENT STATUS CHART
+        ================================================= */
+
+        const paymentStatusCanvas =
+            document.getElementById(
+                "paymentStatusChart"
+            );
+
+
+        const visiblePaymentStatus =
+            paymentStatus.filter(
+                item =>
+                    Number(
+                        item.total || 0
+                    ) > 0
+            );
+
+
+        const paymentStatusChartInstance =
+            new Chart(
+                paymentStatusCanvas,
+                {
+                    type: "doughnut",
+
+                    data: {
+
+                        labels:
+                            visiblePaymentStatus.map(
+                                item => item.status
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                data:
+                                    visiblePaymentStatus.map(
+                                        item =>
+                                            Number(
+                                                item.total || 0
+                                            )
+                                    ),
+
+                                backgroundColor:
+                                    visiblePaymentStatus.map(
+                                        item => {
+
+                                            if (
+                                                item.status ===
+                                                "Paid"
+                                            ) {
+                                                return "#198754";
+                                            }
+
+                                            if (
+                                                item.status ===
+                                                "Partially Paid"
+                                            ) {
+                                                return "#ffc107";
+                                            }
+
+                                            if (
+                                                item.status ===
+                                                "Unpaid"
+                                            ) {
+                                                return "#dc3545";
+                                            }
+
+                                            return "#6c757d";
+
+                                        }
+                                    ),
+
+                                borderWidth: 0
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom"
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            const count =
+                                                Number(
+                                                    context.raw || 0
+                                                );
+
+                                            return (
+                                                context.label
+                                                + ": "
+                                                + formatNumber(
+                                                    count
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           TOP PRODUCTS BY SALES VALUE
+        ================================================= */
+
+        const topProductsCanvas =
+            document.getElementById(
+                "topProductsChart"
+            );
+
+
+        const topProductsChartInstance =
+            new Chart(
+                topProductsCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            topProducts.map(
+                                item => item.name
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label: "Sales Value",
+
+                                data:
+                                    topProducts.map(
+                                        item => item.total
+                                    ),
+
+                                backgroundColor:
+                                    topProducts.map(
+                                        () => "#0a84ff"
+                                    ),
+
+                                borderColor:
+                                    topProducts.map(
+                                        () => "#0a84ff"
+                                    ),
+
+                                borderWidth: 0,
+
+                                borderRadius: 6
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        indexAxis: "y",
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom"
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                "Sales: "
+                                                +
+                                                formatMoney(
+                                                    context.raw
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            x: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return formatMoney(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           TOP PRODUCTS BY QUANTITY SOLD
+        ================================================= */
+
+        const topProductsQuantityCanvas =
+            document.getElementById(
+                "topProductsQuantityChart"
+            );
+
+
+        const topProductsQuantityChartInstance =
+            new Chart(
+                topProductsQuantityCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            topProductsByQuantity.map(
+                                item => item.name
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label: "Quantity Sold",
+
+                                data:
+                                    topProductsByQuantity.map(
+                                        item => item.quantity
+                                    ),
+
+                                backgroundColor:
+                                    topProductsByQuantity.map(
+                                        () => "#198754"
+                                    ),
+
+                                borderColor:
+                                    topProductsByQuantity.map(
+                                        () => "#198754"
+                                    ),
+
+                                borderWidth: 0,
+
+                                borderRadius: 6
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        indexAxis: "y",
+
+                        plugins: {
+
+                            legend: {
+
+                                position: "bottom"
+
+                            },
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            const quantity =
+                                                Number(
+                                                    context.raw || 0
+                                                );
+
+                                            return (
+                                                "Quantity Sold: "
+                                                +
+                                                formatNumber(
+                                                    quantity
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            x: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return formatNumber(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           VERIFY CHART COLORS
+        ================================================= */
+
+        console.log(
+            "Sales Trend colors:",
+            salesTrendChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor
+        );
+
+
+        console.log(
+            "Payment Status colors:",
+            paymentStatusChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor
+        );
+
+
+        console.log(
+            "Top Products colors:",
+            topProductsChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor
+        );
+
+
+        console.log(
+            "Top Products Quantity colors:",
+            topProductsQuantityChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor
+        );
+
+
+        /* =================================================
+           PREPARE CHARTS FOR EXPORT / PRINT
+        ================================================= */
+
+        window.prepareSalesExport =
+            function () {
+
+                const exportSalesTrend =
+                    document.getElementById(
+                        "exportSalesTrend"
+                    );
+
+
+                const exportPaymentStatus =
+                    document.getElementById(
+                        "exportPaymentStatus"
+                    );
+
+
+                const exportTopProducts =
+                    document.getElementById(
+                        "exportTopProducts"
+                    );
+
+
+                const exportTopProductsQuantity =
+                    document.getElementById(
+                        "exportTopProductsQuantity"
+                    );
+
+
+                if (exportSalesTrend) {
+
+                    exportSalesTrend.src =
+                        salesTrendChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+
+                if (exportPaymentStatus) {
+
+                    exportPaymentStatus.src =
+                        paymentStatusChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+
+                if (exportTopProducts) {
+
+                    exportTopProducts.src =
+                        topProductsChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+
+                if (exportTopProductsQuantity) {
+
+                    exportTopProductsQuantity.src =
+                        topProductsQuantityChartInstance
+                            .toBase64Image(
+                                "image/png",
+                                1
+                            );
+
+                }
+
+            };
+
+
+        /* =================================================
+           DATE FILTER
+        ================================================= */
+
+        const startDate =
+            document.getElementById(
+                "start_date"
+            );
+
+
+        const endDate =
+            document.getElementById(
+                "end_date"
+            );
+
+
+        if (
+            startDate &&
+            endDate
+        ) {
+
+            startDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        endDate.min =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+
+            endDate.addEventListener(
+                "change",
+                function () {
+
+                    if (this.value) {
+
+                        startDate.max =
+                            this.value;
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =================================================
+           PRINT SALES REPORT
+        ================================================= */
+
+        window.printSalesReport =
+            function () {
+
+                if (
+                    typeof window.prepareSalesExport ===
+                    "function"
+                ) {
+
+                    window.prepareSalesExport();
+
+                }
+
+
+                const exportSection =
+                    document.getElementById(
+                        "salesExportSection"
+                    );
+
+
+                if (!exportSection) {
+
+                    return;
+
+                }
+
+
+                const originalBody =
+                    document.body.innerHTML;
+
+
+                const exportContent =
+                    exportSection.innerHTML;
+
+
+                document.body.innerHTML =
+                    exportContent;
+
+
+                window.print();
+
+
+                document.body.innerHTML =
+                    originalBody;
+
+
+                window.location.reload();
+
+            };
+
+    }
+
+);
+
+</script>
+
+{% endblock %}

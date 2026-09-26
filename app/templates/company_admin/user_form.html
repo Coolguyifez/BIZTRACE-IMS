@@ -1,0 +1,1498 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if user %}
+        Edit User
+    {% else %}
+        Create User
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+
+                <a
+                    href="{% if user %}{{ url_for('company_admin.user_view', user_id=user.id) }}{% else %}{{ url_for('company_admin.users') }}{% endif %}"
+                    class="btn btn-sm btn-light border rounded-pill"
+                    title="Back"
+                >
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+
+                <span class="text-secondary small">
+                    Company Administration
+                </span>
+
+            </div>
+
+
+            <h1 class="h3 fw-bold mb-1">
+
+                {% if user %}
+                    Edit User
+                {% else %}
+                    Create User
+                {% endif %}
+
+            </h1>
+
+
+            <p class="text-secondary mb-0">
+
+                {% if user %}
+
+                    Update this user's account information.
+
+                {% else %}
+
+                    Create a new user account and assign their initial role.
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+
+        {% if user %}
+
+            <div>
+
+                {% if user.is_active %}
+
+                    <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2">
+
+                        <i class="bi bi-check-circle me-1"></i>
+
+                        Active
+
+                    </span>
+
+                {% else %}
+
+                    <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-2">
+
+                        <i class="bi bi-pause-circle me-1"></i>
+
+                        Inactive
+
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- =====================================================
+         FORM
+    ====================================================== -->
+
+    <form
+        method="POST"
+        action="{% if user %}{{ url_for('company_admin.user_edit', user_id=user.id) }}{% else %}{{ url_for('company_admin.user_create') }}{% endif %}"
+        novalidate
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+
+        <div class="row g-4">
+
+            <!-- =================================================
+                 LEFT COLUMN
+            ================================================== -->
+
+            <div class="col-12 col-xl-8">
+
+
+                <!-- =================================================
+                     ACCOUNT INFORMATION
+                ================================================== -->
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-person fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="mb-1">
+                                    Account Information
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Basic information used to identify this user.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <!-- USERNAME -->
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    for="username"
+                                    class="form-label fw-semibold"
+                                >
+                                    Username
+                                    <span class="text-danger">*</span>
+                                </label>
+
+
+                                <div class="input-group input-group-lg">
+
+                                    <span class="input-group-text bg-body-tertiary">
+
+                                        <i class="bi bi-person text-secondary"></i>
+
+                                    </span>
+
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="username"
+                                        name="username"
+                                        value="{{ request.form.get('username', user.username if user else '') }}"
+                                        maxlength="80"
+                                        required
+                                        autocomplete="username"
+                                        placeholder="Enter username"
+                                    >
+
+                                </div>
+
+
+                                <div class="form-text text-muted">
+                                    Maximum 80 characters.
+                                </div>
+
+                            </div>
+
+
+                            <!-- EMAIL -->
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    for="email"
+                                    class="form-label fw-semibold"
+                                >
+                                    Email Address
+                                    <span class="text-danger">*</span>
+                                </label>
+
+
+                                <div class="input-group input-group-lg">
+
+                                    <span class="input-group-text bg-body-tertiary">
+
+                                        <i class="bi bi-envelope text-secondary"></i>
+
+                                    </span>
+
+
+                                    <input
+                                        type="email"
+                                        class="form-control"
+                                        id="email"
+                                        name="email"
+                                        value="{{ request.form.get('email', user.email if user else '') }}"
+                                        maxlength="150"
+                                        required
+                                        autocomplete="email"
+                                        placeholder="name@example.com"
+                                    >
+
+                                </div>
+
+
+                                <div class="form-text text-muted">
+                                    The email address must be unique.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     PASSWORD
+                ================================================== -->
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-shield-lock fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="mb-1">
+                                    Password
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+
+                                    {% if user %}
+
+                                        Leave the password fields empty if you do not want to change the password.
+
+                                    {% else %}
+
+                                        Set a secure password for this account.
+
+                                    {% endif %}
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <!-- PASSWORD -->
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    for="password"
+                                    class="form-label fw-semibold"
+                                >
+
+                                    {% if user %}
+
+                                        New Password
+
+                                    {% else %}
+
+                                        Password
+                                        <span class="text-danger">*</span>
+
+                                    {% endif %}
+
+                                </label>
+
+
+                                <div class="input-group input-group-lg">
+
+                                    <span class="input-group-text bg-body-tertiary">
+
+                                        <i class="bi bi-lock text-secondary"></i>
+
+                                    </span>
+
+
+                                    <input
+                                        type="password"
+                                        class="form-control"
+                                        id="password"
+                                        name="password"
+                                        minlength="8"
+                                        {% if not user %}required{% endif %}
+                                        autocomplete="new-password"
+                                        placeholder="Minimum 8 characters"
+                                    >
+
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary password-toggle"
+                                        data-target="password"
+                                        aria-label="Show password"
+                                    >
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </div>
+
+
+                                <!-- PASSWORD STRENGTH -->
+
+                                <div
+                                    class="mt-2 d-none"
+                                    id="passwordStrength"
+                                >
+
+                                    <div
+                                        class="progress"
+                                        style="height:5px;"
+                                    >
+                                        <div
+                                            class="progress-bar"
+                                            role="progressbar"
+                                            style="width:0%;"
+                                        ></div>
+                                    </div>
+
+
+                                    <small class="strength-text text-secondary">
+                                        Password strength
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- CONFIRM PASSWORD -->
+
+                            <div class="col-12 col-md-6">
+
+                                <label
+                                    for="confirm_password"
+                                    class="form-label fw-semibold"
+                                >
+
+                                    Confirm Password
+
+                                    {% if not user %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+
+                                </label>
+
+
+                                <div class="input-group input-group-lg">
+
+                                    <span class="input-group-text bg-body-tertiary">
+
+                                        <i class="bi bi-lock-fill text-secondary"></i>
+
+                                    </span>
+
+
+                                    <input
+                                        type="password"
+                                        class="form-control"
+                                        id="confirm_password"
+                                        name="confirm_password"
+                                        minlength="8"
+                                        {% if not user %}required{% endif %}
+                                        autocomplete="new-password"
+                                        placeholder="Re-enter password"
+                                    >
+
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary password-toggle"
+                                        data-target="confirm_password"
+                                        aria-label="Show password"
+                                    >
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                </div>
+
+
+                                <div
+                                    id="passwordMatch"
+                                    class="form-text"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PASSWORD INFORMATION -->
+
+                        <div class="alert alert-light border mt-4 mb-0 rounded-3">
+
+                            <div class="d-flex align-items-start gap-2">
+
+                                <i class="bi bi-info-circle text-primary mt-1"></i>
+
+                                <div>
+
+                                    <strong>
+                                        Password requirements
+                                    </strong>
+
+                                    <ul class="mb-0 mt-1 small text-secondary">
+
+                                        <li>
+                                            At least 8 characters
+                                        </li>
+
+                                        <li>
+                                            Avoid using easily guessed passwords
+                                        </li>
+
+                                        <li>
+                                            Do not share passwords with other users
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     ROLES — CREATE ONLY
+                ================================================== -->
+
+                {% if not user %}
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-person-badge fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="mb-1">
+                                    Initial Role
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Select at least one active role for this user.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="alert alert-info border-0 rounded-3 small">
+
+                            <div class="d-flex align-items-start gap-2">
+
+                                <i class="bi bi-info-circle-fill mt-1"></i>
+
+                                <div>
+
+                                    Roles determine what this user can access
+                                    within your company. You can manage the
+                                    user's roles later from their User Details page.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if roles %}
+
+                            <div class="row g-3">
+
+                                {% for role in roles %}
+
+                                    <div class="col-12 col-md-6">
+
+                                        <label
+                                            for="role_{{ role.id }}"
+                                            class="d-flex align-items-start gap-3 p-3 border rounded-3 h-100"
+                                            style="cursor:pointer;"
+                                        >
+
+                                            <input
+                                                type="checkbox"
+                                                class="form-check-input flex-shrink-0 mt-1"
+                                                name="roles"
+                                                value="{{ role.id }}"
+                                                id="role_{{ role.id }}"
+                                                {% if role.id|string in selected_role_ids %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+
+                                            <span class="flex-grow-1 min-w-0">
+
+                                                <span class="d-block fw-semibold mb-1">
+
+                                                    {% if role.is_system_role %}
+
+                                                        <i class="bi bi-shield-check text-primary me-1"></i>
+
+                                                    {% else %}
+
+                                                        <i class="bi bi-person-badge text-primary me-1"></i>
+
+                                                    {% endif %}
+
+                                                    {{ role.name }}
+
+                                                </span>
+
+
+                                                <span class="d-block small text-secondary">
+
+                                                    {% if role.description %}
+
+                                                        {{ role.description }}
+
+                                                    {% else %}
+
+                                                        Company access role
+
+                                                    {% endif %}
+
+                                                </span>
+
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="text-center py-4">
+
+                                <div
+                                    class="bg-body-secondary rounded-4 d-flex align-items-center justify-content-center mx-auto"
+                                    style="width:60px;height:60px;"
+                                >
+                                    <i class="bi bi-shield-exclamation fs-4 text-secondary"></i>
+                                </div>
+
+
+                                <h6 class="mt-3 mb-2">
+                                    No active roles available
+                                </h6>
+
+
+                                <p class="text-secondary small mb-0">
+
+                                    Create or activate a company role before
+                                    creating a user.
+
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- =================================================
+                     EDIT MODE ROLE INFORMATION
+                ================================================== -->
+
+                {% if user %}
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-person-badge fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="mb-1">
+                                    User Roles
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Role assignments are managed from the User Details page.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if user.user_roles %}
+
+                            <div class="d-flex flex-column gap-2">
+
+                                {% for user_role in user.user_roles %}
+
+                                    {% if user_role.role and user_role.role.company_id == user.company_id %}
+
+                                        <a
+                                            href="{{ url_for('company_admin.role_view', role_id=user_role.role.id) }}"
+                                            class="d-flex align-items-center gap-3 p-3 border rounded-3 text-decoration-none link-body-emphasis"
+                                        >
+
+                                            <span
+                                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                                style="width:36px;height:36px;"
+                                            >
+                                                <i class="bi bi-shield-check"></i>
+                                            </span>
+
+
+                                            <span class="d-flex flex-column min-w-0 text-dark">
+
+                                                <strong>
+                                                    {{ user_role.role.name }}
+                                                </strong>
+
+
+                                                {% if user_role.role.description %}
+
+                                                    <small class="text-secondary">
+                                                        {{ user_role.role.description }}
+                                                    </small>
+
+                                                {% endif %}
+
+                                            </span>
+
+
+                                            <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+
+                                        </a>
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="text-center py-4">
+
+                                <div
+                                    class="bg-body-secondary rounded-4 d-flex align-items-center justify-content-center mx-auto"
+                                    style="width:60px;height:60px;"
+                                >
+                                    <i class="bi bi-person-x fs-4 text-secondary"></i>
+                                </div>
+
+
+                                <h6 class="mt-3 mb-2">
+                                    No roles assigned
+                                </h6>
+
+
+                                <p class="text-secondary small mb-0">
+                                    Visit the User Details page to assign a role.
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <div class="mt-3">
+
+                            <a
+                                href="{{ url_for('company_admin.user_view', user_id=user.id) }}"
+                                class="btn btn-outline-secondary rounded-3"
+                            >
+                                <i class="bi bi-person-badge me-1"></i>
+                                Manage Roles
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =================================================
+                 RIGHT COLUMN
+            ================================================== -->
+
+            <div class="col-12 col-xl-4">
+
+
+                <!-- ACCOUNT SUMMARY -->
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-person-vcard fs-5"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="mb-1">
+                                    Account Summary
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    User account details.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if user %}
+
+                            <div>
+
+
+                                <!-- USER ID -->
+
+                                <div class="d-flex justify-content-between align-items-center gap-3 py-3 border-bottom">
+
+                                    <span class="small text-secondary">
+                                        User ID
+                                    </span>
+
+                                    <strong class="small">
+                                        #{{ user.id }}
+                                    </strong>
+
+                                </div>
+
+
+                                <!-- STATUS -->
+
+                                <div class="d-flex justify-content-between align-items-center gap-3 py-3 border-bottom">
+
+                                    <span class="small text-secondary">
+                                        Account Status
+                                    </span>
+
+
+                                    {% if user.is_active %}
+
+                                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+
+                                            <i class="bi bi-check-circle me-1"></i>
+
+                                            Active
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis">
+
+                                            <i class="bi bi-pause-circle me-1"></i>
+
+                                            Inactive
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- ACCOUNT TYPE -->
+
+                                <div class="d-flex justify-content-between align-items-center gap-3 py-3 border-bottom">
+
+                                    <span class="small text-secondary">
+                                        Account Type
+                                    </span>
+
+                                    <strong class="small text-end">
+                                        {{ user.role }}
+                                    </strong>
+
+                                </div>
+
+
+                                <!-- COMPANY -->
+
+                                <div class="d-flex justify-content-between align-items-start gap-3 pt-3">
+
+                                    <span class="small text-secondary">
+                                        Company
+                                    </span>
+
+                                    <strong class="small text-end text-break">
+
+                                        {{ user.company.name if user.company else '—' }}
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="text-center py-3">
+
+                                <div
+                                    class="bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center mx-auto"
+                                    style="width:62px;height:62px;"
+                                >
+                                    <i class="bi bi-person-plus fs-4"></i>
+                                </div>
+
+
+                                <h6 class="mt-3 mb-2">
+                                    New User Account
+                                </h6>
+
+
+                                <p class="text-secondary small mb-0">
+
+                                    Complete the form to create a new user
+                                    within your company.
+
+                                </p>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCESS INFORMATION -->
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-start gap-3">
+
+                            <div
+                                class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width:42px;height:42px;"
+                            >
+                                <i class="bi bi-shield-lock fs-5"></i>
+                            </div>
+
+
+                            <div>
+
+                                <h6 class="mb-2">
+                                    Access Control
+                                </h6>
+
+
+                                <p class="text-secondary small mb-0">
+
+                                    {% if user %}
+
+                                        Changes to the user's name, email,
+                                        and password are applied immediately.
+                                        Role assignments are managed separately.
+
+                                    {% else %}
+
+                                        The selected roles determine which
+                                        features and actions the new user can
+                                        access.
+
+                                    {% endif %}
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SECURITY NOTE -->
+
+                <div class="alert alert-success border rounded-4 mb-0">
+
+                    <div class="d-flex align-items-start gap-3">
+
+                        <i class="bi bi-shield-check fs-4"></i>
+
+                        <div>
+
+                            <h6 class="mb-2">
+                                Security Reminder
+                            </h6>
+
+                            <p class="small mb-0">
+
+                                Keep user credentials private and only
+                                assign permissions required for the
+                                user's responsibilities.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             FORM ACTIONS
+        ====================================================== -->
+
+        <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4 pt-3 border-top">
+
+            <a
+                href="{% if user %}{{ url_for('company_admin.user_view', user_id=user.id) }}{% else %}{{ url_for('company_admin.users') }}{% endif %}"
+                class="btn btn-light border rounded-pill px-4"
+            >
+                Cancel
+            </a>
+
+
+            <button
+                type="submit"
+                class="btn btn-primary rounded-pill px-4"
+                {% if not user and not roles %}disabled{% endif %}
+            >
+
+                {% if user %}
+
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Save Changes
+
+                {% else %}
+
+                    <i class="bi bi-person-plus me-1"></i>
+                    Create User
+
+                {% endif %}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       PASSWORD VISIBILITY
+    ====================================================== */
+
+    document.querySelectorAll(".password-toggle").forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const targetId = button.dataset.target;
+
+            const input = document.getElementById(targetId);
+
+            if (!input) {
+                return;
+            }
+
+            const icon = button.querySelector("i");
+
+            if (input.type === "password") {
+
+                input.type = "text";
+
+                if (icon) {
+
+                    icon.classList.remove("bi-eye");
+
+                    icon.classList.add("bi-eye-slash");
+
+                }
+
+                button.setAttribute(
+                    "aria-label",
+                    "Hide password"
+                );
+
+            } else {
+
+                input.type = "password";
+
+                if (icon) {
+
+                    icon.classList.remove("bi-eye-slash");
+
+                    icon.classList.add("bi-eye");
+
+                }
+
+                button.setAttribute(
+                    "aria-label",
+                    "Show password"
+                );
+
+            }
+
+        });
+
+    });
+
+
+    /* =====================================================
+       PASSWORD STRENGTH
+    ====================================================== */
+
+    const password =
+        document.getElementById("password");
+
+    const strengthBox =
+        document.getElementById("passwordStrength");
+
+    const strengthText =
+        strengthBox
+            ? strengthBox.querySelector(".strength-text")
+            : null;
+
+    const strengthBar =
+        strengthBox
+            ? strengthBox.querySelector(".progress-bar")
+            : null;
+
+
+    if (password && strengthBox) {
+
+        password.addEventListener("input", function () {
+
+            const value = password.value;
+
+
+            if (!value) {
+
+                strengthBox.classList.add("d-none");
+
+                if (strengthBar) {
+                    strengthBar.style.width = "0%";
+                }
+
+                if (strengthText) {
+                    strengthText.textContent =
+                        "Password strength";
+                }
+
+                return;
+
+            }
+
+
+            strengthBox.classList.remove("d-none");
+
+
+            let score = 0;
+
+
+            if (value.length >= 8) {
+                score++;
+            }
+
+            if (value.length >= 12) {
+                score++;
+            }
+
+            if (/[A-Z]/.test(value)) {
+                score++;
+            }
+
+            if (/[a-z]/.test(value)) {
+                score++;
+            }
+
+            if (/[0-9]/.test(value)) {
+                score++;
+            }
+
+            if (/[^A-Za-z0-9]/.test(value)) {
+                score++;
+            }
+
+
+            let percentage = 0;
+
+            let label = "Weak password";
+
+
+            if (score <= 2) {
+
+                percentage = 30;
+
+                label = "Weak password";
+
+            } else if (score <= 4) {
+
+                percentage = 65;
+
+                label = "Moderate password";
+
+            } else {
+
+                percentage = 100;
+
+                label = "Strong password";
+
+            }
+
+
+            if (strengthBar) {
+
+                strengthBar.style.width =
+                    percentage + "%";
+
+            }
+
+
+            if (strengthText) {
+
+                strengthText.textContent =
+                    label;
+
+            }
+
+        });
+
+    }
+
+
+    /* =====================================================
+       PASSWORD MATCH
+    ====================================================== */
+
+    const confirmPassword =
+        document.getElementById("confirm_password");
+
+    const passwordMatch =
+        document.getElementById("passwordMatch");
+
+
+    function checkPasswordMatch() {
+
+        if (
+            !password ||
+            !confirmPassword ||
+            !passwordMatch
+        ) {
+            return;
+        }
+
+
+        if (!confirmPassword.value) {
+
+            passwordMatch.textContent = "";
+
+            passwordMatch.className =
+                "form-text";
+
+            return;
+
+        }
+
+
+        if (
+            password.value ===
+            confirmPassword.value
+        ) {
+
+            passwordMatch.textContent =
+                "Passwords match.";
+
+            passwordMatch.className =
+                "form-text text-success";
+
+        } else {
+
+            passwordMatch.textContent =
+                "Passwords do not match.";
+
+            passwordMatch.className =
+                "form-text text-danger";
+
+        }
+
+    }
+
+
+    if (password) {
+
+        password.addEventListener(
+            "input",
+            checkPasswordMatch
+        );
+
+    }
+
+
+    if (confirmPassword) {
+
+        confirmPassword.addEventListener(
+            "input",
+            checkPasswordMatch
+        );
+
+    }
+
+
+    /* =====================================================
+       ROLE SELECTION
+    ====================================================== */
+
+    document.querySelectorAll(
+        'input[name="roles"]'
+    ).forEach(function (checkbox) {
+
+        checkbox.addEventListener(
+            "change",
+            function () {
+
+                const label =
+                    checkbox.closest("label");
+
+                if (!label) {
+                    return;
+                }
+
+                if (checkbox.checked) {
+
+                    label.classList.add(
+                        "border-primary",
+                        "bg-primary-subtle"
+                    );
+
+                } else {
+
+                    label.classList.remove(
+                        "border-primary",
+                        "bg-primary-subtle"
+                    );
+
+                }
+
+            }
+        );
+
+    });
+
+
+    /* =====================================================
+       INITIAL ROLE STATE
+    ====================================================== */
+
+    document.querySelectorAll(
+        'input[name="roles"]:checked'
+    ).forEach(function (checkbox) {
+
+        const label =
+            checkbox.closest("label");
+
+        if (!label) {
+            return;
+        }
+
+        label.classList.add(
+            "border-primary",
+            "bg-primary-subtle"
+        );
+
+    });
+
+
+    /* =====================================================
+       FORM SUBMISSION VALIDATION
+    ====================================================== */
+
+    const form =
+        document.querySelector("form");
+
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            function (event) {
+
+                const passwordValue =
+                    password
+                        ? password.value
+                        : "";
+
+
+                const confirmValue =
+                    confirmPassword
+                        ? confirmPassword.value
+                        : "";
+
+
+                /* PASSWORD VALIDATION */
+
+                if (passwordValue) {
+
+                    if (
+                        passwordValue.length < 8
+                    ) {
+
+                        event.preventDefault();
+
+                        password.focus();
+
+                        alert(
+                            "Password must be at least 8 characters."
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (
+                        passwordValue !==
+                        confirmValue
+                    ) {
+
+                        event.preventDefault();
+
+                        confirmPassword.focus();
+
+                        alert(
+                            "Passwords do not match."
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+
+                /* ROLE VALIDATION ON CREATE */
+
+                const roleCheckboxes =
+                    document.querySelectorAll(
+                        'input[name="roles"]'
+                    );
+
+
+                if (
+                    roleCheckboxes.length > 0
+                ) {
+
+                    const selected =
+                        Array.from(
+                            roleCheckboxes
+                        ).some(
+                            checkbox =>
+                                checkbox.checked
+                        );
+
+
+                    if (!selected) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "Please select at least one role for this user."
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

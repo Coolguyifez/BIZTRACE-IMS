@@ -1,0 +1,1310 @@
+{% extends "base.html" %}
+
+{% block title %}
+Customer Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =========================================================
+         SCREEN HEADER
+    ========================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <div
+                    class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                    style="width: 42px; height: 42px;"
+                >
+                    <i class="bi bi-person-lines-fill fs-5"></i>
+                </div>
+
+                <div>
+
+                    <h4 class="mb-1 fw-bold">
+                        Customer Report
+                    </h4>
+
+                    <div class="text-muted small">
+                        Customer sales, payments and receivables analysis
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printCustomerReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRINT HEADER
+    ========================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h2 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h2>
+
+            {% if current_user.company.address %}
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.email %}
+
+                    {% if current_user.company.phone %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {{ current_user.company.email }}
+
+                {% endif %}
+
+            </div>
+
+            <hr>
+
+            <h4 class="fw-bold mb-1">
+                Customer Report
+            </h4>
+
+            <div>
+                Reporting period:
+                {{ start_date }} to {{ end_date }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         DATE FILTER
+    ========================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.customer_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.customer_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================================
+         REPORTING PERIOD
+    ========================================================== -->
+
+    <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+        <i class="bi bi-info-circle-fill fs-5"></i>
+
+        <div>
+
+            <div class="fw-semibold">
+                Reporting Period
+            </div>
+
+            <div class="small mt-1">
+                Customer sales and payment activity from
+                <strong>{{ start_date }}</strong>
+                to
+                <strong>{{ end_date }}</strong>.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRIMARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- CUSTOMERS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Customers
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ total_customers }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-info">
+                                    {{ active_customer_count }}
+                                </span>
+                                active
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SALES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_sales) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                <span class="text-primary">
+                                    {{ total_sales_count }}
+                                </span>
+                                customer's sales
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAID -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Amount Paid
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_paid) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Customer payments
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECEIVABLES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Outstanding
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_receivables) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Customer receivables
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SECONDARY SUMMARY
+    ========================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- CUSTOMERS WITH SALES -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Customers with Sales
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ customers_with_sales }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Customers who purchased
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AVERAGE CUSTOMER SALES -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Average Customer Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(average_customer_sale) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Based on customers with sales
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CUSTOMERS WITH BALANCE -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Customers with Balance
+                            </div>
+
+                            <div class="stats-card-value text-danger">
+                                {{ customer_payment_chart[1].count }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Customers with outstanding amounts
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CHARTS
+    ========================================================== -->
+
+    <div class="row g-4 mb-4 d-print-none">
+
+        <!-- TOP CUSTOMERS -->
+
+        <div class="col-12 col-lg-7">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Top Customers by Sales
+                    </h6>
+
+                    <div class="small text-muted">
+                        Customers with the highest sales value
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="topCustomersChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENT STATUS -->
+
+        <div class="col-12 col-lg-5">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h6 class="fw-bold mb-1">
+                        Customer Payment Status
+                    </h6>
+
+                    <div class="small text-muted">
+                        Customers with or without outstanding balances
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        style="position: relative; height: 340px;"
+                    >
+                        <canvas id="customerPaymentChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         INFORMATION
+    ========================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Customer Report Note
+                </div>
+
+                <div class="small">
+                    Customer sales, payments and balances are calculated
+                    from sales recorded during the selected reporting
+                    period.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         EXPORT / PRINT ONLY
+    ========================================================== -->
+
+    <div
+        id="customerExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+
+                        {% if current_user.company.phone %}
+                            &nbsp; | &nbsp;
+                        {% endif %}
+
+                        {{ current_user.company.email }}
+
+                    {% endif %}
+
+                </div>
+
+                <hr>
+
+                <h3 class="fw-bold">
+                    Customer Report
+                </h3>
+
+                <div>
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row mb-4">
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Total Customers
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ total_customers }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Total Sales
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_sales) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Amount Paid
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_paid) }}
+                    </div>
+
+                </div>
+
+                <div class="col-3">
+
+                    <div class="text-muted small">
+                        Outstanding
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+                        {{ format_currency(total_receivables) }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="row mb-4">
+
+                <div class="col-6">
+
+                    <h5 class="fw-bold mb-3">
+                        Top Customers by Sales
+                    </h5>
+
+                    <img
+                        id="customerTopSalesExportImage"
+                        class="img-fluid"
+                        alt="Top Customers by Sales"
+                    >
+
+                </div>
+
+                <div class="col-6">
+
+                    <h5 class="fw-bold mb-3">
+                        Customer Payment Status
+                    </h5>
+
+                    <img
+                        id="customerPaymentExportImage"
+                        class="img-fluid"
+                        alt="Customer Payment Status"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CUSTOMER TABLE — PRINT ONLY
+            ================================================== -->
+
+            <h5 class="fw-bold mb-3">
+                Detailed Customer Activity
+            </h5>
+
+            <table class="table table-bordered align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Customer
+                        </th>
+
+                        <th>
+                            Email
+                        </th>
+
+                        <th>
+                            Phone
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-end">
+                            Sales
+                        </th>
+
+                        <th class="text-end">
+                            Sales Value
+                        </th>
+
+                        <th class="text-end">
+                            Amount Paid
+                        </th>
+
+                        <th class="text-end">
+                            Outstanding
+                        </th>
+
+                        <th class="text-end">
+                            Sales Share
+                        </th>
+
+                        <th>
+                            Remark
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in export_rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.customer }}
+                        </td>
+
+                        <td>
+                            {{ row.email }}
+                        </td>
+
+                        <td>
+                            {{ row.phone }}
+                        </td>
+
+                        <td>
+                            {{ row.status }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ row.sale_count }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_sales) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_paid) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ format_currency(row.total_balance) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ "{:,.2f}".format(row.percentage) }}%
+                        </td>
+
+                        <td>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <!-- FOOTER -->
+
+            <div class="mt-4 small text-muted">
+
+                <strong>Report Note:</strong>
+
+                Customer figures are based on sales recorded during
+                the selected reporting period.
+
+            </div>
+
+            <div class="mt-5 pt-3 border-top d-flex justify-content-between">
+
+                <div>
+                    Prepared by:
+                    <strong>{{ current_user.username }}</strong>
+                </div>
+
+                <div>
+                    {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =============================================================
+     COMPANY CURRENCY SETTINGS FOR JAVASCRIPT
+============================================================= -->
+
+<script>
+
+window.BizFlowSettings = {
+
+    currencyCode:
+        {{ get_currency_code()|tojson }},
+
+    currencySymbol:
+        {{ get_currency_symbol()|tojson }},
+
+    decimalPlaces:
+        {{ get_decimal_places()|tojson }},
+
+    currencyPosition:
+        {{ get_currency_position()|tojson }},
+
+    dateFormat:
+        {{ get_date_format()|tojson }},
+
+    timeFormat:
+        {{ get_time_format()|tojson }},
+
+    timezone:
+        {{ get_company_timezone_name()|tojson }}
+
+};
+
+
+/* =============================================================
+   FORMAT CURRENCY
+============================================================= */
+
+function formatChartMoney(value, maximumFractionDigits = null) {
+
+    const numericValue =
+        Number(value || 0);
+
+    const settings =
+        window.BizFlowSettings || {};
+
+    let decimalPlaces =
+        Number(settings.decimalPlaces);
+
+    if (!Number.isInteger(decimalPlaces)) {
+        decimalPlaces = 2;
+    }
+
+    if (maximumFractionDigits !== null) {
+
+        decimalPlaces =
+            Math.min(
+                decimalPlaces,
+                maximumFractionDigits
+            );
+
+    }
+
+    const formatted =
+        numericValue.toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits:
+                    decimalPlaces,
+
+                maximumFractionDigits:
+                    decimalPlaces
+            }
+        );
+
+    const symbol =
+        settings.currencySymbol || "₦";
+
+    if (
+        settings.currencyPosition === "after"
+    ) {
+
+        return formatted + " " + symbol;
+
+    }
+
+    return symbol + formatted;
+
+}
+
+</script>
+
+
+<!-- =============================================================
+     CHART.JS
+============================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const topCustomers =
+            {{ top_customers_chart | tojson }};
+
+        const paymentStatus =
+            {{ customer_payment_chart | tojson }};
+
+
+        /* =====================================================
+           TOP CUSTOMERS
+        ===================================================== */
+
+        const topCustomersCanvas =
+            document.getElementById(
+                "topCustomersChart"
+            );
+
+        if (topCustomersCanvas) {
+
+            new Chart(
+                topCustomersCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels: topCustomers.map(
+                            item => item.customer
+                        ),
+
+                        datasets: [
+                            {
+                                label:
+                                    "Sales",
+
+                                data:
+                                    topCustomers.map(
+                                        item => item.total
+                                    ),
+
+                                backgroundColor:
+                                    "#0d6efd",
+
+                                borderRadius:
+                                    6
+                            }
+                        ]
+
+                    },
+
+                    options: {
+
+                        indexAxis:
+                            "y",
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            },
+
+                            /* =================================
+                               DYNAMIC CURRENCY TOOLTIP
+                            ================================= */
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            const value =
+                                                Number(
+                                                    context.raw || 0
+                                                );
+
+                                            return "Sales: " +
+                                                formatChartMoney(
+                                                    value
+                                                );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+                        scales: {
+
+                            x: {
+
+                                beginAtZero:
+                                    true,
+
+                                /* =============================
+                                   DYNAMIC CURRENCY AXIS
+                                ============================= */
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return formatChartMoney(
+                                                Number(value),
+                                                0
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           PAYMENT STATUS
+        ===================================================== */
+
+        const paymentCanvas =
+            document.getElementById(
+                "customerPaymentChart"
+            );
+
+        if (paymentCanvas) {
+
+            new Chart(
+                paymentCanvas,
+                {
+                    type: "doughnut",
+
+                    data: {
+
+                        labels:
+                            paymentStatus.map(
+                                item => item.status
+                            ),
+
+                        datasets: [
+                            {
+                                data:
+                                    paymentStatus.map(
+                                        item => item.count
+                                    ),
+
+                                backgroundColor: [
+                                    "#198754",
+                                    "#dc3545"
+                                ],
+
+                                borderWidth:
+                                    0
+                            }
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        plugins: {
+
+                            legend: {
+                                position: "bottom"
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+);
+
+
+/* =============================================================
+   PREPARE EXPORT
+============================================================= */
+
+function prepareCustomerExport() {
+
+    const topCustomersCanvas =
+        document.getElementById(
+            "topCustomersChart"
+        );
+
+    const paymentCanvas =
+        document.getElementById(
+            "customerPaymentChart"
+        );
+
+
+    /* =========================================================
+       TOP CUSTOMERS IMAGE
+    ========================================================= */
+
+    if (topCustomersCanvas) {
+
+        const image =
+            document.getElementById(
+                "customerTopSalesExportImage"
+            );
+
+        if (image) {
+
+            image.src =
+                topCustomersCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       PAYMENT STATUS IMAGE
+    ========================================================= */
+
+    if (paymentCanvas) {
+
+        const image =
+            document.getElementById(
+                "customerPaymentExportImage"
+            );
+
+        if (image) {
+
+            image.src =
+                paymentCanvas.toDataURL(
+                    "image/png",
+                    1
+                );
+
+        }
+
+    }
+
+}
+
+
+/* =============================================================
+   PRINT REPORT
+============================================================= */
+
+function printCustomerReport() {
+
+    prepareCustomerExport();
+
+    const originalBody =
+        document.body.innerHTML;
+
+    const exportSection =
+        document.getElementById(
+            "customerExportSection"
+        );
+
+    if (!exportSection) {
+        return;
+    }
+
+    document.body.innerHTML =
+        exportSection.innerHTML;
+
+    window.print();
+
+    document.body.innerHTML =
+        originalBody;
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

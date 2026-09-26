@@ -1,0 +1,1759 @@
+{% extends "base.html" %}
+
+{% block title %}
+Profit & Loss Report
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         SCREEN HEADER
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2 mb-1">
+
+                    <div
+                        class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3"
+                        style="width: 42px; height: 42px;"
+                    >
+                        <i class="bi bi-graph-up-arrow fs-5"></i>
+                    </div>
+
+                    <div>
+
+                        <h1 class="h3 fw-bold mb-0">
+                            Profit &amp; Loss Report
+                        </h1>
+
+                        <p class="text-secondary mb-0">
+                            Revenue, cost, expenses and profitability analysis
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{{ url_for('reports.report_dashboard') }}"
+                    class="btn btn-light border rounded-pill px-4"
+                >
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Reports
+                </a>
+
+                <button
+                    type="button"
+                    class="btn btn-primary rounded-pill px-4"
+                    onclick="printProfitLossReport()"
+                >
+                    <i class="bi bi-printer me-1"></i>
+                    Export / Print
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRINT HEADER
+    ====================================================== -->
+
+    <div class="d-none d-print-block mb-4">
+
+        <div class="text-center">
+
+            <h1 class="fw-bold mb-1">
+                {{ current_user.company.name }}
+            </h1>
+
+            {% if current_user.company.address %}
+
+                <div>
+                    {{ current_user.company.address }}
+                </div>
+
+            {% endif %}
+
+            <div>
+
+                {% if current_user.company.phone %}
+                    {{ current_user.company.phone }}
+                {% endif %}
+
+                {% if current_user.company.phone and current_user.company.email %}
+                    &nbsp; | &nbsp;
+                {% endif %}
+
+                {% if current_user.company.email %}
+                    {{ current_user.company.email }}
+                {% endif %}
+
+            </div>
+
+            <hr class="my-3">
+
+            <h2 class="fw-bold mb-1">
+                Profit &amp; Loss Report
+            </h2>
+
+            <div>
+
+                Reporting Period:
+
+                <strong>
+                    {{ start_date }} – {{ end_date }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DATE FILTER
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4 d-print-none">
+
+        <form
+            method="get"
+            action="{{ url_for('reports.profit_loss_report') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        id="start_date"
+                        type="date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        max="{{ end_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-5 col-lg-4">
+
+                    <label class="form-label small fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        id="end_date"
+                        type="date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        min="{{ start_date }}"
+                        class="form-control"
+                    >
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Apply
+                    </button>
+
+                </div>
+
+                <div class="col-12 col-md-2">
+
+                    <a
+                        href="{{ url_for('reports.profit_loss_report') }}"
+                        class="btn btn-outline-secondary w-100 rounded-pill"
+                    >
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Reset
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         REPORT PERIOD
+    ====================================================== -->
+
+    <div class="d-print-none">
+
+        <div class="alert alert-primary border-0 rounded-4 d-flex align-items-start gap-3 mb-4">
+
+            <i class="bi bi-calendar3 fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold">
+                    Reporting Period
+                </div>
+
+                <div class="small">
+                    {{ start_date }} to {{ end_date }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PRIMARY FINANCIAL SUMMARY
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL SALES -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Total Sales
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_sales) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-primary">
+                                    {{ total_sales_count }}
+                                </span>
+
+                                transaction{{ "" if total_sales_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                        >
+                            <i class="bi bi-cart-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COGS -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cost of Goods Sold
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_cogs) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Product cost of goods sold
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
+                        >
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GROSS PROFIT -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Gross Profit
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(gross_profit) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Sales less COGS
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-success-subtle text-success"
+                        >
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- NET PROFIT -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Net Profit
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(net_profit) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                {{ profit_status }}
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon
+                            {% if net_profit > 0 %}
+                                bg-success-subtle text-success
+                            {% elif net_profit < 0 %}
+                                bg-danger-subtle text-danger
+                            {% else %}
+                                bg-secondary-subtle text-secondary
+                            {% endif %}"
+                        >
+
+                            {% if net_profit > 0 %}
+                                <i class="bi bi-check-circle fs-5"></i>
+                            {% elif net_profit < 0 %}
+                                <i class="bi bi-exclamation-triangle fs-5"></i>
+                            {% else %}
+                                <i class="bi bi-dash-circle"></i>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SECONDARY FINANCIAL SUMMARY
+    ====================================================== -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- OPERATING EXPENSES -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Operating Expenses
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+                                {{ format_currency(total_expenses) }}
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+
+                                <span class="text-danger">
+                                    {{ total_expense_count }}
+                                </span>
+
+                                expense{{ "" if total_expense_count == 1 else "s" }}
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-receipt"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GROSS MARGIN -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Gross Profit Margin
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.2f}".format(gross_profit_margin) }}%
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Gross profit as percentage of sales
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-percent"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- NET MARGIN -->
+
+        <div class="col-12 col-md-4">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Net Profit Margin
+                            </div>
+
+                            <div class="stats-card-value">
+                                {{ "{:,.2f}".format(net_profit_margin) }}%
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                {{ profit_status }} after expenses
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon
+                            {% if net_profit > 0 %}
+                                bg-success-subtle text-success
+                            {% elif net_profit < 0 %}
+                                bg-danger-subtle text-danger
+                            {% else %}
+                                bg-secondary-subtle text-secondary
+                            {% endif %}"
+                        >
+                            <i class="bi bi-percent"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS
+    ====================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- FINANCIAL OVERVIEW -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Financial Overview
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales, cost of goods sold and operating expenses
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+                        <canvas id="financialOverviewChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROFIT TREND -->
+
+        <div class="col-12 col-xl-6">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+                    <h5 class="fw-bold mb-1">
+                        Profit Trend
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        Sales, expenses and net profit over the selected period
+                    </p>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="position-relative"
+                        style="height: 340px;"
+                    >
+                        <canvas id="profitTrendChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PROFIT & LOSS STATEMENT
+    ====================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header bg-transparent border-0 p-4 pb-2">
+
+            <h5 class="fw-bold mb-1">
+                Profit &amp; Loss Statement
+            </h5>
+
+            <p class="text-secondary small mb-0">
+                Financial summary for {{ start_date }} to {{ end_date }}
+            </p>
+
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <tbody>
+
+                        <!-- SALES -->
+
+                        <tr>
+
+                            <td class="fw-semibold text-dark">
+                                Total Sales
+                            </td>
+
+                            <td class="text-end fw-semibold text-primary">
+                                {{ format_currency(total_sales) }}
+                            </td>
+
+                        </tr>
+
+
+                        <!-- COGS -->
+
+                        <tr>
+
+                            <td class="ps-4 text-secondary">
+                                Less: Cost of Goods Sold
+                            </td>
+
+                            <td class="text-end text-secondary">
+                                ({{ format_currency(total_cogs) }})
+                            </td>
+
+                        </tr>
+
+
+                        <!-- GROSS PROFIT -->
+
+                        <tr class="table-light">
+
+                            <td class="fw-bold">
+                                Gross Profit
+                            </td>
+
+                            <td class="text-end fw-bold">
+                                {{ format_currency(gross_profit) }}
+                            </td>
+
+                        </tr>
+
+
+                        <!-- EXPENSES -->
+
+                        <tr>
+
+                            <td class="ps-4 text-secondary">
+                                Less: Operating Expenses
+                            </td>
+
+                            <td class="text-end text-secondary">
+                                ({{ format_currency(total_expenses) }})
+                            </td>
+
+                        </tr>
+
+
+                        <!-- NET PROFIT -->
+
+                        <tr class="fw-bold border-top">
+
+                            <td class="text-dark">
+                                Net {{ profit_status }}
+                            </td>
+
+                            <td
+                                class="text-end
+                                {% if net_profit > 0 %}
+                                    text-success
+                                {% elif net_profit < 0 %}
+                                    text-danger
+                                {% else %}
+                                    text-secondary
+                                {% endif %}"
+                            >
+                                {{ format_currency(net_profit) }}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INFORMATION
+    ====================================================== -->
+
+    <div class="alert alert-secondary border-0 rounded-4 d-print-none mb-4">
+
+        <div class="d-flex align-items-start gap-3">
+
+            <i class="bi bi-info-circle fs-5 mt-1"></i>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Profit &amp; Loss Calculation
+                </div>
+
+                <div class="small">
+
+                    Cost of Goods Sold is calculated from the quantity
+                    sold multiplied by each product's recorded purchase
+                    price. Gross Profit is Total Sales less COGS, while
+                    Net Profit is Gross Profit less Operating Expenses.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXPORT / PRINT SECTION
+    ====================================================== -->
+
+    <div
+        id="profitLossExportSection"
+        class="d-none"
+    >
+
+        <div class="container-fluid">
+
+            <!-- EXPORT HEADER -->
+
+            <div class="text-center mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    {{ current_user.company.name }}
+                </h2>
+
+                {% if current_user.company.address %}
+
+                    <div>
+                        {{ current_user.company.address }}
+                    </div>
+
+                {% endif %}
+
+                <div>
+
+                    {% if current_user.company.phone %}
+                        {{ current_user.company.phone }}
+                    {% endif %}
+
+                    {% if current_user.company.phone and current_user.company.email %}
+                        &nbsp; | &nbsp;
+                    {% endif %}
+
+                    {% if current_user.company.email %}
+                        {{ current_user.company.email }}
+                    {% endif %}
+
+                </div>
+
+                <hr class="my-3">
+
+                <h3 class="fw-bold mb-1">
+                    Profit &amp; Loss Report
+                </h3>
+
+                <div>
+
+                    Reporting Period:
+
+                    <strong>
+                        {{ start_date }} – {{ end_date }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT SUMMARY -->
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Total Sales
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_sales) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            COGS
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_cogs) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Gross Profit
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(gross_profit) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Net {{ profit_status }}
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(net_profit) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EXPORT CHARTS -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Financial Analysis
+                </h4>
+
+                <div class="row g-4">
+
+                    <!-- FINANCIAL OVERVIEW -->
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Financial Overview
+                            </h5>
+
+                            <img
+                                id="exportFinancialOverview"
+                                class="img-fluid w-100"
+                                alt="Financial overview chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PROFIT TREND -->
+
+                    <div class="col-6">
+
+                        <div class="border rounded p-3">
+
+                            <h5 class="fw-bold mb-3">
+                                Profit Trend
+                            </h5>
+
+                            <img
+                                id="exportProfitTrend"
+                                class="img-fluid w-100"
+                                alt="Profit trend chart"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFIT & LOSS STATEMENT
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Profit &amp; Loss Statement
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Description
+                            </th>
+
+                            <th class="text-end">
+                                Amount
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in export_rows %}
+
+                            <tr
+                                {% if row.description == "Gross Profit" %}
+                                    class="fw-bold"
+                                {% elif row.description == "Net Profit" %}
+                                    class="fw-bold"
+                                {% endif %}
+                            >
+
+                                <td>
+                                    {{ row.description }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ format_currency(row.amount) }}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFITABILITY RATIOS
+            ================================================== -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold mb-3">
+                    Profitability Ratios
+                </h4>
+
+                <table class="table table-bordered table-sm align-middle">
+
+                    <tbody>
+
+                        <tr>
+
+                            <td class="fw-semibold">
+                                Gross Profit Margin
+                            </td>
+
+                            <td class="text-end">
+                                {{ "{:,.2f}".format(gross_profit_margin) }}%
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td class="fw-semibold">
+                                Net Profit Margin
+                            </td>
+
+                            <td class="text-end">
+                                {{ "{:,.2f}".format(net_profit_margin) }}%
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <td class="fw-semibold">
+                                Profit Status
+                            </td>
+
+                            <td class="text-end">
+                                {{ profit_status }}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- =================================================
+                 REPORT NOTE
+            ================================================== -->
+
+            <div class="border-top mt-4 pt-3">
+
+                <div class="small">
+
+                    <strong>Report Note:</strong>
+
+                    Cost of Goods Sold is calculated using the current
+                    recorded purchase price of each product multiplied
+                    by the quantity sold during the selected period.
+                    Total Sales less COGS produces Gross Profit.
+                    Operating Expenses are then deducted to calculate
+                    Net Profit.
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EXPORT FOOTER
+            ================================================== -->
+
+            <div class="mt-5 pt-3 border-top">
+
+                <div class="row">
+
+                    <div class="col-6">
+
+                        <div class="small">
+                            Prepared by:
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ current_user.username }}
+                        </div>
+
+                    </div>
+
+                    <div class="col-6 text-end">
+
+                        <div class="small">
+                            Report Period
+                        </div>
+
+                        <div class="fw-semibold mt-1">
+                            {{ start_date }} – {{ end_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="text-center small text-secondary mt-4">
+
+                    {{ current_user.company.name }}
+                    · Profit &amp; Loss Report
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CHART.JS
+========================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =====================================================
+       COMPANY SETTINGS
+    ====================================================== */
+
+    const COMPANY_SETTINGS = {
+        currencyCode:
+            {{ get_currency_code()|tojson }},
+
+        currencySymbol:
+            {{ get_currency_symbol()|tojson }},
+
+        decimalPlaces:
+            {{ get_decimal_places()|tojson }},
+
+        currencyPosition:
+            {{ get_currency_position()|tojson }},
+
+        dateFormat:
+            {{ get_date_format()|tojson }},
+
+        timeFormat:
+            {{ get_time_format()|tojson }},
+
+        timezone:
+            {{ get_company_timezone_name()|tojson }}
+    };
+
+
+    /* =====================================================
+       MONEY FORMATTER
+    ====================================================== */
+
+    function money(value) {
+
+        const numericValue =
+            Number(value || 0);
+
+        const decimalPlaces =
+            Number.isInteger(
+                Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+            )
+                ? Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
+                : 2;
+
+
+        const formatted =
+            numericValue.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits:
+                        decimalPlaces,
+
+                    maximumFractionDigits:
+                        decimalPlaces
+                }
+            );
+
+
+        if (
+            COMPANY_SETTINGS.currencyPosition ===
+            "after"
+        ) {
+
+            return (
+                formatted +
+                " " +
+                COMPANY_SETTINGS.currencySymbol
+            );
+
+        }
+
+
+        return (
+            COMPANY_SETTINGS.currencySymbol +
+            formatted
+        );
+
+    }
+
+
+    /* =====================================================
+       DATA FROM FLASK
+    ====================================================== */
+
+    const financialData =
+        {{ financial_chart | tojson }};
+
+
+    const profitTrend =
+        {{ daily_profit_trend | tojson }};
+
+
+    /* =====================================================
+       FINANCIAL OVERVIEW CHART
+    ====================================================== */
+
+    const financialCanvas =
+        document.getElementById(
+            "financialOverviewChart"
+        );
+
+
+    if (financialCanvas) {
+
+        const financialOverviewChart =
+            new Chart(
+                financialCanvas,
+                {
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            financialData.map(
+                                item => item.label
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label: "Amount",
+
+                                data:
+                                    financialData.map(
+                                        item => item.total
+                                    ),
+
+                                backgroundColor: [
+                                    "#0d6efd",
+                                    "#ffc107",
+                                    "#dc3545"
+                                ],
+
+                                borderWidth: 0.5
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        plugins: {
+
+                            legend: {
+
+                                display: false
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return money(
+                                                context.raw
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return money(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           PREPARE FINANCIAL OVERVIEW EXPORT
+        ================================================== */
+
+        window.getFinancialOverviewImage =
+            function() {
+
+                return financialOverviewChart
+                    .toBase64Image(
+                        "image/png",
+                        1
+                    );
+
+            };
+
+    }
+
+
+    /* =====================================================
+       PROFIT TREND CHART
+    ====================================================== */
+
+    const profitTrendCanvas =
+        document.getElementById(
+            "profitTrendChart"
+        );
+
+
+    if (profitTrendCanvas) {
+
+        const profitTrendChart =
+            new Chart(
+                profitTrendCanvas,
+                {
+                    type: "line",
+
+                    data: {
+
+                        labels:
+                            profitTrend.map(
+                                item => item.date
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label: "Sales",
+
+                                data:
+                                    profitTrend.map(
+                                        item => item.sales
+                                    ),
+
+                                borderColor: "#0d6efd",
+
+                                backgroundColor:
+                                    "rgba(13, 110, 253, 0.08)",
+
+                                borderWidth: 2,
+
+                                tension: 0.35,
+
+                                fill: false
+
+                            },
+
+
+                            {
+
+                                label: "Expenses",
+
+                                data:
+                                    profitTrend.map(
+                                        item => item.expenses
+                                    ),
+
+                                borderColor: "#dc3545",
+
+                                backgroundColor:
+                                    "rgba(220, 53, 69, 0.08)",
+
+                                borderWidth: 2,
+
+                                tension: 0.35,
+
+                                fill: false
+
+                            },
+
+
+                            {
+
+                                label: "Net Profit",
+
+                                data:
+                                    profitTrend.map(
+                                        item => item.net_profit
+                                    ),
+
+                                borderColor: "#198754",
+
+                                backgroundColor:
+                                    "rgba(25, 135, 84, 0.08)",
+
+                                borderWidth: 2,
+
+                                tension: 0.35,
+
+                                fill: false
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+
+                        interaction: {
+
+                            mode: "index",
+
+                            intersect: false
+
+                        },
+
+
+                        plugins: {
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        function(context) {
+
+                                            return (
+                                                context.dataset.label +
+                                                ": " +
+                                                money(
+                                                    context.raw
+                                                )
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+
+                                    callback:
+                                        function(value) {
+
+                                            return money(
+                                                value
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        /* =================================================
+           PREPARE PROFIT TREND EXPORT
+        ================================================== */
+
+        window.getProfitTrendImage =
+            function() {
+
+                return profitTrendChart
+                    .toBase64Image(
+                        "image/png",
+                        1
+                    );
+
+            };
+
+    }
+
+
+    /* =====================================================
+       PREPARE EXPORT CHARTS
+    ====================================================== */
+
+    window.prepareProfitLossExport =
+        function() {
+
+            const financialImage =
+                document.getElementById(
+                    "exportFinancialOverview"
+                );
+
+
+            if (
+                financialImage &&
+                typeof window.getFinancialOverviewImage ===
+                "function"
+            ) {
+
+                financialImage.src =
+                    window.getFinancialOverviewImage();
+
+            }
+
+
+            const profitImage =
+                document.getElementById(
+                    "exportProfitTrend"
+                );
+
+
+            if (
+                profitImage &&
+                typeof window.getProfitTrendImage ===
+                "function"
+            ) {
+
+                profitImage.src =
+                    window.getProfitTrendImage();
+
+            }
+
+        };
+
+
+    /* =====================================================
+       DATE FILTER
+    ====================================================== */
+
+    const startDate =
+        document.getElementById(
+            "start_date"
+        );
+
+
+    const endDate =
+        document.getElementById(
+            "end_date"
+        );
+
+
+    if (startDate && endDate) {
+
+        startDate.addEventListener(
+            "change",
+            function() {
+
+                if (this.value) {
+
+                    endDate.min =
+                        this.value;
+
+                }
+
+            }
+        );
+
+
+        endDate.addEventListener(
+            "change",
+            function() {
+
+                if (this.value) {
+
+                    startDate.max =
+                        this.value;
+
+                }
+
+            }
+        );
+
+    }
+
+});
+
+
+/* =========================================================
+   PRINT / EXPORT PROFIT & LOSS REPORT
+========================================================= */
+
+function printProfitLossReport() {
+
+    if (
+        typeof window.prepareProfitLossExport ===
+        "function"
+    ) {
+
+        window.prepareProfitLossExport();
+
+    }
+
+
+    const exportSection =
+        document.getElementById(
+            "profitLossExportSection"
+        );
+
+
+    if (!exportSection) {
+
+        return;
+
+    }
+
+
+    const originalBody =
+        document.body.innerHTML;
+
+
+    const exportContent =
+        exportSection.innerHTML;
+
+
+    document.body.innerHTML =
+        exportContent;
+
+
+    window.print();
+
+
+    document.body.innerHTML =
+        originalBody;
+
+
+    window.location.reload();
+
+}
+
+</script>
+
+{% endblock %}

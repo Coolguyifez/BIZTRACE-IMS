@@ -1,0 +1,2228 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if sale %}
+Edit Sale
+{% else %}
+New Sale
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+<!-- =====================================================
+     HEADER
+====================================================== -->
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+    <div>
+
+        <div class="page-eyebrow">
+            SALES
+        </div>
+
+        <h1 class="page-title mb-1">
+            {% if sale %}
+                Edit Sale
+            {% else %}
+                New Sale
+            {% endif %}
+        </h1>
+
+        <p class="page-subtitle mb-0">
+
+            {% if sale %}
+                Update this customer transaction, products, payments and inventory.
+            {% else %}
+                Create a new customer transaction and update inventory automatically.
+            {% endif %}
+
+        </p>
+
+    </div>
+
+    <a
+        href="{{ url_for('sales.sales') }}"
+        class="btn btn-light border rounded-pill px-4"
+    >
+        <i class="bi bi-arrow-left me-2"></i>
+        Back to Sales
+    </a>
+
+</div>
+
+
+<!-- =====================================================
+     SALE FORM
+====================================================== -->
+
+<form method="POST" id="saleForm">
+
+    {{ form.hidden_tag() }}
+
+    <div class="row g-4">
+
+        <!-- =================================================
+             LEFT SIDE
+        ================================================== -->
+
+        <div class="col-xl-8">
+
+            <!-- =================================================
+                 CUSTOMER INFORMATION
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+
+                        <div class="icon-box">
+                            <i class="bi bi-person"></i>
+                        </div>
+
+                        <div>
+
+                            <h5 class="fw-semibold mb-1">
+                                Customer Information
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Select the customer for this transaction.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-8">
+
+                            <label class="form-label fw-semibold">
+                                Customer
+                            </label>
+
+                            {{ form.customer_id(
+                                class="form-select"
+                            ) }}
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label fw-semibold">
+                                Sale Date
+                            </label>
+
+                            {{ form.sale_date(
+                                class="form-control"
+                            ) }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PRODUCTS
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="icon-box">
+                                <i class="bi bi-cart3"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-semibold mb-1">
+                                    Products
+                                </h5>
+
+                                <p class="text-muted small mb-0">
+                                    Add one or more products to this sale.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <span
+                            class="badge bg-primary-subtle text-primary px-3 py-2"
+                            id="itemCount"
+                        >
+                            0 items
+                        </span>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         ADD PRODUCT
+                    ================================================== -->
+
+                    <div class="row g-2 align-items-end mb-4">
+
+                        <div class="col-md-7">
+
+                            <label class="form-label fw-semibold">
+                                Product
+                            </label>
+
+                            <select
+                                id="productSelector"
+                                class="form-select"
+                            >
+
+                                <option value="">
+                                    Select a product...
+                                </option>
+
+                                {% for product in products %}
+
+                                <option
+                                    value="{{ product.id }}"
+                                    data-name="{{ product.name }}"
+                                    data-sku="{{ product.sku }}"
+                                    data-price="{{ product.selling_price }}"
+                                    data-stock="{{ product.available_quantity }}"
+                                    data-unit="{{ product.unit }}"
+                                >
+
+                                    {{ product.name }}
+                                    — {{ product.sku }}
+                                    — {{ format_currency(product.selling_price) }}
+                                    — Available: {{ product.available_quantity }} {{ product.unit }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="col-md-3">
+
+                            <label class="form-label fw-semibold">
+                                Quantity
+                            </label>
+
+                            <input
+                                type="number"
+                                id="productQuantity"
+                                class="form-control"
+                                value="1"
+                                min="0.001"
+                                step="0.001"
+                            >
+
+                        </div>
+
+
+                        <div class="col-md-2">
+
+                            <button
+                                type="button"
+                                id="addProductBtn"
+                                class="btn btn-primary rounded-pill w-100"
+                            >
+
+                                <i class="bi bi-plus-lg"></i>
+                                Add
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         CART
+                    ================================================== -->
+
+                    <div class="table-responsive">
+
+                        <table
+                            class="table align-middle"
+                            id="cartTable"
+                        >
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Product
+                                    </th>
+
+                                    <th style="width: 130px;">
+                                        Quantity
+                                    </th>
+
+                                    <th>
+                                        Unit Price
+                                    </th>
+
+                                    <th>
+                                        Total
+                                    </th>
+
+                                    <th style="width: 50px;">
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="cartBody">
+
+                                <tr id="emptyCart">
+
+                                    <td
+                                        colspan="5"
+                                        class="text-center py-5 text-muted"
+                                    >
+
+                                        <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+
+                                        No products added yet.
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 NOTES
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <label class="form-label fw-semibold">
+                        Sale Notes
+                    </label>
+
+                    {{ form.notes(
+                        class="form-control",
+                        rows="3",
+                        placeholder="Optional notes about this sale..."
+                    ) }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RIGHT SIDE
+        ================================================== -->
+
+        <div class="col-xl-4">
+
+            <!-- =================================================
+                 SALE SUMMARY
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-4">
+
+                    <h5 class="fw-semibold mb-4">
+                        Sale Summary
+                    </h5>
+
+
+                    <div class="summary-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong id="subtotalDisplay">
+                            {{ format_currency(0) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label small fw-semibold">
+                            Discount
+                        </label>
+
+                        {{ form.discount(
+                            class="form-control",
+                            id="discountInput"
+                        ) }}
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label small fw-semibold">
+                            Tax
+                        </label>
+
+                        {{ form.tax(
+                            class="form-control",
+                            id="taxInput"
+                        ) }}
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <div class="summary-total">
+
+                        <span>
+                            Total
+                        </span>
+
+                        <strong id="totalDisplay">
+                            {{ format_currency(0) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="mt-3 p-3 rounded-3 bg-light">
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="text-muted">
+                                Balance
+                            </span>
+
+                            <strong id="balanceDisplay">
+                                {{ format_currency(0) }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PAYMENT
+            ================================================== -->
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="icon-box">
+                                <i class="bi bi-credit-card"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-semibold mb-1">
+                                    Payment
+                                </h5>
+
+                                <p class="text-muted small mb-0">
+                                    Record one or more payments for this sale.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-primary rounded-pill w-100 mb-4"
+                        id="addPaymentBtn"
+                    >
+
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add Payment
+
+                    </button>
+
+
+                    <!-- =================================================
+                         PAYMENT ROWS
+                    ================================================== -->
+
+                    <div id="paymentsContainer"></div>
+
+
+                    <!-- =================================================
+                         PAYMENT SUMMARY
+                    ================================================== -->
+
+                    <div class="border-top pt-3 mt-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+
+                            <span class="text-muted">
+                                Total Paid
+                            </span>
+
+                            <strong
+                                id="totalPaidDisplay"
+                                class="fs-5"
+                            >
+                                {{ format_currency(0) }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <span class="text-muted">
+                                Balance
+                            </span>
+
+                            <strong
+                                id="paymentBalanceDisplay"
+                                class="fs-5"
+                            >
+                                {{ format_currency(0) }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         COMPLETE SALE
+                    ================================================== -->
+
+                    <div class="mt-4">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary rounded-pill btn-lg w-100"
+                            id="completeSaleBtn"
+                        >
+
+                            <i class="bi bi-check2-circle me-1"></i>
+
+                            {% if sale %}
+                                Update Sale
+                            {% else %}
+                                Complete Sale
+                            {% endif %}
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+</div>
+
+
+<style>
+
+/* ============================================================
+   SUMMARY
+============================================================ */
+
+.summary-row,
+.summary-total {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+}
+
+.summary-total {
+
+    font-size: 1.2rem;
+
+}
+
+.summary-total strong {
+
+    font-size: 1.45rem;
+
+}
+
+
+/* ============================================================
+   PAYMENT DETAIL BOX
+============================================================ */
+
+.payment-detail-box {
+
+    background: rgba(13, 110, 253, 0.04);
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    border: 1px solid rgba(13, 110, 253, 0.08);
+
+}
+
+.payment-detail-title {
+
+    font-size: 0.85rem;
+
+    font-weight: 600;
+
+    margin-bottom: 14px;
+
+}
+
+
+/* ============================================================
+   PAYMENT ROW
+============================================================ */
+
+.payment-row {
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+.payment-row:hover {
+
+    border-color: rgba(13, 110, 253, 0.25) !important;
+
+}
+
+
+/* ============================================================
+   CART
+============================================================ */
+
+.cart-product-name {
+
+    font-weight: 600;
+
+}
+
+.cart-product-sku {
+
+    font-size: 0.75rem;
+
+    color: var(--bs-secondary-color);
+
+}
+
+.quantity-input {
+
+    min-width: 90px;
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    #cartTable {
+
+        min-width: 700px;
+
+    }
+
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+    /* =========================================================
+       COMPANY SETTINGS
+       These values come from the current logged-in company.
+    ========================================================= */
+
+    const COMPANY_SETTINGS = {
+        currencyCode:
+            {{ get_currency_code()|tojson }},
+
+        currencySymbol:
+            {{ get_currency_symbol()|tojson }},
+
+        decimalPlaces:
+            {{ get_decimal_places()|tojson }},
+
+        currencyPosition:
+            {{ get_currency_position()|tojson }},
+
+        dateFormat:
+            {{ get_date_format()|tojson }},
+
+        timeFormat:
+            {{ get_time_format()|tojson }},
+
+        timezone:
+            {{ get_company_timezone_name()|tojson }}
+    };
+
+    /* =========================================================
+       PRODUCT ELEMENTS
+    ========================================================= */
+
+    const productSelector =
+        document.getElementById("productSelector");
+
+    const productQuantity =
+        document.getElementById("productQuantity");
+
+    const addProductBtn =
+        document.getElementById("addProductBtn");
+
+    const cartBody =
+        document.getElementById("cartBody");
+
+    const itemCount =
+        document.getElementById("itemCount");
+
+    const discountInput =
+        document.getElementById("discountInput");
+
+    const taxInput =
+        document.getElementById("taxInput");
+
+
+    /* =========================================================
+       TOTAL ELEMENTS
+    ========================================================= */
+
+    const subtotalDisplay =
+        document.getElementById("subtotalDisplay");
+
+    const totalDisplay =
+        document.getElementById("totalDisplay");
+
+    const balanceDisplay =
+        document.getElementById("balanceDisplay");
+
+
+    /* =========================================================
+       PAYMENT ELEMENTS
+    ========================================================= */
+
+    const paymentsContainer =
+        document.getElementById("paymentsContainer");
+
+    const addPaymentBtn =
+        document.getElementById("addPaymentBtn");
+
+    const totalPaidDisplay =
+        document.getElementById("totalPaidDisplay");
+
+    const paymentBalanceDisplay =
+        document.getElementById("paymentBalanceDisplay");
+
+
+    /* =========================================================
+       SALE FORM
+    ========================================================= */
+
+    const saleForm =
+        document.getElementById("saleForm");
+
+
+    /* =========================================================
+       CART
+    ========================================================= */
+
+    let cart = [];
+
+
+    /* =========================================================
+       EXISTING SALE ITEMS
+    ========================================================= */
+
+    {% if sale %}
+
+    const existingSaleItems = [
+
+        {% for item in sale.items %}
+
+        {
+            id: {{ item.product_id }},
+            name: {{ item.product.name|tojson }},
+            sku: {{ item.product.sku|tojson }},
+            price: {{ item.unit_price|float }},
+            stock: {{
+                (
+                    item.product.quantity
+                    + item.quantity
+                    - item.product.reserved_quantity
+                )|float
+            }},
+            quantity: {{ item.quantity|float }},
+            unit: {{ item.product.unit|tojson }}
+        }
+
+        {% if not loop.last %},{% endif %}
+
+        {% endfor %}
+
+    ];
+
+    cart = existingSaleItems;
+
+    {% endif %}
+
+
+    /* =========================================================
+       EXISTING PAYMENTS
+    ========================================================= */
+
+    let existingPayments = [];
+
+
+    {% if sale %}
+
+    existingPayments = [
+
+        {% for payment in sale.payments %}
+
+        {
+            id: {{ payment.id }},
+            method: {{ payment.method|tojson }},
+            amount: {{ payment.amount|float }},
+            bank_name: {{ (payment.bank_name or "")|tojson }},
+            account_name: {{ (payment.account_name or "")|tojson }},
+            account_number: {{ (payment.account_number or "")|tojson }},
+            reference: {{ (payment.reference or "")|tojson }}
+        }
+
+        {% if not loop.last %},{% endif %}
+
+        {% endfor %}
+
+    ];
+
+    {% endif %}
+
+
+    /* =========================================================
+       MONEY FORMAT
+    ========================================================= */
+
+    function money(value) {
+
+        const numericValue =
+            Number(value || 0);
+
+
+        const decimalPlaces =
+            Number.isInteger(
+                Number(COMPANY_SETTINGS.decimalPlaces)
+            )
+                ? Number(COMPANY_SETTINGS.decimalPlaces)
+                : 2;
+
+
+        const formatted =
+            numericValue.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits:
+                        decimalPlaces,
+
+                    maximumFractionDigits:
+                        decimalPlaces
+                }
+            );
+
+
+        if (
+            COMPANY_SETTINGS.currencyPosition ===
+            "after"
+        ) {
+
+            return (
+                formatted +
+                " " +
+                COMPANY_SETTINGS.currencySymbol
+            );
+
+        }
+
+
+        return (
+            COMPANY_SETTINGS.currencySymbol +
+            formatted
+        );
+
+    }
+
+
+    /* =========================================================
+       GET SALE TOTAL
+    ========================================================= */
+
+    function getSaleTotal() {
+
+        /*
+         * Do not parse the formatted currency text.
+         *
+         * Instead calculate the actual numeric total
+         * from the cart, discount and tax.
+         */
+
+        let subtotal = 0;
+
+
+        cart.forEach(function (item) {
+
+            subtotal +=
+                Number(item.price) *
+                Number(item.quantity);
+
+        });
+
+
+        const discount =
+            Number(discountInput.value) || 0;
+
+
+        const tax =
+            Number(taxInput.value) || 0;
+
+
+        return Math.max(
+            0,
+            subtotal -
+            discount +
+            tax
+        );
+
+    }
+
+
+    /* =========================================================
+       RENDER PRODUCT CART
+    ========================================================= */
+
+    function renderCart() {
+
+        cartBody.innerHTML = "";
+
+
+        if (cart.length === 0) {
+
+            cartBody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="5"
+                        class="text-center py-5 text-muted"
+                    >
+
+                        <i
+                            class="bi bi-cart-x fs-2 d-block mb-2"
+                        ></i>
+
+                        No products added yet.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+
+
+        cart.forEach(function (item, index) {
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>
+
+                    <div class="cart-product-name text-dark">
+                        ${item.name}
+                    </div>
+
+                    <div class="cart-product-sku text-muted">
+                        SKU: <code>${item.sku}</code>
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="product_id"
+                        value="${item.id}"
+                    >
+
+                </td>
+
+
+                <td>
+
+                    <input
+                        type="number"
+                        name="quantity"
+                        class="form-control form-control-sm quantity-input"
+                        value="${item.quantity}"
+                        min="0.001"
+                        max="${item.stock}"
+                        step="0.001"
+                        data-index="${index}"
+                    >
+
+                </td>
+
+
+                <td class="text-muted">
+                    ${money(item.price)}
+                </td>
+
+
+                <td class="fw-semibold text-dark">
+                    ${money(
+                        Number(item.price) *
+                        Number(item.quantity)
+                    )}
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger remove-product"
+                        data-index="${index}"
+                        title="Remove product"
+                    >
+
+                        <i class="bi bi-trash"></i>
+
+                    </button>
+
+                </td>
+
+            `;
+
+
+            cartBody.appendChild(row);
+
+        });
+
+
+        itemCount.textContent =
+            cart.length +
+            (
+                cart.length === 1
+                    ? " item"
+                    : " items"
+            );
+
+
+        calculateTotals();
+
+    }
+
+
+    /* =========================================================
+       CALCULATE SALE TOTALS
+    ========================================================= */
+
+    function calculateTotals() {
+
+        let subtotal = 0;
+
+
+        cart.forEach(function (item) {
+
+            subtotal +=
+                Number(item.price) *
+                Number(item.quantity);
+
+        });
+
+
+        let discount =
+            Number(discountInput.value) || 0;
+
+
+        let tax =
+            Number(taxInput.value) || 0;
+
+
+        if (discount < 0) {
+
+            discount = 0;
+
+            discountInput.value =
+                "0.00";
+
+        }
+
+
+        if (discount > subtotal) {
+
+            discount = subtotal;
+
+            discountInput.value =
+                subtotal.toFixed(
+                    COMPANY_SETTINGS.decimalPlaces
+                );
+
+        }
+
+
+        if (tax < 0) {
+
+            tax = 0;
+
+            taxInput.value =
+                "0.00";
+
+        }
+
+
+        const total =
+            Math.max(
+                0,
+                subtotal -
+                discount +
+                tax
+            );
+
+
+        subtotalDisplay.textContent =
+            money(subtotal);
+
+
+        totalDisplay.textContent =
+            money(total);
+
+
+        updatePaymentSummary();
+
+    }
+
+
+    /* =========================================================
+       CREATE PAYMENT ROW
+    ========================================================= */
+
+    function createPaymentRow(paymentData = null) {
+
+        const row =
+            document.createElement("div");
+
+
+        row.className =
+            "payment-row border rounded-3 p-3 mb-3";
+
+
+        row.innerHTML = `
+
+            <input
+                type="hidden"
+                name="payment_id"
+                value="${paymentData?.id || ''}"
+            >
+
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div class="fw-semibold">
+
+                    <i class="bi bi-wallet2 me-2"></i>
+
+                    Payment
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger remove-payment"
+                >
+
+                    <i class="bi bi-trash me-1"></i>
+
+                    Remove
+
+                </button>
+
+            </div>
+
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label small fw-semibold">
+                        Payment Method
+                    </label>
+
+                    <select
+                        name="payment_method"
+                        class="form-select payment-method"
+                    >
+
+                        <option value="Cash">
+                            Cash
+                        </option>
+
+                        <option value="Bank Transfer">
+                            Bank Transfer
+                        </option>
+
+                        <option value="POS">
+                            POS
+                        </option>
+
+                        <option value="Card">
+                            Card
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label class="form-label small fw-semibold">
+                        Amount
+                    </label>
+
+                    <input
+                        type="number"
+                        name="payment_amount"
+                        class="form-control payment-amount"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="payment-detail-box payment-detail-fields mt-3"
+                style="display:none;"
+            >
+
+                <div class="payment-detail-title">
+
+                    <i class="bi bi-bank me-1"></i>
+
+                    <span class="payment-detail-heading">
+                        Payment Details
+                    </span>
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small">
+                            Bank Paid Into
+                        </label>
+
+                        <input
+                            type="text"
+                            name="bank_name"
+                            class="form-control bank-name-input"
+                            placeholder="e.g. FirstBank"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6 account-name-field">
+
+                        <label class="form-label small">
+                            Account Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="account_name"
+                            class="form-control account-name-input"
+                            placeholder="Sender account name"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6 account-number-field">
+
+                        <label class="form-label small">
+                            Account Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="account_number"
+                            class="form-control account-number-input"
+                            placeholder="Sender account number"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small">
+
+                            <span class="reference-label">
+                                Payment Reference
+                            </span>
+
+                        </label>
+
+                        <input
+                            type="text"
+                            name="payment_reference"
+                            class="form-control reference-input"
+                            placeholder="Transaction reference"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        paymentsContainer.appendChild(row);
+
+
+        const method =
+            row.querySelector(".payment-method");
+
+        const detailFields =
+            row.querySelector(".payment-detail-fields");
+
+        const heading =
+            row.querySelector(".payment-detail-heading");
+
+        const accountNameField =
+            row.querySelector(".account-name-field");
+
+        const accountNumberField =
+            row.querySelector(".account-number-field");
+
+        const referenceLabel =
+            row.querySelector(".reference-label");
+
+        const referenceInput =
+            row.querySelector(".reference-input");
+
+        const bankNameInput =
+            row.querySelector(".bank-name-input");
+
+        const accountNameInput =
+            row.querySelector(".account-name-input");
+
+        const accountNumberInput =
+            row.querySelector(".account-number-input");
+
+        const amountInput =
+            row.querySelector(".payment-amount");
+
+        const removeButton =
+            row.querySelector(".remove-payment");
+
+
+        if (paymentData) {
+
+            method.value =
+                paymentData.method || "Cash";
+
+            amountInput.value =
+                paymentData.amount ?? "";
+
+            bankNameInput.value =
+                paymentData.bank_name || "";
+
+            accountNameInput.value =
+                paymentData.account_name || "";
+
+            accountNumberInput.value =
+                paymentData.account_number || "";
+
+            referenceInput.value =
+                paymentData.reference || "";
+
+        }
+
+
+        function updatePaymentDetails() {
+
+            const selectedMethod =
+                method.value;
+
+
+            if (
+                selectedMethod ===
+                "Bank Transfer"
+            ) {
+
+                detailFields.style.display =
+                    "block";
+
+                heading.textContent =
+                    "Bank Transfer Details";
+
+                accountNameField.style.display =
+                    "";
+
+                accountNumberField.style.display =
+                    "";
+
+                referenceLabel.textContent =
+                    "Transfer Reference";
+
+                referenceInput.placeholder =
+                    "Transaction reference";
+
+                bankNameInput.placeholder =
+                    "e.g. FirstBank";
+
+                return;
+
+            }
+
+
+            if (
+                selectedMethod ===
+                "POS"
+            ) {
+
+                detailFields.style.display =
+                    "block";
+
+                heading.textContent =
+                    "POS Payment Details";
+
+                accountNameField.style.display =
+                    "none";
+
+                accountNumberField.style.display =
+                    "none";
+
+                referenceLabel.textContent =
+                    "POS Reference";
+
+                referenceInput.placeholder =
+                    "POS transaction reference";
+
+                bankNameInput.placeholder =
+                    "e.g. FirstBank";
+
+                return;
+
+            }
+
+
+            detailFields.style.display =
+                "none";
+
+        }
+
+
+        updatePaymentDetails();
+
+
+        method.addEventListener(
+            "change",
+            function () {
+
+                const selectedMethod =
+                    this.value;
+
+
+                if (
+                    selectedMethod !==
+                    "Bank Transfer"
+                    &&
+                    selectedMethod !==
+                    "POS"
+                ) {
+
+                    bankNameInput.value =
+                        "";
+
+                    accountNameInput.value =
+                        "";
+
+                    accountNumberInput.value =
+                        "";
+
+                    referenceInput.value =
+                        "";
+
+                }
+
+
+                if (
+                    selectedMethod ===
+                    "POS"
+                ) {
+
+                    accountNameInput.value =
+                        "";
+
+                    accountNumberInput.value =
+                        "";
+
+                }
+
+
+                updatePaymentDetails();
+
+                updatePaymentSummary();
+
+            }
+        );
+
+
+        amountInput.addEventListener(
+            "input",
+            function () {
+
+                updatePaymentSummary();
+
+            }
+        );
+
+
+        removeButton.addEventListener(
+            "click",
+            function () {
+
+                const rows =
+                    paymentsContainer.querySelectorAll(
+                        ".payment-row"
+                    );
+
+
+                if (rows.length <= 1) {
+
+                    const hiddenId =
+                        row.querySelector(
+                            'input[name="payment_id"]'
+                        );
+
+
+                    amountInput.value =
+                        "";
+
+
+                    if (hiddenId) {
+
+                        hiddenId.value =
+                            "";
+
+                    }
+
+
+                    bankNameInput.value =
+                        "";
+
+                    accountNameInput.value =
+                        "";
+
+                    accountNumberInput.value =
+                        "";
+
+                    referenceInput.value =
+                        "";
+
+
+                    updatePaymentSummary();
+
+                    return;
+
+                }
+
+
+                row.remove();
+
+                updatePaymentSummary();
+
+            }
+        );
+
+
+        updatePaymentSummary();
+
+    }
+
+
+    /* =========================================================
+       ADD PAYMENT
+    ========================================================= */
+
+    addPaymentBtn.addEventListener(
+        "click",
+        function () {
+
+            createPaymentRow();
+
+        }
+    );
+
+
+    /* =========================================================
+       GET TOTAL PAID
+    ========================================================= */
+
+    function getTotalPaid() {
+
+        let totalPaid = 0;
+
+
+        const paymentInputs =
+            document.querySelectorAll(
+                ".payment-amount"
+            );
+
+
+        paymentInputs.forEach(function (input) {
+
+            const amount =
+                Number(input.value) || 0;
+
+
+            totalPaid += amount;
+
+        });
+
+
+        return totalPaid;
+
+    }
+
+
+    /* =========================================================
+       UPDATE PAYMENT SUMMARY
+    ========================================================= */
+
+    function updatePaymentSummary() {
+
+        const total =
+            getSaleTotal();
+
+
+        const paid =
+            getTotalPaid();
+
+
+        const balance =
+            total - paid;
+
+
+        totalPaidDisplay.textContent =
+            money(paid);
+
+
+        if (balance > 0) {
+
+            paymentBalanceDisplay.textContent =
+                money(balance);
+
+            paymentBalanceDisplay.classList.remove(
+                "text-success"
+            );
+
+            paymentBalanceDisplay.classList.add(
+                "text-danger"
+            );
+
+        }
+
+        else if (balance === 0) {
+
+            paymentBalanceDisplay.textContent =
+                money(0);
+
+            paymentBalanceDisplay.classList.remove(
+                "text-danger"
+            );
+
+            paymentBalanceDisplay.classList.add(
+                "text-success"
+            );
+
+        }
+
+        else {
+
+            paymentBalanceDisplay.textContent =
+                money(Math.abs(balance));
+
+            paymentBalanceDisplay.classList.remove(
+                "text-success"
+            );
+
+            paymentBalanceDisplay.classList.add(
+                "text-danger"
+            );
+
+        }
+
+
+        if (balanceDisplay) {
+
+            balanceDisplay.textContent =
+                money(Math.max(balance, 0));
+
+
+            if (balance > 0) {
+
+                balanceDisplay.classList.remove(
+                    "text-success"
+                );
+
+                balanceDisplay.classList.add(
+                    "text-danger"
+                );
+
+            } else {
+
+                balanceDisplay.classList.remove(
+                    "text-danger"
+                );
+
+                balanceDisplay.classList.add(
+                    "text-success"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       ADD PRODUCT
+    ========================================================= */
+
+    addProductBtn.addEventListener(
+        "click",
+        function () {
+
+            const selected =
+                productSelector.options[
+                    productSelector.selectedIndex
+                ];
+
+
+            if (
+                !selected ||
+                !selected.value
+            ) {
+
+                alert(
+                    "Please select a product."
+                );
+
+                return;
+
+            }
+
+
+            const id =
+                Number(selected.value);
+
+            const name =
+                selected.dataset.name;
+
+            const sku =
+                selected.dataset.sku;
+
+            const price =
+                Number(selected.dataset.price);
+
+            const stock =
+                Number(selected.dataset.stock);
+
+            const unit =
+                selected.dataset.unit ||
+                "piece";
+
+            const quantity =
+                Number(productQuantity.value);
+
+
+            if (
+                !quantity ||
+                quantity <= 0
+            ) {
+
+                alert(
+                    "Enter a valid quantity."
+                );
+
+                return;
+
+            }
+
+
+            if (quantity > stock) {
+
+                alert(
+                    `Only ${stock} ${unit}(s) are available in stock.`
+                );
+
+                return;
+
+            }
+
+
+            const existing =
+                cart.find(function (item) {
+
+                    return item.id === id;
+
+                });
+
+
+            if (existing) {
+
+                const newQuantity =
+                    Number(existing.quantity) +
+                    quantity;
+
+
+                if (newQuantity > stock) {
+
+                    alert(
+                        `You cannot exceed the available stock of ${stock} ${unit}(s).`
+                    );
+
+                    return;
+
+                }
+
+
+                existing.quantity =
+                    newQuantity;
+
+            } else {
+
+                cart.push({
+
+                    id: id,
+
+                    name: name,
+
+                    sku: sku,
+
+                    price: price,
+
+                    stock: stock,
+
+                    unit: unit,
+
+                    quantity: quantity
+
+                });
+
+            }
+
+
+            productSelector.value =
+                "";
+
+            productQuantity.value =
+                1;
+
+
+            renderCart();
+
+        }
+    );
+
+
+    /* =========================================================
+       REMOVE PRODUCT
+    ========================================================= */
+
+    cartBody.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".remove-product"
+                );
+
+
+            if (!button) {
+
+                return;
+
+            }
+
+
+            const index =
+                Number(button.dataset.index);
+
+
+            cart.splice(
+                index,
+                1
+            );
+
+
+            renderCart();
+
+        }
+    );
+
+
+    /* =========================================================
+       CHANGE PRODUCT QUANTITY
+    ========================================================= */
+
+    cartBody.addEventListener(
+        "input",
+        function (event) {
+
+            if (
+                !event.target.classList.contains(
+                    "quantity-input"
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const index =
+                Number(
+                    event.target.dataset.index
+                );
+
+
+            if (
+                !cart[index]
+            ) {
+
+                return;
+
+            }
+
+
+            let quantity =
+                Number(
+                    event.target.value
+                );
+
+
+            if (
+                !quantity ||
+                quantity <= 0
+            ) {
+
+                quantity =
+                    0.001;
+
+            }
+
+
+            const stock =
+                Number(
+                    cart[index].stock
+                );
+
+
+            if (
+                quantity > stock
+            ) {
+
+                quantity =
+                    stock;
+
+                event.target.value =
+                    stock;
+
+            }
+
+
+            cart[index].quantity =
+                quantity;
+
+
+            renderCart();
+
+        }
+    );
+
+
+    /* =========================================================
+       DISCOUNT
+    ========================================================= */
+
+    discountInput.addEventListener(
+        "input",
+        function () {
+
+            calculateTotals();
+
+        }
+    );
+
+
+    /* =========================================================
+       TAX
+    ========================================================= */
+
+    taxInput.addEventListener(
+        "input",
+        function () {
+
+            calculateTotals();
+
+        }
+    );
+
+
+    /* =========================================================
+       FORM SUBMISSION
+    ========================================================= */
+
+    saleForm.addEventListener(
+        "submit",
+        function (event) {
+
+            if (
+                cart.length === 0
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please add at least one product before completing the sale."
+                );
+
+                return;
+
+            }
+
+
+            const total =
+                getSaleTotal();
+
+
+            const paid =
+                getTotalPaid();
+
+
+            const paymentRows =
+                document.querySelectorAll(
+                    ".payment-row"
+                );
+
+
+            for (
+                const row of paymentRows
+            ) {
+
+                const amountInput =
+                    row.querySelector(
+                        ".payment-amount"
+                    );
+
+
+                const amount =
+                    Number(
+                        amountInput.value
+                    ) || 0;
+
+
+                if (
+                    amount < 0
+                ) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Payment amount cannot be negative."
+                    );
+
+                    amountInput.focus();
+
+                    return;
+
+                }
+
+            }
+
+
+            if (
+                paid > total
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Total payments cannot be greater than the sale total."
+                );
+
+                return;
+
+            }
+
+
+            const confirmed =
+                confirm(
+
+                    {% if sale %}
+
+                    "Update this sale and inventory?"
+
+                    {% else %}
+
+                    "Complete this sale and update inventory?"
+
+                    {% endif %}
+
+                );
+
+
+            if (!confirmed) {
+
+                event.preventDefault();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       INITIAL PAYMENT ROWS
+    ========================================================= */
+
+    {% if sale %}
+
+        if (
+            existingPayments.length > 0
+        ) {
+
+            existingPayments.forEach(
+                function (payment) {
+
+                    createPaymentRow(
+                        payment
+                    );
+
+                }
+            );
+
+        } else {
+
+            createPaymentRow();
+
+        }
+
+    {% else %}
+
+        createPaymentRow();
+
+    {% endif %}
+
+
+    /* =========================================================
+       INITIAL PRODUCT CART
+    ========================================================= */
+
+    renderCart();
+
+
+    /* =========================================================
+       INITIAL PAYMENT SUMMARY
+    ========================================================= */
+
+    updatePaymentSummary();
+
+});
+
+</script>
+
+{% endblock %}

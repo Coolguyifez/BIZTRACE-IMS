@@ -1,0 +1,1091 @@
+{% extends "base.html" %}
+
+{% block title %}
+Notifications
+{% endblock %}
+
+{% block content %}
+
+<div class="notification-page">
+
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
+
+    <section class="notification-header">
+
+        <div class="notification-header-main">
+
+            <div class="notification-header-icon">
+                <i class="bi bi-bell-fill"></i>
+            </div>
+
+            <div>
+
+                <div class="notification-eyebrow">
+                    NOTIFICATION CENTER
+                </div>
+
+                <h1 class="notification-page-title">
+                    Notifications
+                </h1>
+
+                <p class="notification-page-subtitle">
+                    Keep track of important activity across your business.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="notification-header-actions">
+
+            <button
+                type="button"
+                class="notification-btn notification-btn-secondary"
+                id="enablePushNotifications"
+            >
+                <i class="bi bi-bell"></i>
+                <span>Browser notifications</span>
+            </button>
+
+
+            <button
+                type="button"
+                class="notification-btn notification-btn-primary mark-all-notifications"
+            >
+                <i class="bi bi-check2-all"></i>
+                <span>Mark all as read</span>
+            </button>
+
+
+            {% if total_count > 0 %}
+
+                <button
+                    type="button"
+                    class="notification-btn notification-btn-danger"
+                    id="deleteAllNotifications"
+                >
+                    <i class="bi bi-trash3"></i>
+                    <span>Delete all</span>
+                </button>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         SUMMARY
+    ========================================================== -->
+
+    <section class="notification-summary">
+
+        <div class="notification-summary-card">
+
+            <div class="notification-summary-icon total">
+                <i class="bi bi-bell"></i>
+            </div>
+
+            <div class="notification-summary-content">
+
+                <span>
+                    Total
+                </span>
+
+                <strong id="notificationPageTotalCount">
+                    {{ total_count }}
+                </strong>
+
+            </div>
+
+            <div class="notification-summary-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </div>
+
+
+        <div class="notification-summary-card">
+
+            <div class="notification-summary-icon unread">
+                <i class="bi bi-envelope"></i>
+            </div>
+
+            <div class="notification-summary-content">
+
+                <span>
+                    Unread
+                </span>
+
+                <strong id="notificationPageUnreadCount">
+                    {{ unread_count }}
+                </strong>
+
+            </div>
+
+            <div class="notification-summary-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+    <!-- =========================================================
+         TOOLBAR
+    ========================================================== -->
+
+    <section class="notification-toolbar">
+
+        <div>
+
+            <h2 class="notification-section-title">
+                Activity
+            </h2>
+
+            <p class="notification-section-subtitle">
+                Recent updates and alerts from your business.
+            </p>
+
+        </div>
+
+
+        <div class="notification-filter">
+
+            <a
+                href="{{ url_for(
+                    'notifications.index',
+                    filter='all'
+                ) }}"
+                class="
+                    notification-filter-item
+                    {% if filter_type == 'all' %}active{% endif %}
+                "
+            >
+                <span>All</span>
+                <small>{{ total_count }}</small>
+            </a>
+
+
+            <a
+                href="{{ url_for(
+                    'notifications.index',
+                    filter='unread'
+                ) }}"
+                class="
+                    notification-filter-item
+                    {% if filter_type == 'unread' %}active{% endif %}
+                "
+            >
+                <span>Unread</span>
+                <small>{{ unread_count }}</small>
+            </a>
+
+
+            <a
+                href="{{ url_for(
+                    'notifications.index',
+                    filter='read'
+                ) }}"
+                class="
+                    notification-filter-item
+                    {% if filter_type == 'read' %}active{% endif %}
+                "
+            >
+                <span>Read</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         NOTIFICATION LIST
+    ========================================================== -->
+
+    <section class="notification-list">
+
+        {% for recipient in recipients %}
+
+            {% set notification = recipient.notification %}
+
+            <article
+                class="
+                    notification-item
+                    {% if not recipient.is_read %}
+                        unread
+                    {% endif %}
+                "
+                data-notification-id="{{ notification.id }}"
+            >
+
+                <!-- =================================================
+                     LEFT ACCENT
+                ================================================== -->
+
+                <div class="notification-item-accent"></div>
+
+
+                <!-- =================================================
+                     ICON
+                ================================================== -->
+
+                <div
+                    class="
+                        notification-item-icon
+                        {{ notification.category }}
+                    "
+                >
+
+                    {% if notification.category == "sale" %}
+
+                        <i class="bi bi-cart-check"></i>
+
+                    {% elif notification.category == "payment" %}
+
+                        <i class="bi bi-credit-card"></i>
+
+                    {% elif notification.category == "purchase" %}
+
+                        <i class="bi bi-bag"></i>
+
+                    {% elif notification.category == "inventory" %}
+
+                        <i class="bi bi-box-seam"></i>
+
+                    {% elif notification.category == "expense" %}
+
+                        <i class="bi bi-wallet2"></i>
+
+                    {% elif notification.category == "cash_deposit" %}
+
+                        <i class="bi bi-bank"></i>
+
+                    {% elif notification.category == "receivable" %}
+
+                        <i class="bi bi-arrow-down-circle"></i>
+
+                    {% elif notification.category == "payable" %}
+
+                        <i class="bi bi-arrow-up-circle"></i>
+
+                    {% elif notification.category == "financial" %}
+
+                        <i class="bi bi-graph-up-arrow"></i>
+
+                    {% elif notification.category == "security" %}
+
+                        <i class="bi bi-shield-lock"></i>
+
+                    {% else %}
+
+                        <i class="bi bi-info-lg"></i>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- =================================================
+                     MAIN CONTENT
+                ================================================== -->
+
+                <div
+                    class="notification-item-body"
+                    role="button"
+                    tabindex="0"
+                    onclick="openNotification({{ notification.id }})"
+                    onkeydown="handleNotificationKeydown(
+                        event,
+                        {{ notification.id }}
+                    )"
+                >
+
+                    <div class="notification-item-top">
+
+                        <div class="notification-item-heading">
+
+                            <h3>
+                                {{ notification.title }}
+                            </h3>
+
+
+                            {% if not recipient.is_read %}
+
+                                <span class="notification-new">
+                                    New
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <time
+                            class="notification-item-time"
+                            data-notification-time="{{ notification.created_at.isoformat() }}"
+                        >
+                            {{ format_company_datetime(
+                                notification.created_at
+                            ) }}
+                        </time>
+
+                    </div>
+
+
+                    <p class="notification-item-message">
+                        {{ notification.message }}
+                    </p>
+
+
+                    <div class="notification-item-meta">
+
+                        <!-- =================================================
+                             PRIORITY / DELIVERY CATEGORY
+                        ================================================== -->
+
+                        {% if notification.priority == "critical" %}
+
+                            <span class="notification-tag critical">
+                                <i class="bi bi-exclamation-circle"></i>
+                                Critical
+                            </span>
+
+                        {% elif notification.priority == "high" %}
+
+                            <span class="notification-tag important">
+                                <i class="bi bi-exclamation-circle"></i>
+                                Important
+                            </span>
+
+                        {% else %}
+
+                            <span class="notification-tag">
+
+                                {% if notification.category == "cash_deposit" %}
+
+                                    Cash Deposits
+
+                                {% else %}
+
+                                    {{ notification.category
+                                        |replace("_", " ")
+                                        |title }}
+
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+
+                        <!-- =================================================
+                             SOUND INDICATOR
+                        ================================================== -->
+
+                        {% if notification.sound %}
+
+                            <span
+                                class="
+                                    notification-reference
+                                    notification-sound-indicator
+                                "
+                                title="Notification sound"
+                            >
+
+                                {% if notification.sound == "success" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    Success sound
+
+                                {% elif notification.sound == "system" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    System sound
+
+                                {% elif notification.sound == "error" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    Error sound
+
+                                {% elif notification.sound == "low-stock" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    Low stock sound
+
+                                {% elif notification.sound == "gross-loss" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    Gross loss sound
+
+                                {% elif notification.sound == "net-loss" %}
+
+                                    <i class="bi bi-volume-up"></i>
+                                    Net loss sound
+
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+
+                        <!-- =================================================
+                             REFERENCE
+                        ================================================== -->
+
+                        {% if notification.reference_type %}
+
+                            <span class="notification-reference">
+
+                                <i class="bi bi-link-45deg"></i>
+
+                                {{ notification.reference_type }}
+
+                                {% if notification.reference_id %}
+
+                                    <span>
+                                        #{{ notification.reference_id }}
+                                    </span>
+
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
+
+                <div class="notification-item-actions">
+
+                    {% if not recipient.is_read %}
+
+                        <span
+                            class="notification-unread-dot"
+                            title="Unread"
+                            aria-label="Unread notification"
+                        ></span>
+
+                    {% endif %}
+
+
+                    <button
+                        type="button"
+                        class="notification-action notification-delete-btn"
+                        data-notification-id="{{ notification.id }}"
+                        title="Delete notification"
+                        aria-label="Delete notification"
+                    >
+                        <i class="bi bi-trash3"></i>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="notification-action notification-open-btn"
+                        data-notification-id="{{ notification.id }}"
+                        title="Open notification"
+                        aria-label="Open notification"
+                    >
+                        <i class="bi bi-arrow-up-right"></i>
+                    </button>
+
+                </div>
+
+            </article>
+
+        {% else %}
+
+            <!-- =================================================
+                 EMPTY STATE
+            ================================================== -->
+
+            <div class="notification-empty">
+
+                <div class="notification-empty-visual">
+
+                    <div class="notification-empty-circle">
+                        <i class="bi bi-bell-slash"></i>
+                    </div>
+
+                </div>
+
+                <h3>
+                    No notifications
+                </h3>
+
+                <p>
+                    You're all caught up. New activity will appear here.
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+    </section>
+
+
+    <!-- =========================================================
+         PAGINATION
+    ========================================================== -->
+
+    {% if pagination.pages > 1 %}
+
+        <div class="notification-pagination">
+
+            <nav aria-label="Notification pages">
+
+                <ul class="pagination mb-0">
+
+                    {% if pagination.has_prev %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="{{ url_for(
+                                    'notifications.index',
+                                    filter=filter_type,
+                                    page=pagination.prev_num
+                                ) }}"
+                                aria-label="Previous page"
+                            >
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+
+                    {% for page_number in pagination.iter_pages(
+                        left_edge=1,
+                        left_current=1,
+                        right_current=1,
+                        right_edge=1
+                    ) %}
+
+                        {% if page_number %}
+
+                            <li
+                                class="
+                                    page-item
+                                    {% if page_number == pagination.page %}
+                                        active
+                                    {% endif %}
+                                "
+                            >
+
+                                <a
+                                    class="page-link"
+                                    href="{{ url_for(
+                                        'notifications.index',
+                                        filter=filter_type,
+                                        page=page_number
+                                    ) }}"
+                                >
+                                    {{ page_number }}
+                                </a>
+
+                            </li>
+
+                        {% else %}
+
+                            <li class="page-item disabled">
+
+                                <span class="page-link">
+                                    …
+                                </span>
+
+                            </li>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    {% if pagination.has_next %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="{{ url_for(
+                                    'notifications.index',
+                                    filter=filter_type,
+                                    page=pagination.next_num
+                                ) }}"
+                                aria-label="Next page"
+                            >
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- =============================================================
+     PAGE JAVASCRIPT
+============================================================== -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    /* =========================================================
+       OPEN NOTIFICATION
+    ========================================================== */
+
+    window.openNotification = function (notificationId) {
+
+        if (!notificationId) {
+            return;
+        }
+
+        window.location.href =
+            "{{ url_for(
+                'notifications.detail',
+                notification_id=0
+            ) }}"
+            .replace(
+                "/0",
+                "/" + notificationId
+            );
+
+    };
+
+
+    /* =========================================================
+       KEYBOARD OPEN
+    ========================================================== */
+
+    window.handleNotificationKeydown = function (
+        event,
+        notificationId
+    ) {
+
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+
+            event.preventDefault();
+
+            openNotification(notificationId);
+
+        }
+
+    };
+
+
+    /* =========================================================
+       DELETE SINGLE
+    ========================================================== */
+
+    async function deleteNotification(notificationId) {
+
+        if (!notificationId) {
+            return;
+        }
+
+
+        const confirmed = window.confirm(
+            "Delete this notification?"
+        );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `/notifications/api/${notificationId}/delete`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+
+                    credentials: "same-origin"
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to delete notification."
+                );
+
+            }
+
+
+            const item =
+                document.querySelector(
+                    `.notification-item[data-notification-id="${notificationId}"]`
+                );
+
+
+            if (!item) {
+                return;
+            }
+
+
+            item.classList.add(
+                "notification-removing"
+            );
+
+
+            setTimeout(function () {
+
+                item.remove();
+
+                /*
+                 * Do not recalculate global counts from the
+                 * current pagination page.
+                 *
+                 * The backend response is the source of truth.
+                 */
+
+                updateUnreadCount(
+                    data.unread_count
+                );
+
+                updateTotalCount(
+                    -1
+                );
+
+                checkEmptyState();
+
+            }, 250);
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete notification error:",
+                error
+            );
+
+
+            alert(
+                error.message ||
+                "Unable to delete notification."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       DELETE ALL
+    ========================================================== */
+
+    async function deleteAllNotifications() {
+
+        const confirmed = window.confirm(
+            "Delete all your notifications?\n\n" +
+            "This cannot be undone."
+        );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                "/notifications/api/delete-all",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+
+                    credentials: "same-origin"
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to delete notifications."
+                );
+
+            }
+
+
+            window.location.reload();
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete all notifications error:",
+                error
+            );
+
+
+            alert(
+                error.message ||
+                "Unable to delete notifications."
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       UPDATE UNREAD COUNT
+    ========================================================== */
+
+    function updateUnreadCount(count) {
+
+        const unreadElement =
+            document.getElementById(
+                "notificationPageUnreadCount"
+            );
+
+
+        if (unreadElement) {
+
+            unreadElement.textContent =
+                Number.isFinite(Number(count))
+                    ? Number(count)
+                    : 0;
+
+        }
+
+    }
+
+
+    /* =========================================================
+       UPDATE TOTAL COUNT
+    ========================================================== */
+
+    function updateTotalCount(change) {
+
+        const totalElement =
+            document.getElementById(
+                "notificationPageTotalCount"
+            );
+
+
+        if (!totalElement) {
+            return;
+        }
+
+
+        const current =
+            parseInt(
+                totalElement.textContent,
+                10
+            ) || 0;
+
+
+        totalElement.textContent =
+            Math.max(
+                0,
+                current + change
+            );
+
+    }
+
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================== */
+
+    function checkEmptyState() {
+
+        const list =
+            document.querySelector(
+                ".notification-list"
+            );
+
+
+        if (!list) {
+            return;
+        }
+
+
+        const items =
+            list.querySelectorAll(
+                ".notification-item"
+            );
+
+
+        if (items.length > 0) {
+            return;
+        }
+
+
+        list.innerHTML = `
+
+            <div class="notification-empty">
+
+                <div class="notification-empty-visual">
+
+                    <div class="notification-empty-circle">
+
+                        <i class="bi bi-bell-slash"></i>
+
+                    </div>
+
+                </div>
+
+                <h3>
+                    No notifications
+                </h3>
+
+                <p>
+                    You're all caught up.
+                    New activity will appear here.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* =========================================================
+       EVENT DELEGATION
+    ========================================================== */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+
+            /* -----------------------------------------------
+               DELETE
+            ------------------------------------------------ */
+
+            const deleteButton =
+                event.target.closest(
+                    ".notification-delete-btn"
+                );
+
+
+            if (deleteButton) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+
+                deleteNotification(
+                    deleteButton.dataset.notificationId
+                );
+
+                return;
+
+            }
+
+
+            /* -----------------------------------------------
+               OPEN
+            ------------------------------------------------ */
+
+            const openButton =
+                event.target.closest(
+                    ".notification-open-btn"
+                );
+
+
+            if (openButton) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+
+                openNotification(
+                    openButton.dataset.notificationId
+                );
+
+                return;
+
+            }
+
+
+            /* -----------------------------------------------
+               DELETE ALL
+            ------------------------------------------------ */
+
+            const deleteAllButton =
+                event.target.closest(
+                    "#deleteAllNotifications"
+                );
+
+
+            if (deleteAllButton) {
+
+                event.preventDefault();
+
+                deleteAllNotifications();
+
+            }
+
+        }
+    );
+
+})();
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,802 @@
+{% extends "base.html" %}
+
+{% block title %}
+Expenses
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+
+<!-- =====================================================
+     PAGE HEADER
+     ===================================================== -->
+<div class="page-header mb-4">
+
+    <div>
+        <div class="page-eyebrow">
+            FINANCIAL MANAGEMENT
+        </div>
+
+        <h1 class="page-title">
+            Expenses
+        </h1>
+
+        <p class="page-subtitle">
+            Track and manage your business expenses.
+        </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+
+        <a
+            href="{{ url_for('expenses.categories') }}"
+            class="btn btn-light border rounded-pill"
+        >
+            <i class="bi bi-tags me-2"></i>
+            Categories
+        </a>
+
+        <a
+            href="{{ url_for('expenses.new_expense') }}"
+            class="btn btn-primary rounded-pill px-4"
+        >
+            <i class="bi bi-wallet2 me-1"></i>
+            New Expense
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     SUMMARY CARDS
+     ===================================================== -->
+<div class="row g-3 mb-4">
+
+    <!-- TOTAL EXPENSES -->
+    <div class="col-12 col-sm-6 col-xl-5">
+
+        <div class="stats-card h-100">
+
+            <div class="stats-card-body">
+
+                <div class="stats-card-content">
+
+                    <div class="stats-card-info">
+
+                        <div class="stats-card-label">
+                            Total Expenses
+                        </div>
+
+                        <h3 class="stats-card-value text-danger responsive-money">
+                            {{ format_currency(total_amount) }}
+                        </h3>
+
+                    </div>
+
+                    <div
+                        class="stats-card-icon bg-danger-subtle text-danger"
+                    >
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- EXPENSE RECORDS -->
+    <div class="col-12 col-sm-6 col-xl-5">
+
+        <div class="stats-card h-100">
+
+            <div class="stats-card-body">
+
+                <div class="stats-card-content">
+
+                    <div class="stats-card-info">
+
+                        <div class="stats-card-label">
+                            Expense Records
+                        </div>
+
+                        <h3 class="stats-card-value">
+                            {{ expenses|length }}
+                        </h3>
+
+                    </div>
+
+                    <div
+                        class="stats-card-icon bg-success-subtle text-success"
+                    >
+                        <i class="bi bi-receipt"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FILTER CARD
+     ===================================================== -->
+<div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <form
+            method="GET"
+            action="{{ url_for('expenses.expenses') }}"
+        >
+
+            <div class="row g-3 align-items-end">
+
+                <!-- SEARCH -->
+                <div class="col-lg-5">
+
+                    <label
+                        class="form-label small fw-semibold mb-2"
+                        for="q"
+                    >
+                        Search Expenses
+                    </label>
+
+                    <div class="search-field">
+
+                        <i class="bi bi-search"></i>
+
+                        <input
+                            type="search"
+                            name="q"
+                            id="q"
+                            class="form-control"
+                            value="{{ request.args.get('q', '') }}"
+                            placeholder="Expense number, description...."
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PERIOD -->
+                <div class="col-lg-3">
+
+                    <label
+                        for="period"
+                        class="form-label small fw-semibold mb-2"
+                    >
+                        Expenses Period
+                    </label>
+
+                    <select
+                        name="period"
+                        id="period"
+                        class="form-select"
+                    >
+
+                        <option
+                            value="all"
+                            {% if period == "all" %}selected{% endif %}
+                        >
+                            All Expenses
+                        </option>
+
+                        <option
+                            value="daily"
+                            {% if period == "daily" %}selected{% endif %}
+                        >
+                            Today
+                        </option>
+
+                        <option
+                            value="weekly"
+                            {% if period == "weekly" %}selected{% endif %}
+                        >
+                            This Week
+                        </option>
+
+                        <option
+                            value="monthly"
+                            {% if period == "monthly" %}selected{% endif %}
+                        >
+                            Monthly
+                        </option>
+
+                        <option
+                            value="yearly"
+                            {% if period == "yearly" %}selected{% endif %}
+                        >
+                            Yearly
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- MONTH -->
+                <div
+                    class="col-lg-2"
+                    id="month-wrapper"
+                >
+
+                    <label
+                        for="month"
+                        class="form-label small fw-semibold mb-2"
+                    >
+                        Month
+                    </label>
+
+                    <select
+                        name="month"
+                        id="month"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Select month
+                        </option>
+
+                        <option value="1"
+                            {% if month == "1" %}selected{% endif %}>
+                            January
+                        </option>
+
+                        <option value="2"
+                            {% if month == "2" %}selected{% endif %}>
+                            February
+                        </option>
+
+                        <option value="3"
+                            {% if month == "3" %}selected{% endif %}>
+                            March
+                        </option>
+
+                        <option value="4"
+                            {% if month == "4" %}selected{% endif %}>
+                            April
+                        </option>
+
+                        <option value="5"
+                            {% if month == "5" %}selected{% endif %}>
+                            May
+                        </option>
+
+                        <option value="6"
+                            {% if month == "6" %}selected{% endif %}>
+                            June
+                        </option>
+
+                        <option value="7"
+                            {% if month == "7" %}selected{% endif %}>
+                            July
+                        </option>
+
+                        <option value="8"
+                            {% if month == "8" %}selected{% endif %}>
+                            August
+                        </option>
+
+                        <option value="9"
+                            {% if month == "9" %}selected{% endif %}>
+                            September
+                        </option>
+
+                        <option value="10"
+                            {% if month == "10" %}selected{% endif %}>
+                            October
+                        </option>
+
+                        <option value="11"
+                            {% if month == "11" %}selected{% endif %}>
+                            November
+                        </option>
+
+                        <option value="12"
+                            {% if month == "12" %}selected{% endif %}>
+                            December
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- YEAR -->
+                <div
+                    class="col-lg-2"
+                    id="year-wrapper"
+                >
+
+                    <label
+                        for="year"
+                        class="form-label small fw-semibold mb-2"
+                    >
+                        Year
+                    </label>
+
+                    <select
+                        name="year"
+                        id="year"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Select year
+                        </option>
+
+                        {% for selected_year in years %}
+
+                            <option
+                                value="{{ selected_year }}"
+                                {% if year == selected_year|string %}selected{% endif %}
+                            >
+                                {{ selected_year }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- FILTER BUTTON -->
+                <div class="col-12 col-lg-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-light border w-100"
+                    >
+                        <i class="bi bi-funnel me-1"></i>
+                        Filter
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     EXPENSE TABLE
+     ===================================================== -->
+<div class="card border-0 shadow-sm">
+
+    <div class="card-header bg-transparent border-0 py-3">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h5 class="mb-0 fw-bold">
+                    Expense Records
+                </h5>
+
+                <span class="text-danger">
+
+                    {{ expenses|length }}
+
+                    <small class="text-muted">
+
+                        {% if period == "all" %}
+                            All expense records
+                        {% elif period == "daily" %}
+                            Expenses recorded today
+                        {% elif period == "weekly" %}
+                            Expenses recorded this week
+                        {% elif period == "monthly" %}
+                            Monthly expense records
+                        {% elif period == "yearly" %}
+                            Yearly expense records
+                        {% endif %}
+
+                    </small>
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card-body p-0">
+
+        {% if expenses %}
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="ps-4">
+                                Expense
+                            </th>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Category
+                            </th>
+
+                            <th>
+                                Description
+                            </th>
+
+                            <th>
+                                Payment
+                            </th>
+
+                            <th class="text-end">
+                                Amount
+                            </th>
+
+                            <th class="text-end pe-4">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for expense in expenses %}
+
+                        <tr>
+
+                            <!-- EXPENSE NUMBER -->
+                            <td class="ps-4">
+
+                                <div class="d-flex align-items-center gap-2">
+
+                                    <div
+                                        class="icon-box bg-primary-subtle text-primary"
+                                    >
+                                        <i class="bi bi-receipt text-primary"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <div class="fw-semibold text-dark">
+                                            {{ expense.expense_number }}
+                                        </div>
+
+                                        {% if expense.reference %}
+
+                                            <small class="text-muted d-block">
+                                                Ref: {{ expense.reference }}
+                                            </small>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- DATE -->
+                            <td>
+
+                                <span class="text-nowrap text-dark">
+
+                                    {{ format_company_date(expense.expense_date) }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- CATEGORY -->
+                            <td>
+
+                                <span class="badge bg-secondary-subtle text-secondary">
+
+                                    {% if expense.category %}
+
+                                        {{ expense.category.name }}
+
+                                    {% else %}
+
+                                        <span class="text-muted">
+                                            _
+                                        </span>
+
+                                    {% endif %}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- DESCRIPTION -->
+                            <td>
+
+                                <span
+                                    class="d-inline-block text-truncate text-dark"
+                                    style="max-width: 260px;"
+                                    title="{{ expense.description }}"
+                                >
+                                    {{ expense.description }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- PAYMENT METHOD -->
+                            <td>
+
+                                {% if expense.payment_method == "Cash" %}
+
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="bi bi-cash me-1"></i>
+                                        Cash
+                                    </span>
+
+                                {% elif expense.payment_method == "Bank Transfer" %}
+
+                                    <span class="badge bg-primary-subtle text-primary">
+                                        <i class="bi bi-bank me-1"></i>
+                                        Bank Transfer
+                                    </span>
+
+                                {% elif expense.payment_method == "POS" %}
+
+                                    <span class="badge bg-warning-subtle text-warning-emphasis">
+                                        <i class="bi bi-credit-card me-1"></i>
+                                        POS
+                                    </span>
+
+                                {% elif expense.payment_method == "Card" %}
+
+                                    <span class="badge bg-info-subtle text-info-emphasis">
+                                        <i class="bi bi-credit-card-2-front me-1"></i>
+                                        Card
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary-subtle text-secondary">
+                                        <i class="bi bi-three-dots me-1"></i>
+                                        {{ expense.payment_method }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- AMOUNT -->
+                            <td class="text-end">
+
+                                <span class="fw-semibold text-nowrap text-danger">
+                                    {{ format_currency(expense.amount) }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- ACTION -->
+                            <td class="text-end pe-4">
+
+                                <div class="dropdown">
+
+                                    <button
+                                        class="btn btn-sm btn-light rounded-circle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                    >
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+
+                                        <li>
+
+                                            <a
+                                                class="dropdown-item"
+                                                href="{{ url_for('expenses.view_expense', expense_id=expense.id) }}"
+                                            >
+                                                <i class="bi bi-eye me-2"></i>
+                                                View Expense
+                                            </a>
+
+                                        </li>
+
+                                        <li>
+
+                                            <a
+                                                class="dropdown-item"
+                                                href="{{ url_for('expenses.edit_expense', expense_id=expense.id) }}"
+                                            >
+                                                <i class="bi bi-pencil me-2"></i>
+                                                Edit Expense
+                                            </a>
+
+                                        </li>
+
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+
+                                        <li>
+
+                                            <form
+                                                method="POST"
+                                                action="{{ url_for('expenses.delete_expense', expense_id=expense.id) }}"
+                                                onsubmit="return confirm('Are you sure you want to delete this expense? This action cannot be undone.');"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="{{ csrf_token() }}"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="dropdown-item text-danger"
+                                                >
+                                                    <i class="bi bi-trash me-2"></i>
+                                                    Delete Expense
+                                                </button>
+
+                                            </form>
+
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <!-- =================================================
+                 EMPTY STATE
+                 ================================================= -->
+
+            <div class="empty-state text-center">
+
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-wallet2 text-primary fs-2"></i>
+                </div>
+
+                <h5>
+                    No Expenses Found
+                </h5>
+
+                <p class="text-muted mb-4">
+
+                    {% if search or period != "all" %}
+
+                        No expense records match your current filters.
+
+                    {% else %}
+
+                        You have not recorded any expenses yet.
+
+                    {% endif %}
+
+                </p>
+
+                {% if search or period != "all" %}
+
+                    <a
+                        href="{{ url_for('expenses.expenses') }}"
+                        class="btn btn-outline-secondary rounded-pill"
+                    >
+                        <i class="bi bi-x-lg me-2"></i>
+                        Clear Filters
+                    </a>
+
+                {% endif %}
+
+                <a
+                    href="{{ url_for('expenses.new_expense') }}"
+                    class="btn btn-primary rounded-pill px-4"
+                >
+                    <i class="bi bi-wallet2 me-2"></i>
+                    Add Expense
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+</div>
+
+<!-- =========================================================
+     FILTER JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const period = document.getElementById("period");
+    const monthWrapper = document.getElementById("month-wrapper");
+    const yearWrapper = document.getElementById("year-wrapper");
+
+    function updateFilterFields() {
+
+        if (!period || !monthWrapper || !yearWrapper) {
+            return;
+        }
+
+        const value = period.value;
+
+        if (value === "monthly") {
+
+            monthWrapper.style.display = "";
+            yearWrapper.style.display = "";
+
+        } else if (value === "yearly") {
+
+            monthWrapper.style.display = "none";
+            yearWrapper.style.display = "";
+
+        } else {
+
+            monthWrapper.style.display = "none";
+            yearWrapper.style.display = "none";
+
+        }
+
+    }
+
+    updateFilterFields();
+
+    period.addEventListener("change", updateFilterFields);
+
+});
+
+</script>
+
+{% endblock %}

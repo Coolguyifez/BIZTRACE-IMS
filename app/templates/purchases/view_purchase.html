@@ -1,0 +1,1475 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ purchase.purchase_number }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+
+<!-- =====================================================
+     ACTION BAR
+====================================================== -->
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 no-print">
+
+    <div>
+
+        <div class="page-eyebrow">
+            PURCHASE
+        </div>
+
+        <h1 class="page-title mb-1">
+            {{ purchase.purchase_number }}
+        </h1>
+
+        <p class="page-subtitle mb-0">
+            Purchase details and payment information.
+        </p>
+
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+
+        <button
+            type="button"
+            class="btn btn-light border rounded-pill px-3"
+            onclick="window.print()"
+        >
+            <i class="bi bi-printer me-2"></i>
+            Print
+        </button>
+
+        <a
+            href="{{ url_for('purchases.purchases') }}"
+            class="btn btn-primary rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Purchases
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PRINT REPORT HEADER
+     Visible only when printing
+====================================================== -->
+
+<div class="d-none d-print-block mb-4">
+
+    <div class="text-center">
+
+        <h1 class="fw-bold mb-1">
+            {{ current_user.company.name }}
+        </h1>
+
+        {% if current_user.company.address %}
+
+            <div>
+                {{ current_user.company.address }}
+            </div>
+
+        {% endif %}
+
+        <div>
+
+            {% if current_user.company.phone %}
+
+                {{ current_user.company.phone }}
+
+            {% endif %}
+
+
+            {% if current_user.company.phone and current_user.company.email %}
+
+                &nbsp; | &nbsp;
+
+            {% endif %}
+
+
+            {% if current_user.company.email %}
+
+                {{ current_user.company.email }}
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PURCHASE DOCUMENT
+====================================================== -->
+
+<div
+    class="card border-0 shadow-sm"
+    id="purchaseDocument"
+>
+
+    <div class="card-body p-4 p-lg-5">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <div class="row g-4 mb-5">
+
+            <div class="col-md-7">
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <div
+                        class="purchase-icon d-flex align-items-center justify-content-center rounded-3"
+                        style="
+                            width:48px;
+                            height:48px;
+                            background:rgba(10,132,255,.10);
+                            color:#0a84ff;
+                        "
+                    >
+                        <i class="bi bi-bag-check fs-4"></i>
+                    </div>
+
+                    <div>
+
+                        <h2 class="fw-bold mb-1">
+                            PURCHASE
+                        </h2>
+
+                        <p class="text-muted mb-0">
+                            Business Purchase Record
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-5 text-md-end">
+
+                <h5 class="fw-bold mb-2">
+                    {{ purchase.purchase_number }}
+                </h5>
+
+
+                {% if purchase.purchase_date %}
+
+                    <p class="mb-1">
+
+                        <strong>
+                            Purchase Date:
+                        </strong>
+
+                        {{ format_company_date(purchase.purchase_date) }}
+
+                    </p>
+
+                {% endif %}
+
+
+                {% if purchase.expected_delivery_date %}
+
+                    <p class="mb-1">
+
+                        <strong>
+                            Expected Delivery:
+                        </strong>
+
+                        {{ format_company_date(purchase.expected_delivery_date) }}
+
+                    </p>
+
+                {% endif %}
+
+
+                {% if purchase.supplier_invoice_number %}
+
+                    <p class="mb-0">
+
+                        <strong>
+                            Supplier Invoice:
+                        </strong>
+
+                        {{ purchase.supplier_invoice_number }}
+
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SUPPLIER / PAYMENT
+        ================================================== -->
+
+        <div class="row g-4 mb-4">
+
+
+            <!-- =================================================
+                 SUPPLIER
+            ================================================== -->
+
+            <div class="col-md-6">
+
+                <div class="border rounded-3 p-3 h-100">
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+
+                        <i class="bi bi-truck text-primary"></i>
+
+                        <h6 class="text-muted text-uppercase fw-semibold mb-0">
+                            Supplier
+                        </h6>
+
+                    </div>
+
+
+                    {% if purchase.supplier %}
+
+                        <h5 class="fw-semibold mb-2">
+                            {{ purchase.supplier.name }}
+                        </h5>
+
+
+                        {% if purchase.supplier.phone %}
+
+                            <p class="mb-1">
+
+                                <i class="bi bi-telephone me-2 text-muted"></i>
+
+                                {{ purchase.supplier.phone }}
+
+                            </p>
+
+                        {% endif %}
+
+
+                        {% if purchase.supplier.email %}
+
+                            <p class="mb-1">
+
+                                <i class="bi bi-envelope me-2 text-muted"></i>
+
+                                {{ purchase.supplier.email }}
+
+                            </p>
+
+                        {% endif %}
+
+
+                        {% if purchase.supplier.address %}
+
+                            <p class="text-muted mb-0">
+
+                                <i class="bi bi-geo-alt me-2"></i>
+
+                                {{ purchase.supplier.address }}
+
+                            </p>
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+                            No Supplier / Cash Purchase
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 PAYMENTS
+            ================================================== -->
+
+            <div class="col-md-6">
+
+                <div class="border rounded-3 p-3 h-100">
+
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+
+                        <div class="d-flex align-items-center gap-2">
+
+                            <i class="bi bi-credit-card text-primary"></i>
+
+                            <h6 class="text-muted text-uppercase fw-semibold mb-0">
+                                Payments
+                            </h6>
+
+                        </div>
+
+
+                        {% set payment_status = purchase.payment_status or "Unpaid" %}
+
+
+                        {% if payment_status == "Paid" %}
+
+                            <span class="badge bg-success-subtle text-success">
+
+                                <i class="bi bi-check-circle me-1"></i>
+
+                                Paid
+
+                            </span>
+
+
+                        {% elif payment_status == "Partially Paid" %}
+
+                            <span class="badge bg-warning-subtle text-warning">
+
+                                <i class="bi bi-clock me-1"></i>
+
+                                Partially Paid
+
+                            </span>
+
+
+                        {% else %}
+
+                            <span class="badge bg-danger-subtle text-danger">
+
+                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                Unpaid
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if purchase.payments %}
+
+                        <div class="d-flex flex-column gap-3">
+
+                            {% for payment in purchase.payments %}
+
+                                {% set payment_method = (payment.method or '')|lower|replace('_', ' ') %}
+
+
+                                <div class="border rounded-3 p-3 payment-record">
+
+                                    <!-- PAYMENT HEADER -->
+
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+
+                                        <div>
+
+                                            <div class="fw-semibold">
+
+                                                {{ payment.method or "Payment" }}
+
+                                            </div>
+
+                                            <small class="text-muted">
+
+                                                Payment {{ loop.index }}
+
+                                            </small>
+
+                                        </div>
+
+
+                                        <strong class="text-success">
+
+                                            {{ format_currency(payment.amount or 0) }}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <!-- BANK TRANSFER -->
+
+                                    {% if payment_method == 'bank transfer' %}
+
+                                        {% if payment.bank_name %}
+
+                                            <p class="mb-1">
+
+                                                <strong>
+                                                    Bank:
+                                                </strong>
+
+                                                {{ payment.bank_name }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                        {% if payment.account_name %}
+
+                                            <p class="mb-1">
+
+                                                <strong>
+                                                    Account Name:
+                                                </strong>
+
+                                                {{ payment.account_name }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                        {% if payment.account_number %}
+
+                                            <p class="mb-1">
+
+                                                <strong>
+                                                    Account Number:
+                                                </strong>
+
+                                                {{ payment.account_number }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                        {% if payment.reference %}
+
+                                            <p class="mb-0">
+
+                                                <strong>
+                                                    Transfer Reference:
+                                                </strong>
+
+                                                {{ payment.reference }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                    <!-- POS -->
+
+                                    {% elif payment_method == 'pos' %}
+
+                                        {% if payment.bank_name %}
+
+                                            <p class="mb-1">
+
+                                                <strong>
+                                                    Bank:
+                                                </strong>
+
+                                                {{ payment.bank_name }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                        {% if payment.reference %}
+
+                                            <p class="mb-0">
+
+                                                <strong>
+                                                    POS Reference:
+                                                </strong>
+
+                                                {{ payment.reference }}
+
+                                            </p>
+
+                                        {% endif %}
+
+
+                                    <!-- OTHER METHODS -->
+
+                                    {% elif payment.reference %}
+
+                                        <p class="mb-0">
+
+                                            <strong>
+                                                Reference:
+                                            </strong>
+
+                                            {{ payment.reference }}
+
+                                        </p>
+
+                                    {% endif %}
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- TOTAL PAYMENTS -->
+
+                        <div class="border-top mt-3 pt-3">
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <span class="text-muted">
+                                    Total Paid
+                                </span>
+
+                                <strong class="text-success">
+
+                                    {{ format_currency(purchase.paid_amount or 0) }}
+
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                    {% else %}
+
+                        <div class="text-center py-3">
+
+                            <i class="bi bi-credit-card-2-front fs-3 text-muted d-block mb-2"></i>
+
+                            <p class="text-muted mb-0">
+                                No payment recorded.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             ITEMS
+        ================================================== -->
+
+        <div class="mb-4">
+
+            <div class="d-flex align-items-center justify-content-between mb-3">
+
+                <div>
+
+                    <h5 class="fw-semibold mb-1">
+                        Purchase Items
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        Products and quantities included in this purchase.
+                    </p>
+
+                </div>
+
+                <span class="badge bg-light text-secondary border">
+
+                    {{ purchase.items|length }}
+
+                    item{% if purchase.items|length != 1 %}s{% endif %}
+
+                </span>
+
+            </div>
+
+
+            <div class="table-responsive">
+
+                <table class="table align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="text-muted small">
+                                #
+                            </th>
+
+                            <th class="text-muted small">
+                                Product
+                            </th>
+
+                            <th class="text-muted small">
+                                Qty
+                            </th>
+
+                            <th class="text-muted small">
+                                Unit Cost
+                            </th>
+
+                            <th class="text-muted small">
+                                Manufacturing
+                            </th>
+
+                            <th class="text-muted small">
+                                Expiry
+                            </th>
+
+                            <th class="text-muted small text-end">
+                                Total
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for item in purchase.items %}
+
+                        <tr>
+
+                            <td class="text-muted">
+                                {{ loop.index }}
+                            </td>
+
+
+                            <td>
+
+                                {% if item.product %}
+
+                                    <strong class="d-block text-dark">
+                                        {{ item.product.name }}
+                                    </strong>
+
+
+                                    {% if item.product.sku %}
+
+                                        <small class="text-muted d-block">
+
+                                            SKU:
+
+                                            <code>
+                                                {{ item.product.sku }}
+                                            </code>
+
+                                        </small>
+
+                                    {% endif %}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        Product unavailable
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td class="text-dark">
+
+                                {{ "{:,.1f}".format(item.quantity or 0) }}
+
+                                {% if item.product and item.product.unit %}
+
+                                    <span class="text-muted">
+                                        {{ item.product.unit }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td class="text-secondary">
+
+                                {{ format_currency(item.unit_cost or 0) }}
+
+                            </td>
+
+
+                            <td class="text-dark">
+
+                                {% if item.manufacturing_date %}
+
+                                    {{ format_company_date(item.manufacturing_date) }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td class="text-danger">
+
+                                {% if item.expiry_date %}
+
+                                    {{ format_company_date(item.expiry_date) }}
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        —
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td class="text-end fw-semibold text-dark">
+
+                                {{ format_currency(item.total or 0) }}
+
+                            </td>
+
+                        </tr>
+
+
+                    {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="text-center text-muted py-5"
+                            >
+
+                                <i class="bi bi-box-seam fs-3 d-block mb-2"></i>
+
+                                No purchase items found.
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOTALS
+        ================================================== -->
+
+        {% set subtotal = purchase.subtotal or 0 %}
+        {% set discount = purchase.discount or 0 %}
+        {% set tax = purchase.tax or 0 %}
+        {% set total = purchase.total or 0 %}
+        {% set paid_amount = purchase.paid_amount or 0 %}
+
+
+        {% if purchase.balance is defined and purchase.balance is not none %}
+
+            {% set balance = purchase.balance %}
+
+        {% else %}
+
+            {% set balance = total - paid_amount %}
+
+        {% endif %}
+
+
+        <div class="row justify-content-end">
+
+            <div class="col-md-5 col-lg-4">
+
+                <div class="border rounded-3 p-3">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Subtotal
+                        </span>
+
+                        <strong>
+                            {{ format_currency(subtotal) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Discount
+                        </span>
+
+                        <strong>
+                            {{ format_currency(discount) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <span class="text-muted">
+                            Tax
+                        </span>
+
+                        <strong>
+                            {{ format_currency(tax) }}
+                        </strong>
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                        <span class="fw-bold">
+                            Total
+                        </span>
+
+                        <strong class="fs-5">
+                            {{ format_currency(total) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Amount Paid
+                        </span>
+
+                        <strong class="text-success">
+                            {{ format_currency(paid_amount) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="fw-bold">
+                            Balance
+                        </span>
+
+                        <strong
+                            class="{% if balance > 0 %}text-danger{% else %}text-success{% endif %}"
+                        >
+                            {{ format_currency(balance) }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             NOTES
+        ================================================== -->
+
+        {% if purchase.notes %}
+
+            <div class="mt-5 pt-4 border-top">
+
+                <h6 class="fw-semibold mb-2">
+
+                    <i class="bi bi-sticky me-2"></i>
+
+                    Notes
+
+                </h6>
+
+                <p class="text-muted mb-0">
+                    {{ purchase.notes }}
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+        <br><br><br>
+
+
+        <div class="text-center">
+
+            <span>
+                Powered by BizTrace IMS
+            </span>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+<!-- =========================================================
+     PRINT CSS
+========================================================= -->
+
+<style>
+
+@media print {
+
+    @page {
+        margin: 8mm;
+    }
+
+
+    html,
+    body {
+
+        width: 100% !important;
+
+        min-width: 0 !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        background: #ffffff !important;
+
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif !important;
+
+        font-size: 10px !important;
+
+        overflow: visible !important;
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+
+    /* =====================================================
+       HIDE WEBSITE UI
+    ====================================================== */
+
+    .sidebar,
+    .navbar,
+    .page-header,
+    .no-print,
+    button,
+    .btn,
+    form {
+
+        display: none !important;
+
+    }
+
+
+    /* =====================================================
+       MAIN CONTAINER
+    ====================================================== */
+
+    .container-fluid,
+    .container {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       DOCUMENT
+    ====================================================== */
+
+    #purchaseDocument {
+
+        width: 100% !important;
+
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        border: none !important;
+
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+
+        background: #ffffff !important;
+
+    }
+
+
+    #purchaseDocument .card-body {
+
+        width: 100% !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       SCREEN ICON
+    ====================================================== */
+
+    .purchase-icon {
+
+        display: none !important;
+
+    }
+
+
+    /* =====================================================
+       ROWS
+    ====================================================== */
+
+    #purchaseDocument .row {
+
+        width: 100% !important;
+
+        margin-left: 0 !important;
+
+        margin-right: 0 !important;
+
+    }
+
+
+    #purchaseDocument [class*="col-"] {
+
+        min-width: 0 !important;
+
+    }
+
+
+    /* =====================================================
+       HEADER
+    ====================================================== */
+
+    #purchaseDocument .col-md-7,
+    #purchaseDocument .col-md-5 {
+
+        width: 50% !important;
+
+        max-width: 50% !important;
+
+        flex: 0 0 50% !important;
+
+    }
+
+
+    #purchaseDocument .text-md-end {
+
+        text-align: right !important;
+
+    }
+
+
+    /* =====================================================
+       SUPPLIER / PAYMENT
+    ====================================================== */
+
+    #purchaseDocument .row.g-4.mb-4 > .col-md-6 {
+
+        width: 50% !important;
+
+        max-width: 50% !important;
+
+        flex: 0 0 50% !important;
+
+    }
+
+
+    /* =====================================================
+       PAYMENT RECORDS
+    ====================================================== */
+
+    .payment-record {
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+        margin-bottom: 4px !important;
+
+        padding: 7px !important;
+
+    }
+
+
+    /* =====================================================
+       TYPOGRAPHY
+    ====================================================== */
+
+    #purchaseDocument h2 {
+        font-size: 17px !important;
+    }
+
+
+    #purchaseDocument h5 {
+        font-size: 12px !important;
+    }
+
+
+    #purchaseDocument h6 {
+        font-size: 9px !important;
+    }
+
+
+    #purchaseDocument p {
+        font-size: 9px !important;
+    }
+
+
+    #purchaseDocument span,
+    #purchaseDocument strong {
+
+        font-size: inherit !important;
+
+    }
+
+
+    /* =====================================================
+       TABLE
+    ====================================================== */
+
+    #purchaseDocument .table-responsive {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        overflow: visible !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    #purchaseDocument table {
+
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        table-layout: fixed !important;
+
+        border-collapse: collapse !important;
+
+        font-size: 8px !important;
+
+        margin-bottom: 8px !important;
+
+    }
+
+
+    #purchaseDocument table thead {
+
+        display: table-header-group !important;
+
+    }
+
+
+    #purchaseDocument table tr {
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    #purchaseDocument table th,
+    #purchaseDocument table td {
+
+        padding: 4px 3px !important;
+
+        vertical-align: middle !important;
+
+        border: 1px solid #999 !important;
+
+        word-break: break-word !important;
+
+        overflow-wrap: anywhere !important;
+
+    }
+
+
+    #purchaseDocument table th {
+
+        font-size: 7px !important;
+
+        font-weight: 700 !important;
+
+    }
+
+
+    /* =====================================================
+       TABLE COLUMN WIDTHS
+    ====================================================== */
+
+    #purchaseDocument table th:nth-child(1),
+    #purchaseDocument table td:nth-child(1) {
+
+        width: 5% !important;
+
+        text-align: center !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(2),
+    #purchaseDocument table td:nth-child(2) {
+
+        width: 27% !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(3),
+    #purchaseDocument table td:nth-child(3) {
+
+        width: 11% !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(4),
+    #purchaseDocument table td:nth-child(4) {
+
+        width: 14% !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(5),
+    #purchaseDocument table td:nth-child(5) {
+
+        width: 15% !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(6),
+    #purchaseDocument table td:nth-child(6) {
+
+        width: 13% !important;
+
+    }
+
+
+    #purchaseDocument table th:nth-child(7),
+    #purchaseDocument table td:nth-child(7) {
+
+        width: 15% !important;
+
+        text-align: right !important;
+
+    }
+
+
+    /* =====================================================
+       SKU
+    ====================================================== */
+
+    #purchaseDocument code {
+
+        font-size: 7px !important;
+
+        word-break: break-all !important;
+
+    }
+
+
+    /* =====================================================
+       TOTALS
+    ====================================================== */
+
+    #purchaseDocument .justify-content-end {
+
+        width: 100% !important;
+
+    }
+
+
+    #purchaseDocument .justify-content-end > .col-md-5,
+    #purchaseDocument .justify-content-end > .col-lg-4 {
+
+        width: 40% !important;
+
+        max-width: 40% !important;
+
+        flex: 0 0 40% !important;
+
+        margin-left: auto !important;
+
+    }
+
+
+    #purchaseDocument hr {
+
+        margin: 5px 0 !important;
+
+        opacity: 1 !important;
+
+    }
+
+
+    #purchaseDocument .fs-5 {
+
+        font-size: 12px !important;
+
+    }
+
+
+    /* =====================================================
+       NOTES
+    ====================================================== */
+
+    #purchaseDocument .border-top {
+
+        border-top: 1px solid #999 !important;
+
+        page-break-inside: avoid !important;
+
+        break-inside: avoid !important;
+
+    }
+
+
+    /* =====================================================
+       BADGES
+    ====================================================== */
+
+    #purchaseDocument .badge {
+
+        font-size: 7px !important;
+
+        border: 1px solid currentColor !important;
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+
+    /* =====================================================
+       BORDERS
+    ====================================================== */
+
+    #purchaseDocument .border {
+
+        border: 1px solid #999 !important;
+
+    }
+
+
+    /* =====================================================
+       COLORS
+    ====================================================== */
+
+    #purchaseDocument .text-muted {
+
+        color: #555 !important;
+
+    }
+
+
+    #purchaseDocument .text-success {
+
+        color: #198754 !important;
+
+    }
+
+
+    #purchaseDocument .text-danger {
+
+        color: #dc3545 !important;
+
+    }
+
+
+    #purchaseDocument .text-warning {
+
+        color: #997404 !important;
+
+    }
+
+
+    /* =====================================================
+       REMOVE EFFECTS
+    ====================================================== */
+
+    #purchaseDocument,
+    #purchaseDocument * {
+
+        box-shadow: none !important;
+
+        text-shadow: none !important;
+
+        -webkit-print-color-adjust: exact !important;
+
+        print-color-adjust: exact !important;
+
+    }
+
+
+    /* =====================================================
+       PAGE BREAK CONTROL
+    ====================================================== */
+
+    #purchaseDocument table,
+    #purchaseDocument .border,
+    #purchaseDocument .border-top {
+
+        page-break-inside: avoid;
+
+        break-inside: avoid;
+
+    }
+
+}
+
+</style>
+
+{% endblock %}
