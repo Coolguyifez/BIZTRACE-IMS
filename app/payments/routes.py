@@ -52,6 +52,7 @@ def now_utc():
 
     Database timestamps should remain UTC.
     """
+
     return datetime.now(timezone.utc)
 
 
@@ -60,6 +61,7 @@ def now_company():
     Return the current datetime using the current company's
     configured timezone.
     """
+
     return datetime.now(
         get_company_timezone()
     )
@@ -77,6 +79,7 @@ def ensure_utc(value):
         return None
 
     if value.tzinfo is None:
+
         return value.replace(
             tzinfo=timezone.utc
         )
@@ -504,6 +507,24 @@ def payments():
     )
 
     # -----------------------------------------------------
+    # CASH EXPENSES
+    # -----------------------------------------------------
+
+    cash_expenses = sum(
+        (
+            expense.amount or 0
+            for expense in expenses
+            if (
+                expense.payment_method
+                and
+                expense.payment_method.strip().lower()
+                == "cash"
+            )
+        ),
+        Decimal("0")
+    )
+
+    # -----------------------------------------------------
     # TODAY'S EXPENSES
     # -----------------------------------------------------
 
@@ -530,12 +551,39 @@ def payments():
     )
 
     # -----------------------------------------------------
+    # TODAY'S CASH EXPENSES
+    # -----------------------------------------------------
+
+    today_cash_expenses = sum(
+        (
+            expense.amount or 0
+            for expense in today_expenses_list
+            if (
+                expense.payment_method
+                and
+                expense.payment_method.strip().lower()
+                == "cash"
+            )
+        ),
+        Decimal("0")
+    )
+
+    # -----------------------------------------------------
     # NET PAYMENTS
     # -----------------------------------------------------
 
     net_payments = (
         total_amount -
         total_expenses
+    )
+
+    # -----------------------------------------------------
+    # CASH NET
+    # -----------------------------------------------------
+
+    cash_net = (
+        cash_total -
+        cash_expenses
     )
 
     # -----------------------------------------------------
@@ -566,6 +614,11 @@ def payments():
 
         total_expenses=total_expenses,
         today_expenses=today_expenses,
+
+        cash_expenses=cash_expenses,
+        today_cash_expenses=today_cash_expenses,
+
+        cash_net=cash_net,
 
         net_payments=net_payments,
 
@@ -703,9 +756,6 @@ def cash_deposits():
 
             try:
 
-                # HTML date input represents a calendar date
-                # in the company's configured timezone.
-
                 local_date = datetime.strptime(
                     deposit_date_raw,
                     "%Y-%m-%d"
@@ -743,7 +793,7 @@ def cash_deposits():
             deposit_date = now_utc()
 
         # =================================================
-        # CALCULATE CASH AVAILABLE
+        # CALCULATE TOTAL CASH RECEIVED
         # =================================================
 
         total_cash_received = (
@@ -764,6 +814,49 @@ def cash_deposits():
             or Decimal("0")
         )
 
+        total_cash_received = Decimal(
+            str(total_cash_received)
+        )
+
+        # =================================================
+        # CALCULATE TOTAL CASH EXPENSES
+        # =================================================
+        #
+        # IMPORTANT:
+        #
+        # Only expenses paid using Cash reduce the physical
+        # cash available for deposit.
+        #
+        # Bank Transfer, POS, Card, etc. do NOT reduce it.
+        # =================================================
+
+        total_cash_expenses = (
+            db.session.query(
+                db.func.coalesce(
+                    db.func.sum(
+                        Expense.amount
+                    ),
+                    0
+                )
+            )
+            .filter(
+                Expense.company_id == company_id,
+                db.func.lower(
+                    Expense.payment_method
+                ) == "cash"
+            )
+            .scalar()
+            or Decimal("0")
+        )
+
+        total_cash_expenses = Decimal(
+            str(total_cash_expenses)
+        )
+
+        # =================================================
+        # CALCULATE TOTAL CASH DEPOSITED
+        # =================================================
+
         total_cash_deposited = (
             db.session.query(
                 db.func.coalesce(
@@ -774,33 +867,56 @@ def cash_deposits():
                 )
             )
             .filter(
-                CashDeposit.company_id ==
-                company_id
+                CashDeposit.company_id == company_id
             )
             .scalar()
             or Decimal("0")
         )
 
+        total_cash_deposited = Decimal(
+            str(total_cash_deposited)
+        )
+
+        # =================================================
+        # CASH AVAILABLE
+        # =================================================
+        #
+        # Cash Collected
+        #       -
+        # Cash Expenses
+        #       -
+        # Cash Already Deposited
+        #
+        #       =
+        #
+        # Cash Available
+        # =================================================
+
         cash_available = (
-            Decimal(
-                str(total_cash_received)
-            )
-            -
-            Decimal(
-                str(total_cash_deposited)
-            )
+            total_cash_received
+            - total_cash_expenses
+            - total_cash_deposited
         )
 
         # -------------------------------------------------
-        # PREVENT OVER-DEPOSIT
+        # NEVER SHOW NEGATIVE AVAILABLE CASH
         # -------------------------------------------------
+
+        if cash_available < Decimal("0"):
+
+            cash_available = Decimal("0")
+
+        # =================================================
+        # PREVENT OVER-DEPOSIT
+        # =================================================
 
         if amount > cash_available:
 
             flash(
                 "Deposit amount cannot exceed "
                 f"available cash of "
-                f"{format_currency(cash_available)}.",
+                f"{format_currency(cash_available)} "
+                f"after cash expenses.",
                 "danger"
             )
 
@@ -858,19 +974,6 @@ def cash_deposits():
 
         # =================================================
         # NOTIFICATION
-        # =================================================
-        #
-        # DELIVERY CATEGORY:
-        #     cash_deposit
-        #
-        # SOUND:
-        #     success
-        #
-        # notify_success() automatically sets:
-        #     sound = "success"
-        #
-        # NotificationAssignment controls who receives it.
-        # User sound preferences control only the sound.
         # =================================================
 
         try:
@@ -940,9 +1043,9 @@ def cash_deposits():
         .all()
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # TOTAL CASH RECEIVED
-    # -----------------------------------------------------
+    # =====================================================
 
     total_cash_received = (
         db.session.query(
@@ -962,9 +1065,43 @@ def cash_deposits():
         or Decimal("0")
     )
 
-    # -----------------------------------------------------
+    total_cash_received = Decimal(
+        str(total_cash_received)
+    )
+
+    # =====================================================
+    # TOTAL CASH EXPENSES
+    # =====================================================
+    #
+    # Only expenses paid in CASH are deducted.
+    # =====================================================
+
+    total_cash_expenses = (
+        db.session.query(
+            db.func.coalesce(
+                db.func.sum(
+                    Expense.amount
+                ),
+                0
+            )
+        )
+        .filter(
+            Expense.company_id == company_id,
+            db.func.lower(
+                Expense.payment_method
+            ) == "cash"
+        )
+        .scalar()
+        or Decimal("0")
+    )
+
+    total_cash_expenses = Decimal(
+        str(total_cash_expenses)
+    )
+
+    # =====================================================
     # TOTAL CASH DEPOSITED
-    # -----------------------------------------------------
+    # =====================================================
 
     total_cash_deposited = (
         db.session.query(
@@ -982,18 +1119,38 @@ def cash_deposits():
         or Decimal("0")
     )
 
-    total_cash_received = Decimal(
-        str(total_cash_received)
-    )
-
     total_cash_deposited = Decimal(
         str(total_cash_deposited)
     )
 
+    # =====================================================
+    # CASH AVAILABLE
+    # =====================================================
+    #
+    # Cash Collected
+    #       -
+    # Cash Expenses
+    #       -
+    # Cash Deposited
+    #
+    #       =
+    #
+    # Cash Available
+    # =====================================================
+
     cash_available = (
-        total_cash_received -
-        total_cash_deposited
+        total_cash_received
+        - total_cash_expenses
+        - total_cash_deposited
     )
+
+    if cash_available < Decimal("0"):
+
+        cash_available = Decimal("0")
+
+    # =====================================================
+    # TEMPLATE
+    # =====================================================
 
     return render_template(
         "payments/cash_deposits.html",
@@ -1002,6 +1159,9 @@ def cash_deposits():
 
         total_cash_received=
         total_cash_received,
+
+        total_cash_expenses=
+        total_cash_expenses,
 
         total_cash_deposited=
         total_cash_deposited,
@@ -1086,19 +1246,6 @@ def delete_cash_deposit(deposit_id):
 
     # =====================================================
     # NOTIFICATION
-    # =====================================================
-    #
-    # DELIVERY CATEGORY:
-    #     cash_deposit
-    #
-    # SOUND:
-    #     success
-    #
-    # This notification is only delivered to users who have
-    # the Cash Deposits notification category assigned.
-    #
-    # The user's Success Sound setting only controls whether
-    # the success sound plays.
     # =====================================================
 
     try:
