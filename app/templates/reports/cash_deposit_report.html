@@ -34,7 +34,7 @@ Cash Deposit Report
                         </h1>
 
                         <p class="text-secondary mb-0">
-                            Cash collected from sales and deposited into the bank
+                            Cash received, cash expenses and bank deposits
                         </p>
 
                     </div>
@@ -244,7 +244,9 @@ Cash Deposit Report
 
     <div class="row g-3 mb-4">
 
-        <!-- TOTAL CASH RECEIVED -->
+        <!-- =================================================
+             CASH RECEIVED
+        ================================================== -->
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -287,7 +289,54 @@ Cash Deposit Report
         </div>
 
 
-        <!-- TOTAL DEPOSITED -->
+        <!-- =================================================
+             CASH EXPENSES
+        ================================================== -->
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash Expenses
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(total_cash_expenses) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-danger">
+                                Paid using cash
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOTAL DEPOSITED
+        ================================================== -->
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -330,7 +379,9 @@ Cash Deposit Report
         </div>
 
 
-        <!-- CASH AVAILABLE -->
+        <!-- =================================================
+             CASH AVAILABLE
+        ================================================== -->
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -353,7 +404,7 @@ Cash Deposit Report
                             </div>
 
                             <div class="stats-card-meta text-warning">
-                                Remaining cash
+                                Available to deposit
                             </div>
 
                         </div>
@@ -361,7 +412,7 @@ Cash Deposit Report
                         <div
                             class="d-print-none stats-card-icon bg-warning-subtle text-warning"
                         >
-                            <i class="bi bi-wallet2"></i>
+                            <i class="bi bi-safe2"></i>
                         </div>
 
                     </div>
@@ -372,43 +423,81 @@ Cash Deposit Report
 
         </div>
 
+    </div>
 
-        <!-- DEPOSIT COUNT -->
 
-        <div class="col-12 col-sm-6 col-xl-3">
+    <!-- =====================================================
+         CASH CALCULATION
+    ====================================================== -->
 
-            <div class="stats-card h-100">
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
 
-                <div class="stats-card-body">
+        <div class="card-body p-4">
 
-                    <div class="stats-card-content">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
 
-                        <div class="stats-card-info">
+                <div>
 
-                            <div class="stats-card-label">
-                                Deposits
-                            </div>
+                    <div class="fw-bold mb-1">
+                        Cash Deposit Calculation
+                    </div>
 
-                            <div class="stats-card-value">
-                                {{ deposit_count }}
-                            </div>
+                    <div class="text-secondary small">
+                        Cash available for deposit after deducting cash expenses
+                        and previously recorded deposits.
+                    </div>
 
-                            <div class="stats-card-meta text-info">
+                </div>
 
-                                {{ "{:,.2f}".format(deposit_percentage) }}%
-                                of cash deposited
 
-                            </div>
+                <div class="text-lg-end">
 
-                        </div>
+                    <div class="small text-secondary mb-1">
+                        Net Cash Before Deposits
+                    </div>
 
-                        <div
-                            class="d-print-none stats-card-icon bg-info-subtle text-info"
-                        >
-                            <i class="bi bi-arrow-down-square"></i>
-                        </div>
+                    <div class="fw-bold fs-4">
+
+                        {{ format_currency(net_cash_before_deposits) }}
 
                     </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="mt-4 p-3 rounded-3 bg-light border">
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+
+                    <span class="fw-semibold text-primary">
+                        Cash Received
+                    </span>
+
+                    <span class="text-secondary">
+                        −
+                    </span>
+
+                    <span class="fw-semibold text-danger">
+                        Cash Expenses
+                    </span>
+
+                    <span class="text-secondary">
+                        −
+                    </span>
+
+                    <span class="fw-semibold text-success">
+                        Total Deposited
+                    </span>
+
+                    <span class="text-secondary">
+                        =
+                    </span>
+
+                    <span class="fw-bold text-warning">
+                        Cash Available
+                    </span>
 
                 </div>
 
@@ -436,7 +525,7 @@ Cash Deposit Report
                     </div>
 
                     <div class="text-secondary small">
-                        Percentage of cash sales payments deposited into the bank
+                        Percentage of net cash after cash expenses deposited into the bank
                     </div>
 
                 </div>
@@ -448,6 +537,7 @@ Cash Deposit Report
                 </div>
 
             </div>
+
 
             <div
                 class="progress mt-3"
@@ -476,7 +566,9 @@ Cash Deposit Report
 
     <div class="row g-4 mb-4">
 
-        <!-- DAILY DEPOSIT TREND -->
+        <!-- =================================================
+             DAILY DEPOSIT TREND
+        ================================================== -->
 
         <div class="col-12 col-xl-8">
 
@@ -512,7 +604,9 @@ Cash Deposit Report
         </div>
 
 
-        <!-- BANK BREAKDOWN -->
+        <!-- =================================================
+             BANK BREAKDOWN
+        ================================================== -->
 
         <div class="col-12 col-xl-4">
 
@@ -597,6 +691,7 @@ Cash Deposit Report
                         </tr>
 
                     </thead>
+
 
                     <tbody>
 
@@ -693,7 +788,7 @@ Cash Deposit Report
                                     {{ deposit_count }}
                                 </td>
 
-                                <td class="text-end text-primary">
+                                <td class="text-end text-success">
 
                                     {{ format_currency(total_cash_deposited) }}
 
@@ -738,9 +833,13 @@ Cash Deposit Report
 
                     Cash Received represents customer payments recorded
                     using the Cash payment method during the selected period.
-                    Total Deposited represents cash deposits recorded during
-                    the same period. Cash Available is the difference between
-                    cash received and cash deposited.
+                    Cash Expenses represents expenses paid using cash during
+                    the same period. Total Deposited represents cash deposits
+                    recorded during the same period.
+
+                    <strong>
+                        Cash Available = Cash Received − Cash Expenses − Total Deposited.
+                    </strong>
 
                 </div>
 
@@ -762,7 +861,9 @@ Cash Deposit Report
 
         <div class="container-fluid">
 
-            <!-- EXPORT HEADER -->
+            <!-- =================================================
+                 EXPORT HEADER
+            ================================================== -->
 
             <div class="text-center mb-4">
 
@@ -813,9 +914,13 @@ Cash Deposit Report
             </div>
 
 
-            <!-- EXPORT SUMMARY -->
+            <!-- =================================================
+                 EXPORT SUMMARY
+            ================================================== -->
 
             <div class="row g-3 mb-4">
+
+                <!-- CASH RECEIVED -->
 
                 <div class="col-3">
 
@@ -834,6 +939,27 @@ Cash Deposit Report
                 </div>
 
 
+                <!-- CASH EXPENSES -->
+
+                <div class="col-3">
+
+                    <div class="border rounded p-3">
+
+                        <div class="small text-secondary">
+                            Cash Expenses
+                        </div>
+
+                        <div class="fw-bold fs-5">
+                            {{ format_currency(total_cash_expenses) }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL DEPOSITED -->
+
                 <div class="col-3">
 
                     <div class="border rounded p-3">
@@ -851,6 +977,8 @@ Cash Deposit Report
                 </div>
 
 
+                <!-- CASH AVAILABLE -->
+
                 <div class="col-3">
 
                     <div class="border rounded p-3">
@@ -867,27 +995,63 @@ Cash Deposit Report
 
                 </div>
 
+            </div>
 
-                <div class="col-3">
 
-                    <div class="border rounded p-3">
+            <!-- =================================================
+                 EXPORT CALCULATION
+            ================================================== -->
 
-                        <div class="small text-secondary">
-                            Deposits
-                        </div>
+            <div class="border rounded p-3 mb-4">
 
-                        <div class="fw-bold fs-5">
-                            {{ deposit_count }}
-                        </div>
+                <div class="fw-bold mb-2">
+                    Cash Deposit Calculation
+                </div>
 
-                    </div>
+                <div class="small">
+
+                    Cash Received
+
+                    &nbsp;−&nbsp;
+
+                    Cash Expenses
+
+                    &nbsp;−&nbsp;
+
+                    Total Deposited
+
+                    &nbsp;=&nbsp;
+
+                    <strong>
+                        Cash Available
+                    </strong>
+
+                </div>
+
+                <div class="mt-2 fw-bold">
+
+                    {{ format_currency(total_cash_received) }}
+
+                    &nbsp;−&nbsp;
+
+                    {{ format_currency(total_cash_expenses) }}
+
+                    &nbsp;−&nbsp;
+
+                    {{ format_currency(total_cash_deposited) }}
+
+                    &nbsp;=&nbsp;
+
+                    {{ format_currency(cash_available) }}
 
                 </div>
 
             </div>
 
 
-            <!-- EXPORT CHARTS -->
+            <!-- =================================================
+                 EXPORT CHARTS
+            ================================================== -->
 
             <div class="mb-5">
 
@@ -932,7 +1096,9 @@ Cash Deposit Report
             </div>
 
 
-            <!-- EXPORT TABLE -->
+            <!-- =================================================
+                 EXPORT TABLE
+            ================================================== -->
 
             <div>
 
@@ -1081,7 +1247,9 @@ Cash Deposit Report
             </div>
 
 
-            <!-- EXPORT NOTE -->
+            <!-- =================================================
+                 EXPORT NOTE
+            ================================================== -->
 
             <div class="border-top mt-4 pt-3">
 
@@ -1090,17 +1258,23 @@ Cash Deposit Report
                     <strong>Report Note:</strong>
 
                     Cash Received represents customer payments recorded
-                    as cash sales payments. Total Deposited represents
-                    bank deposits recorded during the selected reporting
-                    period. Cash Available represents the remaining cash
-                    after recorded deposits.
+                    as cash sales payments. Cash Expenses represents expenses
+                    paid using cash during the selected reporting period.
+                    Total Deposited represents bank deposits recorded during
+                    the selected reporting period.
+
+                    <strong>
+                        Cash Available = Cash Received − Cash Expenses − Total Deposited.
+                    </strong>
 
                 </div>
 
             </div>
 
 
-            <!-- EXPORT FOOTER -->
+            <!-- =================================================
+                 EXPORT FOOTER
+            ================================================== -->
 
             <div class="mt-5 pt-3 border-top">
 
@@ -1149,6 +1323,7 @@ Cash Deposit Report
 <script>
 
 window.BizFlowSettings = {
+
     currencyCode:
         {{ get_currency_code()|tojson }},
 
@@ -1169,6 +1344,7 @@ window.BizFlowSettings = {
 
     timezone:
         {{ get_company_timezone_name()|tojson }}
+
 };
 
 
@@ -1224,6 +1400,7 @@ function formatMoney(value) {
         window.BizFlowSettings.currencySymbol
         + formatted
     );
+
 }
 
 </script>
