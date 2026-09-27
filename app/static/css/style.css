@@ -11,13 +11,7 @@
 :root {
 
     --font-system:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        "SF Pro Text",
-        "Helvetica Neue",
-        Arial,
-        sans-serif;
+        'Inter', sans-serif;
 
     --primary: #0a84ff;
     --primary-hover: #0077ed;
