@@ -45,7 +45,7 @@ auth_bp = Blueprint(
 # =========================================================
 
 RESET_TOKEN_SALT = "bizflow-password-reset-v1"
-RESET_TOKEN_MAX_AGE = 7200  # 2 hours
+RESET_TOKEN_MAX_AGE = 7200  # 2 hr
 
 
 def get_reset_serializer():
@@ -68,13 +68,10 @@ def generate_password_reset_token(user):
 
     serializer = get_reset_serializer()
 
-    return serializer.dumps(
-        {
-            "user_id": user.id,
-            "fingerprint": get_password_fingerprint(user)
-        },
-        salt=RESET_TOKEN_SALT
-    )
+    return serializer.dumps({
+        "user_id": user.id,
+        "fingerprint": get_password_fingerprint(user)
+    })
 
 
 def verify_password_reset_token(token):
@@ -90,30 +87,15 @@ def verify_password_reset_token(token):
         )
 
     except SignatureExpired:
-
-        current_app.logger.warning(
-            "PASSWORD RESET: Token has expired."
-        )
-
         return None
 
     except BadSignature:
-
-        current_app.logger.warning(
-            "PASSWORD RESET: Invalid reset token."
-        )
-
         return None
 
     user_id = data.get("user_id")
     fingerprint = data.get("fingerprint")
 
     if not user_id or not fingerprint:
-
-        current_app.logger.warning(
-            "PASSWORD RESET: Reset token is missing required data."
-        )
-
         return None
 
     user = db.session.get(
@@ -122,11 +104,6 @@ def verify_password_reset_token(token):
     )
 
     if not user:
-
-        current_app.logger.warning(
-            "PASSWORD RESET: User associated with token does not exist."
-        )
-
         return None
 
     current_fingerprint = get_password_fingerprint(
@@ -137,204 +114,52 @@ def verify_password_reset_token(token):
         fingerprint,
         current_fingerprint
     ):
-
-        current_app.logger.warning(
-            "PASSWORD RESET: Password fingerprint mismatch."
-        )
-
-        return None
-
-    if not user.is_active:
-
-        current_app.logger.warning(
-            "PASSWORD RESET: User account is inactive."
-        )
-
         return None
 
     return user
 
 
-# =========================================================
-# SEND PASSWORD RESET EMAIL
-# =========================================================
-
 def send_password_reset_email(user, reset_url):
     """
-    Send the password reset email.
-
-    IMPORTANT:
-
-    MAIL_USERNAME
-        = The email account used by the application
-          to authenticate with the SMTP server.
-
-    MAIL_DEFAULT_SENDER
-        = The email address shown in the From field.
-
-    user.email
-        = The actual recipient who requested the
-          password reset.
+    Send password reset email using Flask-Mail/SMTP.
+    Returns True if the SMTP server accepts the message.
     """
 
-    # -----------------------------------------------------
-    # Get SMTP configuration
-    # -----------------------------------------------------
-
-    smtp_host = current_app.config.get(
-        "MAIL_SERVER"
-    )
-
-    smtp_port = current_app.config.get(
-        "MAIL_PORT",
-        587
-    )
-
-    smtp_username = current_app.config.get(
-        "MAIL_USERNAME"
-    )
-
-    smtp_password = current_app.config.get(
-        "MAIL_PASSWORD"
-    )
-
-    mail_sender = current_app.config.get(
-        "MAIL_DEFAULT_SENDER"
-    )
-
-    smtp_use_tls = current_app.config.get(
-        "MAIL_USE_TLS",
-        True
-    )
-
-    smtp_use_ssl = current_app.config.get(
-        "MAIL_USE_SSL",
-        False
-    )
-
-    # -----------------------------------------------------
-    # Validate recipient
-    # -----------------------------------------------------
-
-    recipient_email = (
-        user.email
-        if user.email
-        else ""
-    ).strip().lower()
-
-    if not recipient_email:
-
-        current_app.logger.error(
-            "PASSWORD RESET EMAIL ERROR: "
-            "User ID=%s has no email address.",
-            user.id
-        )
-
-        return False
-
-    # -----------------------------------------------------
-    # Validate SMTP configuration
-    # -----------------------------------------------------
+    smtp_host = current_app.config.get("MAIL_SERVER")
+    smtp_port = current_app.config.get("MAIL_PORT", 587)
+    smtp_username = current_app.config.get("MAIL_USERNAME")
+    smtp_password = current_app.config.get("MAIL_PASSWORD")
+    mail_sender = current_app.config.get("MAIL_DEFAULT_SENDER")
 
     if not smtp_host:
-
         current_app.logger.error(
-            "PASSWORD RESET EMAIL ERROR: "
-            "MAIL_SERVER is not configured."
+            "PASSWORD RESET EMAIL ERROR: MAIL_SERVER is not configured."
         )
-
         return False
 
     if not smtp_username:
-
         current_app.logger.error(
-            "PASSWORD RESET EMAIL ERROR: "
-            "MAIL_USERNAME is not configured."
+            "PASSWORD RESET EMAIL ERROR: MAIL_USERNAME is not configured."
         )
-
         return False
 
     if not smtp_password:
-
         current_app.logger.error(
-            "PASSWORD RESET EMAIL ERROR: "
-            "MAIL_PASSWORD is not configured."
+            "PASSWORD RESET EMAIL ERROR: MAIL_PASSWORD is not configured."
         )
-
         return False
 
     if not mail_sender:
-
         current_app.logger.error(
-            "PASSWORD RESET EMAIL ERROR: "
-            "MAIL_DEFAULT_SENDER is not configured."
+            "PASSWORD RESET EMAIL ERROR: MAIL_DEFAULT_SENDER is not configured."
         )
-
         return False
-
-    # -----------------------------------------------------
-    # Log exactly where the email will go
-    # -----------------------------------------------------
-
-    current_app.logger.info(
-        "=================================================="
-    )
-
-    current_app.logger.info(
-        "PASSWORD RESET EMAIL"
-    )
-
-    current_app.logger.info(
-        "User ID: %s",
-        user.id
-    )
-
-    current_app.logger.info(
-        "Username: %s",
-        user.username
-    )
-
-    current_app.logger.info(
-        "Database email / RECIPIENT: %s",
-        recipient_email
-    )
-
-    current_app.logger.info(
-        "SMTP account / SENDER ACCOUNT: %s",
-        smtp_username
-    )
-
-    current_app.logger.info(
-        "From address: %s",
-        mail_sender
-    )
-
-    current_app.logger.info(
-        "SMTP server: %s:%s",
-        smtp_host,
-        smtp_port
-    )
-
-    current_app.logger.info(
-        "=================================================="
-    )
-
-    # -----------------------------------------------------
-    # Create email
-    # -----------------------------------------------------
 
     message = EmailMessage()
 
-    message["Subject"] = (
-        "Reset your BizTrace IMS password"
-    )
-
-    # This is the application sender.
+    message["Subject"] = "Reset your BizTrace IMS password"
     message["From"] = mail_sender
-
-    # IMPORTANT:
-    # This is the person requesting the reset.
-    message["To"] = recipient_email
+    message["To"] = user.email
 
     message.set_content(
         f"""
@@ -357,10 +182,6 @@ BizTrace IMS
 """.strip()
     )
 
-    # -----------------------------------------------------
-    # Send email
-    # -----------------------------------------------------
-
     try:
 
         current_app.logger.info(
@@ -369,148 +190,73 @@ BizTrace IMS
             smtp_port
         )
 
-        # -------------------------------------------------
-        # SSL connection
-        # -------------------------------------------------
+        with smtplib.SMTP(
+            smtp_host,
+            smtp_port,
+            timeout=30
+        ) as server:
 
-        if smtp_use_ssl:
+            server.ehlo()
+
+            if current_app.config.get(
+                "MAIL_USE_TLS",
+                True
+            ):
+                server.starttls()
+                server.ehlo()
 
             current_app.logger.info(
-                "PASSWORD RESET: Using SMTP SSL."
+                "PASSWORD RESET: Authenticating SMTP account."
             )
 
-            with smtplib.SMTP_SSL(
-                smtp_host,
-                smtp_port,
-                timeout=30
-            ) as server:
+            server.login(
+                smtp_username,
+                smtp_password
+            )
 
-                server.ehlo()
+            current_app.logger.info(
+                "PASSWORD RESET: Sending email to %s",
+                user.email
+            )
 
-                current_app.logger.info(
-                    "PASSWORD RESET: Authenticating SMTP account."
-                )
-
-                server.login(
-                    smtp_username,
-                    smtp_password
-                )
-
-                current_app.logger.info(
-                    "PASSWORD RESET: Sending email TO: %s",
-                    recipient_email
-                )
-
-                server.send_message(
-                    message
-                )
-
-        # -------------------------------------------------
-        # Normal SMTP + STARTTLS
-        # -------------------------------------------------
-
-        else:
-
-            with smtplib.SMTP(
-                smtp_host,
-                smtp_port,
-                timeout=30
-            ) as server:
-
-                server.ehlo()
-
-                if smtp_use_tls:
-
-                    current_app.logger.info(
-                        "PASSWORD RESET: Starting TLS."
-                    )
-
-                    server.starttls()
-
-                    server.ehlo()
-
-                current_app.logger.info(
-                    "PASSWORD RESET: Authenticating SMTP account."
-                )
-
-                server.login(
-                    smtp_username,
-                    smtp_password
-                )
-
-                current_app.logger.info(
-                    "PASSWORD RESET: Sending email TO: %s",
-                    recipient_email
-                )
-
-                server.send_message(
-                    message
-                )
-
-        # -------------------------------------------------
-        # Success
-        # -------------------------------------------------
+            server.send_message(message)
 
         current_app.logger.info(
-            "PASSWORD RESET: Email successfully accepted "
-            "by SMTP server."
-        )
-
-        current_app.logger.info(
-            "PASSWORD RESET: FINAL RECIPIENT = %s",
-            recipient_email
+            "PASSWORD RESET: Email successfully accepted by SMTP server for %s",
+            user.email
         )
 
         return True
 
-    # -----------------------------------------------------
-    # SMTP authentication error
-    # -----------------------------------------------------
-
     except smtplib.SMTPAuthenticationError:
 
         current_app.logger.exception(
-            "PASSWORD RESET EMAIL ERROR: "
-            "SMTP authentication failed."
+            "PASSWORD RESET EMAIL ERROR: SMTP authentication failed. "
+            "Check MAIL_USERNAME and MAIL_PASSWORD."
         )
 
         return False
-
-    # -----------------------------------------------------
-    # SMTP connection error
-    # -----------------------------------------------------
 
     except smtplib.SMTPConnectError:
 
         current_app.logger.exception(
-            "PASSWORD RESET EMAIL ERROR: "
-            "Could not connect to SMTP server."
+            "PASSWORD RESET EMAIL ERROR: Could not connect to SMTP server."
         )
 
         return False
-
-    # -----------------------------------------------------
-    # General SMTP error
-    # -----------------------------------------------------
 
     except smtplib.SMTPException:
 
         current_app.logger.exception(
-            "PASSWORD RESET EMAIL ERROR: "
-            "SMTP error occurred."
+            "PASSWORD RESET EMAIL ERROR: SMTP error occurred."
         )
 
         return False
 
-    # -----------------------------------------------------
-    # Any other error
-    # -----------------------------------------------------
-
     except Exception:
 
         current_app.logger.exception(
-            "PASSWORD RESET EMAIL ERROR: "
-            "Unexpected email error."
+            "PASSWORD RESET EMAIL ERROR: Unexpected email error."
         )
 
         return False
@@ -526,7 +272,6 @@ def welcome():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
-
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -557,7 +302,6 @@ def login():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
-
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -597,9 +341,7 @@ def login():
             )
 
             return redirect(
-                url_for(
-                    "auth.login"
-                )
+                url_for("auth.login")
             )
 
         if not user.is_active:
@@ -611,9 +353,7 @@ def login():
             )
 
             return redirect(
-                url_for(
-                    "auth.login"
-                )
+                url_for("auth.login")
             )
 
         if user.is_system_admin:
@@ -628,10 +368,7 @@ def login():
             )
 
             if next_page:
-
-                return redirect(
-                    next_page
-                )
+                return redirect(next_page)
 
             return redirect(
                 url_for(
@@ -648,9 +385,7 @@ def login():
             )
 
             return redirect(
-                url_for(
-                    "auth.login"
-                )
+                url_for("auth.login")
             )
 
         company = db.session.get(
@@ -667,9 +402,7 @@ def login():
             )
 
             return redirect(
-                url_for(
-                    "auth.login"
-                )
+                url_for("auth.login")
             )
 
         if not company.is_active:
@@ -682,9 +415,7 @@ def login():
             )
 
             return redirect(
-                url_for(
-                    "auth.login"
-                )
+                url_for("auth.login")
             )
 
         login_user(
@@ -697,10 +428,7 @@ def login():
         )
 
         if next_page:
-
-            return redirect(
-                next_page
-            )
+            return redirect(next_page)
 
         return redirect(
             url_for(
@@ -727,7 +455,6 @@ def register():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
-
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -746,56 +473,40 @@ def register():
 
         try:
 
-            company_email = (
-                form.company_email.data
-                .lower()
-                .strip()
-            )
-
-            user_email = (
-                form.email.data
-                .lower()
-                .strip()
-            )
-
             company = Company(
                 name=form.company_name.data.strip(),
-
-                email=company_email,
-
+                email=(
+                    form.company_email.data
+                    .lower()
+                    .strip()
+                ),
                 phone=(
                     form.company_phone.data.strip()
                     if form.company_phone.data
                     else None
                 ),
-
                 address=(
                     form.company_address.data.strip()
                     if form.company_address.data
                     else None
                 ),
-
                 is_active=True
             )
 
-            db.session.add(
-                company
-            )
+
+            db.session.add(company)
 
             db.session.flush()
 
             user = User(
                 company_id=company.id,
-
                 username=form.username.data.strip(),
-
-                # IMPORTANT:
-                # This is the email that belongs
-                # to the actual user.
-                email=user_email,
-
+                email=(
+                    form.email.data
+                    .lower()
+                    .strip()
+                ),
                 role="Company Administrator",
-
                 is_active=True
             )
 
@@ -803,9 +514,7 @@ def register():
                 form.password.data
             )
 
-            db.session.add(
-                user
-            )
+            db.session.add(user)
 
             db.session.flush()
 
@@ -815,12 +524,6 @@ def register():
             )
 
             db.session.commit()
-
-            current_app.logger.info(
-                "REGISTRATION: Created user ID=%s with email=%s",
-                user.id,
-                user.email
-            )
 
         except Exception:
 
@@ -837,9 +540,7 @@ def register():
             )
 
             return redirect(
-                url_for(
-                    "auth.register"
-                )
+                url_for("auth.register")
             )
 
         flash(
@@ -848,9 +549,7 @@ def register():
             "success"
         )
 
-        login_user(
-            user
-        )
+        login_user(user)
 
         return redirect(
             url_for(
@@ -877,7 +576,6 @@ def forgot_password():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
-
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -892,10 +590,6 @@ def forgot_password():
 
     if request.method == "POST":
 
-        # -------------------------------------------------
-        # Get email entered by the person
-        # -------------------------------------------------
-
         email = (
             request.form.get(
                 "email",
@@ -905,68 +599,23 @@ def forgot_password():
             .strip()
         )
 
-        current_app.logger.info(
-            "PASSWORD RESET: Forgot-password request "
-            "received for email=%s",
-            email
-        )
-
-        # -------------------------------------------------
-        # Find user by THEIR email
-        # -------------------------------------------------
-
         user = User.query.filter_by(
             email=email
         ).first()
 
         if user and user.is_active:
 
-            current_app.logger.info(
-                "PASSWORD RESET: User found."
-            )
-
-            current_app.logger.info(
-                "PASSWORD RESET: User ID=%s",
-                user.id
-            )
-
-            current_app.logger.info(
-                "PASSWORD RESET: Username=%s",
-                user.username
-            )
-
-            current_app.logger.info(
-                "PASSWORD RESET: DATABASE EMAIL=%s",
-                user.email
-            )
-
             try:
-
-                # -----------------------------------------
-                # Generate secure reset token
-                # -----------------------------------------
 
                 token = generate_password_reset_token(
                     user
                 )
-
-                # -----------------------------------------
-                # Build reset URL
-                # -----------------------------------------
 
                 reset_url = url_for(
                     "auth.reset_password",
                     token=token,
                     _external=True
                 )
-
-                current_app.logger.info(
-                    "PASSWORD RESET: Reset URL generated."
-                )
-
-                # -----------------------------------------
-                # Send to user's email
-                # -----------------------------------------
 
                 email_sent = send_password_reset_email(
                     user,
@@ -976,41 +625,31 @@ def forgot_password():
                 if email_sent:
 
                     current_app.logger.info(
-                        "PASSWORD RESET: "
-                        "Reset email sent successfully."
-                    )
-
-                    current_app.logger.info(
-                        "PASSWORD RESET: "
-                        "FINAL RECIPIENT=%s",
-                        user.email
+                        "PASSWORD RESET: Reset email sent successfully for %s",
+                        email
                     )
 
                 else:
 
                     current_app.logger.error(
-                        "PASSWORD RESET: "
-                        "Failed to send reset email."
+                        "PASSWORD RESET: Failed to send reset email for %s",
+                        email
                     )
 
             except Exception:
 
                 current_app.logger.exception(
-                    "PASSWORD RESET: "
-                    "Unexpected error processing request."
+                    "PASSWORD RESET: Unexpected error processing request."
                 )
 
         else:
 
             current_app.logger.info(
-                "PASSWORD RESET: "
-                "No active account found for requested email."
+                "PASSWORD RESET: No active account found for requested email."
             )
 
-        # -------------------------------------------------
-        # Always keep response generic
-        # -------------------------------------------------
-
+        # Always keep the response generic.
+        # This prevents account/email enumeration.
         flash(
             "If an account exists for that email, "
             "a password reset link has been sent.",
@@ -1027,7 +666,6 @@ def forgot_password():
         "auth/forgot_password.html"
     )
 
-
 # =========================================================
 # RESET PASSWORD
 # =========================================================
@@ -1041,7 +679,6 @@ def reset_password(token):
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
-
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -1108,12 +745,6 @@ def reset_password(token):
 
         db.session.commit()
 
-        current_app.logger.info(
-            "PASSWORD RESET: Password successfully "
-            "changed for user ID=%s",
-            user.id
-        )
-
         flash(
             "Your password has been reset successfully. "
             "You can now sign in.",
@@ -1121,9 +752,7 @@ def reset_password(token):
         )
 
         return redirect(
-            url_for(
-                "auth.login"
-            )
+            url_for("auth.login")
         )
 
     return render_template(
@@ -1174,29 +803,23 @@ def profile():
             )
 
             if not username:
-
                 flash(
                     "Username is required.",
                     "danger"
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             if not email:
-
                 flash(
                     "Email address is required.",
                     "danger"
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             existing_user = User.query.filter(
@@ -1213,9 +836,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             current_user.username = username
@@ -1229,9 +850,7 @@ def profile():
             )
 
             return redirect(
-                url_for(
-                    "auth.profile"
-                )
+                url_for("auth.profile")
             )
 
         # =====================================================
@@ -1265,9 +884,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             if len(new_password) < 8:
@@ -1279,9 +896,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             if new_password != confirm_password:
@@ -1292,9 +907,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             if current_user.check_password(
@@ -1308,9 +921,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             current_user.set_password(
@@ -1325,9 +936,7 @@ def profile():
             )
 
             return redirect(
-                url_for(
-                    "auth.profile"
-                )
+                url_for("auth.profile")
             )
 
         # =====================================================
@@ -1355,9 +964,7 @@ def profile():
                 )
 
                 return redirect(
-                    url_for(
-                        "auth.profile"
-                    )
+                    url_for("auth.profile")
                 )
 
             current_user.theme = theme
@@ -1370,9 +977,7 @@ def profile():
             )
 
             return redirect(
-                url_for(
-                    "auth.profile"
-                )
+                url_for("auth.profile")
             )
 
         # =====================================================
@@ -1413,9 +1018,7 @@ def profile():
             )
 
             return redirect(
-                url_for(
-                    "auth.profile"
-                )
+                url_for("auth.profile")
             )
 
         # =====================================================
@@ -1468,9 +1071,7 @@ def profile():
             )
 
             return redirect(
-                url_for(
-                    "auth.profile"
-                )
+                url_for("auth.profile")
             )
 
         flash(
@@ -1479,9 +1080,7 @@ def profile():
         )
 
         return redirect(
-            url_for(
-                "auth.profile"
-            )
+            url_for("auth.profile")
         )
 
     # =========================================================
@@ -1491,7 +1090,6 @@ def profile():
     company = None
 
     if current_user.company_id:
-
         company = db.session.get(
             Company,
             current_user.company_id
@@ -1503,14 +1101,11 @@ def profile():
         company=company
     )
 
-
 # =========================================================
 # LOGOUT
 # =========================================================
 
-@auth_bp.route(
-    "/logout"
-)
+@auth_bp.route("/logout")
 @login_required
 def logout():
 
@@ -1522,7 +1117,5 @@ def logout():
     )
 
     return redirect(
-        url_for(
-            "auth.welcome"
-        )
+        url_for("auth.welcome")
     )
