@@ -25,7 +25,8 @@ Cash Deposits
             </h1>
 
             <p class="page-subtitle">
-                Record cash collected from sales and deposited into the bank.
+                Track cash collected from sales, cash expenses,
+                and the exact amount available for bank deposit.
             </p>
 
         </div>
@@ -34,14 +35,16 @@ Cash Deposits
 
 
     <!-- =====================================================
-         SUMMARY
+         CASH SUMMARY
     ====================================================== -->
 
     <div class="row g-3 mb-4">
 
-        <!-- CASH COLLECTED -->
+        <!-- =================================================
+             CASH COLLECTED
+        ================================================== -->
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-xl-3">
 
             <div class="stats-card h-100">
 
@@ -56,7 +59,11 @@ Cash Deposits
                             </div>
 
                             <div class="stats-card-value responsive-money">
-                                {{ format_currency(total_cash_received) }}
+
+                                {{ format_currency(
+                                    total_cash_received
+                                ) }}
+
                             </div>
 
                             <div class="stats-card-meta text-muted">
@@ -80,9 +87,11 @@ Cash Deposits
         </div>
 
 
-        <!-- TOTAL DEPOSITED -->
+        <!-- =================================================
+             CASH EXPENSES
+        ================================================== -->
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-xl-3">
 
             <div class="stats-card h-100">
 
@@ -93,21 +102,119 @@ Cash Deposits
                         <div class="stats-card-info">
 
                             <div class="stats-card-label">
-                                Total Deposited
+                                Cash Expenses
                             </div>
 
                             <div class="stats-card-value responsive-money">
-                                {{ format_currency(total_cash_deposited) }}
+
+                                {{ format_currency(
+                                    total_cash_expenses
+                                ) }}
+
                             </div>
 
                             <div class="stats-card-meta text-muted">
-                                Cash deposited into bank
+                                Expenses paid with cash
                             </div>
 
                         </div>
 
                         <div
-                            class="d-print-none stats-card-icon bg-primary-subtle text-primary"
+                            class="d-print-none stats-card-icon bg-danger-subtle text-danger"
+                        >
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CASH AFTER EXPENSES
+        ================================================== -->
+
+        <div class="col-12 col-md-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash After Expenses
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(
+                                    cash_after_expenses
+                                ) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                Cash available before deposits
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-info-subtle text-info"
+                        >
+                            <i class="bi bi-wallet"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CASH AVAILABLE
+        ================================================== -->
+
+        <div class="col-12 col-md-6 col-xl-3">
+
+            <div class="stats-card h-100">
+
+                <div class="stats-card-body">
+
+                    <div class="stats-card-content">
+
+                        <div class="stats-card-info">
+
+                            <div class="stats-card-label">
+                                Cash Available to Deposit
+                            </div>
+
+                            <div class="stats-card-value responsive-money">
+
+                                {{ format_currency(
+                                    cash_available
+                                ) }}
+
+                            </div>
+
+                            <div class="stats-card-meta text-muted">
+                                After expenses and previous deposits
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
                         >
                             <i class="bi bi-bank"></i>
                         </div>
@@ -120,37 +227,139 @@ Cash Deposits
 
         </div>
 
+    </div>
 
-        <!-- CASH AVAILABLE -->
 
-        <div class="col-12 col-md-4">
+    <!-- =====================================================
+         CASH CALCULATION
+    ====================================================== -->
 
-            <div class="stats-card h-100">
+    <div class="card border-0 shadow-sm mb-4">
 
-                <div class="stats-card-body">
+        <div class="card-body p-4">
 
-                    <div class="stats-card-content">
+            <div class="d-flex align-items-start gap-3">
 
-                        <div class="stats-card-info">
+                <div
+                    class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                    style="
+                        width:48px;
+                        height:48px;
+                        background:rgba(10,132,255,.1);
+                        color:#0a84ff;
+                    "
+                >
+                    <i class="bi bi-calculator fs-5"></i>
+                </div>
 
-                            <div class="stats-card-label">
-                                Cash Available
-                            </div>
+                <div class="flex-grow-1">
 
-                            <div class="stats-card-value responsive-money">
-                                {{ format_currency(cash_available) }}
-                            </div>
+                    <h5 class="mb-2">
+                        Deposit Calculation
+                    </h5>
 
-                            <div class="stats-card-meta text-muted">
-                                Cash not yet deposited
+                    <p class="text-muted small mb-3">
+                        The amount available for deposit is calculated
+                        from physical cash collected from customers,
+                        less cash expenses and cash already deposited.
+                    </p>
+
+                    <div class="row g-3">
+
+                        <!-- CASH COLLECTED -->
+
+                        <div class="col-12 col-md-3">
+
+                            <div class="border rounded-3 p-3 h-100">
+
+                                <div class="small text-muted mb-1">
+                                    Cash Collected
+                                </div>
+
+                                <div class="fw-semibold responsive-money">
+
+                                    {{ format_currency(
+                                        total_cash_received
+                                    ) }}
+
+                                </div>
+
                             </div>
 
                         </div>
 
-                        <div
-                            class="d-print-none stats-card-icon bg-warning-subtle text-warning"
-                        >
-                            <i class="bi bi-wallet2"></i>
+
+                        <!-- MINUS EXPENSES -->
+
+                        <div class="col-12 col-md-3">
+
+                            <div class="border rounded-3 p-3 h-100">
+
+                                <div class="small text-muted mb-1">
+                                    Less Cash Expenses
+                                </div>
+
+                                <div class="fw-semibold text-danger responsive-money">
+
+                                    − {{ format_currency(
+                                        total_cash_expenses
+                                    ) }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- MINUS DEPOSITS -->
+
+                        <div class="col-12 col-md-3">
+
+                            <div class="border rounded-3 p-3 h-100">
+
+                                <div class="small text-muted mb-1">
+                                    Less Previous Deposits
+                                </div>
+
+                                <div class="fw-semibold text-primary responsive-money">
+
+                                    − {{ format_currency(
+                                        total_cash_deposited
+                                    ) }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- AVAILABLE -->
+
+                        <div class="col-12 col-md-3">
+
+                            <div
+                                class="border rounded-3 p-3 h-100"
+                                style="
+                                    background:rgba(25,135,84,.05);
+                                "
+                            >
+
+                                <div class="small text-muted mb-1">
+                                    Exact Amount to Deposit
+                                </div>
+
+                                <div class="fw-bold text-success responsive-money">
+
+                                    {{ format_currency(
+                                        cash_available
+                                    ) }}
+
+                                </div>
+
+                            </div>
+
                         </div>
 
                     </div>
@@ -194,15 +403,11 @@ Cash Deposits
                 action="{{ url_for('payments.cash_deposits') }}"
             >
 
-                {% if csrf_token is defined %}
-
-                    <input
-                        type="hidden"
-                        name="csrf_token"
-                        value="{{ csrf_token() }}"
-                    >
-
-                {% endif %}
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
 
                 <div class="row g-3">
@@ -236,6 +441,7 @@ Cash Deposits
                                 min="0.01"
                                 step="0.01"
                                 max="{{ cash_available }}"
+                                value="{{ cash_available if cash_available > 0 else '' }}"
                                 required
                             >
 
@@ -243,8 +449,13 @@ Cash Deposits
 
                         <div class="form-text text-muted">
 
-                            Available:
-                            {{ format_currency(cash_available) }}
+                            Maximum available:
+
+                            <strong>
+                                {{ format_currency(
+                                    cash_available
+                                ) }}
+                            </strong>
 
                         </div>
 
@@ -356,9 +567,15 @@ Cash Deposits
                             <button
                                 type="submit"
                                 class="btn btn-primary rounded-pill"
+                                {% if cash_available <= 0 %}
+                                    disabled
+                                {% endif %}
                             >
+
                                 <i class="bi bi-plus-lg me-1"></i>
+
                                 Add Deposit
+
                             </button>
 
                             <button
@@ -369,6 +586,20 @@ Cash Deposits
                             </button>
 
                         </div>
+
+                        {% if cash_available <= 0 %}
+
+                            <div class="alert alert-warning mt-3 mb-0">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                There is currently no cash available
+                                for deposit after accounting for cash
+                                expenses and previous deposits.
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
@@ -461,7 +692,9 @@ Cash Deposits
 
                                         {% if deposit.deposit_date %}
 
-                                            {{ format_company_date(deposit.deposit_date) }}
+                                            {{ format_company_date(
+                                                deposit.deposit_date
+                                            ) }}
 
                                         {% else %}
 
@@ -481,7 +714,7 @@ Cash Deposits
                                         <div class="d-flex align-items-center gap-2">
 
                                             <span
-                                                class="rounded-circle d-flex align-items-center justify-content-center"
+                                                class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                                                 style="
                                                     width:34px;
                                                     height:34px;
@@ -489,7 +722,9 @@ Cash Deposits
                                                     color:#0a84ff;
                                                 "
                                             >
+
                                                 <i class="bi bi-bank"></i>
+
                                             </span>
 
                                             <span class="text-dark">
@@ -609,7 +844,9 @@ Cash Deposits
                                                 class="btn btn-sm btn-outline-danger"
                                                 title="Delete deposit"
                                             >
+
                                                 <i class="bi bi-trash"></i>
+
                                             </button>
 
                                         </form>
@@ -643,7 +880,9 @@ Cash Deposits
                             color:#0a84ff;
                         "
                     >
+
                         <i class="bi bi-bank fs-4"></i>
+
                     </div>
 
                     <h5>
