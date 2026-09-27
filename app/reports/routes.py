@@ -6500,6 +6500,55 @@ def cash_deposit_report():
     )
 
     # =====================================================
+    # CASH EXPENSES
+    #
+    # Only expenses paid using CASH are deducted from
+    # the cash available for deposit.
+    # =====================================================
+
+    cash_expenses_query = Expense.query.filter(
+        Expense.company_id == company_id,
+
+        func.lower(
+            func.trim(
+                Expense.payment_method
+            )
+        ) == "cash",
+
+        Expense.expense_date >= start_datetime,
+
+        Expense.expense_date <= end_datetime
+    )
+
+    # =====================================================
+    # TOTAL CASH EXPENSES
+    # =====================================================
+
+    total_cash_expenses = money(
+        cash_expenses_query
+        .with_entities(
+            func.coalesce(
+                func.sum(
+                    Expense.amount
+                ),
+                0
+            )
+        )
+        .scalar()
+    )
+
+    # =====================================================
+    # CASH AFTER EXPENSES
+    #
+    # Cash received minus cash expenses.
+    # =====================================================
+
+    net_cash_before_deposits = (
+        total_cash_received
+        - total_cash_expenses
+    )
+
+    # =====================================================
     # CASH DEPOSITS
     #
     # Deposits recorded during the selected period.
@@ -6544,17 +6593,21 @@ def cash_deposit_report():
     )
 
     # =====================================================
-    # CASH REMAINING
+    # CASH AVAILABLE
     #
-    # Cash received minus cash deposited.
+    # Cash received
+    # minus cash expenses
+    # minus cash already deposited.
     # =====================================================
 
     cash_available = (
         total_cash_received
+        - total_cash_expenses
         - total_cash_deposited
     )
 
-    # Never display a negative available cash value.
+    # Never display a negative amount as money available
+    # for a new deposit.
     if cash_available < Decimal("0"):
 
         cash_available = Decimal("0")
@@ -6611,6 +6664,7 @@ def cash_deposit_report():
     )
 
     bank_breakdown = [
+
         {
             "bank": (
                 row.bank_name
@@ -6628,6 +6682,7 @@ def cash_deposit_report():
         }
 
         for row in bank_rows
+
     ]
 
     # =====================================================
@@ -6672,6 +6727,7 @@ def cash_deposit_report():
     )
 
     daily_deposit_trend = [
+
         {
             "date": (
                 row.date.strftime("%d %b")
@@ -6690,27 +6746,30 @@ def cash_deposit_report():
         }
 
         for row in daily_deposit_rows
+
     ]
 
     # =====================================================
     # DEPOSIT RATE
     #
-    # Percentage of cash received during the period
+    # Percentage of NET CASH available before deposits
     # that has been deposited.
+    #
+    # Net cash before deposits =
+    # Cash Received - Cash Expenses
     # =====================================================
 
-    deposit_percentage = (
-        (
+    if net_cash_before_deposits > Decimal("0"):
+
+        deposit_percentage = (
             total_cash_deposited
-            / total_cash_received
+            / net_cash_before_deposits
+            * Decimal("100")
         )
-        * Decimal("100")
 
-        if total_cash_received
-        > Decimal("0")
+    else:
 
-        else Decimal("0")
-    )
+        deposit_percentage = Decimal("0")
 
     # =====================================================
     # EXPORT ROWS
@@ -6827,8 +6886,16 @@ def cash_deposit_report():
             total_cash_received
         ),
 
+        total_cash_expenses=(
+            total_cash_expenses
+        ),
+
         total_cash_deposited=(
             total_cash_deposited
+        ),
+
+        net_cash_before_deposits=(
+            net_cash_before_deposits
         ),
 
         cash_available=(
