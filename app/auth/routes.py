@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from hashlib import sha256
 import hmac
-import smtplib
-from email.message import EmailMessage
+
+import resend
 
 from flask import (
     Blueprint,
@@ -45,7 +45,7 @@ auth_bp = Blueprint(
 # =========================================================
 
 RESET_TOKEN_SALT = "bizflow-password-reset-v1"
-RESET_TOKEN_MAX_AGE = 7200  # 2 hr
+RESET_TOKEN_MAX_AGE = 7200  # 2 hours
 
 
 def get_reset_serializer():
@@ -68,10 +68,13 @@ def generate_password_reset_token(user):
 
     serializer = get_reset_serializer()
 
-    return serializer.dumps({
-        "user_id": user.id,
-        "fingerprint": get_password_fingerprint(user)
-    })
+    return serializer.dumps(
+        {
+            "user_id": user.id,
+            "fingerprint": get_password_fingerprint(user)
+        },
+        salt=RESET_TOKEN_SALT
+    )
 
 
 def verify_password_reset_token(token):
@@ -87,15 +90,18 @@ def verify_password_reset_token(token):
         )
 
     except SignatureExpired:
+
         return None
 
     except BadSignature:
+
         return None
 
     user_id = data.get("user_id")
     fingerprint = data.get("fingerprint")
 
     if not user_id or not fingerprint:
+
         return None
 
     user = db.session.get(
@@ -104,6 +110,7 @@ def verify_password_reset_token(token):
     )
 
     if not user:
+
         return None
 
     current_fingerprint = get_password_fingerprint(
@@ -114,118 +121,422 @@ def verify_password_reset_token(token):
         fingerprint,
         current_fingerprint
     ):
+
         return None
 
     return user
 
+
+# =========================================================
+# SEND PASSWORD RESET EMAIL
+# RESEND
+# =========================================================
 
 def send_password_reset_email(
     user,
     reset_url
 ):
 
-    smtp_host = current_app.config.get(
-        "MAIL_SERVER"
+    resend_api_key = current_app.config.get(
+        "RESEND_API_KEY"
     )
 
-    smtp_port = current_app.config.get(
-        "MAIL_PORT",
-        587
+    sender_email = current_app.config.get(
+        "RESEND_FROM_EMAIL"
     )
 
-    smtp_username = current_app.config.get(
-        "MAIL_USERNAME"
-    )
+    # -----------------------------------------------------
+    # CHECK RESEND CONFIGURATION
+    # -----------------------------------------------------
 
-    smtp_password = current_app.config.get(
-        "MAIL_PASSWORD"
-    )
+    if not resend_api_key:
 
-    smtp_use_tls = current_app.config.get(
-        "MAIL_USE_TLS",
-        True
-    )
-
-    mail_sender = current_app.config.get(
-        "MAIL_DEFAULT_SENDER"
-    )
-
-    if not (
-        smtp_host
-        and smtp_username
-        and smtp_password
-        and mail_sender
-    ):
-
-        current_app.logger.warning(
-            "Password reset email was not sent because "
-            "SMTP settings are not configured."
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: "
+            "RESEND_API_KEY is not configured."
         )
 
-        current_app.logger.warning(
-            "Password reset URL: %s",
+        current_app.logger.error(
+            "PASSWORD RESET URL: %s",
             reset_url
         )
 
         return False
 
-    message = EmailMessage()
+    if not sender_email:
 
-    message["Subject"] = (
-        "Reset your BizTrace IMS password"
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: "
+            "RESEND_FROM_EMAIL is not configured."
+        )
+
+        current_app.logger.error(
+            "PASSWORD RESET URL: %s",
+            reset_url
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # GET ACTUAL USER EMAIL
+    # -----------------------------------------------------
+
+    recipient_email = (
+        user.email or ""
+    ).strip().lower()
+
+    if not recipient_email:
+
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: "
+            "User ID=%s has no email address.",
+            user.id
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # LOG EMAIL DETAILS
+    # -----------------------------------------------------
+
+    current_app.logger.info(
+        "=================================================="
     )
 
-    message["From"] = mail_sender
-
-    message["To"] = user.email
-
-    message.set_content(
-        f"""
-Hello {user.username},
-
-We received a request to reset your BizTrace IMS password.
-
-Use the link below to create a new password:
-
-{reset_url}
-
-This link expires in 30 minutes.
-
-If you did not request a password reset, you can safely ignore this email.
-
-For security reasons, never share this link with anyone.
-
-Regards,
-BizTrace IMS
-""".strip()
+    current_app.logger.info(
+        "PASSWORD RESET EMAIL"
     )
+
+    current_app.logger.info(
+        "User ID: %s",
+        user.id
+    )
+
+    current_app.logger.info(
+        "Username: %s",
+        user.username
+    )
+
+    current_app.logger.info(
+        "DATABASE EMAIL / RECIPIENT: %s",
+        recipient_email
+    )
+
+    current_app.logger.info(
+        "RESEND SENDER: %s",
+        sender_email
+    )
+
+    current_app.logger.info(
+        "=================================================="
+    )
+
+    # -----------------------------------------------------
+    # CONFIGURE RESEND
+    # -----------------------------------------------------
+
+    resend.api_key = resend_api_key
+
+    # -----------------------------------------------------
+    # EMAIL HTML
+    # -----------------------------------------------------
+
+    html_content = f"""
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Reset your BizTrace IMS password
+    </title>
+
+</head>
+
+<body
+    style="
+        margin:0;
+        padding:0;
+        background:#f5f7fb;
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            Roboto,
+            Helvetica,
+            Arial,
+            sans-serif;
+    "
+>
+
+    <div
+        style="
+            max-width:600px;
+            margin:40px auto;
+            padding:20px;
+        "
+    >
+
+        <div
+            style="
+                background:#ffffff;
+                border-radius:16px;
+                padding:40px 30px;
+                box-shadow:
+                    0 4px 20px
+                    rgba(0,0,0,0.06);
+            "
+        >
+
+            <!-- BRAND -->
+
+            <div
+                style="
+                    text-align:center;
+                    margin-bottom:30px;
+                "
+            >
+
+                <h1
+                    style="
+                        margin:0;
+                        color:#0a84ff;
+                        font-size:28px;
+                        font-weight:700;
+                    "
+                >
+                    BizTrace IMS
+                </h1>
+
+                <p
+                    style="
+                        margin:8px 0 0;
+                        color:#6b7280;
+                        font-size:14px;
+                    "
+                >
+                    Inventory Management System
+                </p>
+
+            </div>
+
+
+            <!-- CONTENT -->
+
+            <h2
+                style="
+                    margin:0 0 16px;
+                    color:#111827;
+                    font-size:22px;
+                "
+            >
+                Reset your password
+            </h2>
+
+            <p
+                style="
+                    color:#374151;
+                    font-size:15px;
+                    line-height:1.7;
+                "
+            >
+                Hello {user.username},
+            </p>
+
+            <p
+                style="
+                    color:#374151;
+                    font-size:15px;
+                    line-height:1.7;
+                "
+            >
+                We received a request to reset the password
+                for your BizTrace IMS account.
+            </p>
+
+            <p
+                style="
+                    color:#374151;
+                    font-size:15px;
+                    line-height:1.7;
+                "
+            >
+                Click the button below to create a new password.
+            </p>
+
+
+            <!-- BUTTON -->
+
+            <div
+                style="
+                    text-align:center;
+                    margin:30px 0;
+                "
+            >
+
+                <a
+                    href="{reset_url}"
+                    style="
+                        display:inline-block;
+                        padding:14px 26px;
+                        background:#0a84ff;
+                        color:#ffffff;
+                        text-decoration:none;
+                        border-radius:10px;
+                        font-size:15px;
+                        font-weight:600;
+                    "
+                >
+                    Reset Password
+                </a>
+
+            </div>
+
+
+            <!-- FALLBACK LINK -->
+
+            <p
+                style="
+                    color:#6b7280;
+                    font-size:13px;
+                    line-height:1.6;
+                "
+            >
+                If the button does not work, copy and paste
+                the following link into your browser:
+            </p>
+
+            <p
+                style="
+                    word-break:break-all;
+                    background:#f3f4f6;
+                    padding:12px;
+                    border-radius:8px;
+                    color:#374151;
+                    font-size:12px;
+                "
+            >
+                {reset_url}
+            </p>
+
+
+            <!-- SECURITY -->
+
+            <div
+                style="
+                    margin-top:30px;
+                    padding:16px;
+                    background:#f8fafc;
+                    border-radius:10px;
+                "
+            >
+
+                <p
+                    style="
+                        margin:0;
+                        color:#4b5563;
+                        font-size:13px;
+                        line-height:1.6;
+                    "
+                >
+                    <strong>Security notice:</strong>
+                    This password reset link expires in
+                    2 hours. If you did not request a
+                    password reset, you can safely ignore
+                    this email.
+                </p>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div
+                style="
+                    margin-top:35px;
+                    padding-top:20px;
+                    border-top:1px solid #e5e7eb;
+                    text-align:center;
+                "
+            >
+
+                <p
+                    style="
+                        margin:0;
+                        color:#9ca3af;
+                        font-size:12px;
+                    "
+                >
+                    Regards,<br>
+                    <strong>BizTrace IMS</strong>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+"""
+
+    # -----------------------------------------------------
+    # SEND THROUGH RESEND
+    # -----------------------------------------------------
 
     try:
 
-        with smtplib.SMTP(
-            smtp_host,
-            smtp_port,
-            timeout=20
-        ) as server:
+        current_app.logger.info(
+            "PASSWORD RESET: Sending email through Resend."
+        )
 
-            if smtp_use_tls:
-                server.starttls()
+        current_app.logger.info(
+            "PASSWORD RESET: FINAL RECIPIENT = %s",
+            recipient_email
+        )
 
-            server.login(
-                smtp_username,
-                smtp_password
-            )
+        params = {
+            "from": sender_email,
+            "to": [recipient_email],
+            "subject": "Reset your BizTrace IMS password",
+            "html": html_content
+        }
 
-            server.send_message(
-                message
-            )
+        response = resend.Emails.send(
+            params
+        )
+
+        current_app.logger.info(
+            "PASSWORD RESET: Resend accepted email."
+        )
+
+        current_app.logger.info(
+            "PASSWORD RESET: Recipient = %s",
+            recipient_email
+        )
+
+        current_app.logger.info(
+            "PASSWORD RESET: Resend response = %s",
+            response
+        )
 
         return True
 
     except Exception:
 
         current_app.logger.exception(
-            "Failed to send password reset email."
+            "PASSWORD RESET EMAIL ERROR: "
+            "Resend failed to send email."
         )
 
         return False
@@ -241,6 +552,7 @@ def welcome():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
+
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -271,6 +583,7 @@ def login():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
+
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -337,7 +650,10 @@ def login():
             )
 
             if next_page:
-                return redirect(next_page)
+
+                return redirect(
+                    next_page
+                )
 
             return redirect(
                 url_for(
@@ -397,7 +713,10 @@ def login():
         )
 
         if next_page:
-            return redirect(next_page)
+
+            return redirect(
+                next_page
+            )
 
         return redirect(
             url_for(
@@ -424,6 +743,7 @@ def register():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
+
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -444,38 +764,47 @@ def register():
 
             company = Company(
                 name=form.company_name.data.strip(),
+
                 email=(
                     form.company_email.data
                     .lower()
                     .strip()
                 ),
+
                 phone=(
                     form.company_phone.data.strip()
                     if form.company_phone.data
                     else None
                 ),
+
                 address=(
                     form.company_address.data.strip()
                     if form.company_address.data
                     else None
                 ),
+
                 is_active=True
             )
 
-
-            db.session.add(company)
+            db.session.add(
+                company
+            )
 
             db.session.flush()
 
             user = User(
                 company_id=company.id,
+
                 username=form.username.data.strip(),
+
                 email=(
                     form.email.data
                     .lower()
                     .strip()
                 ),
+
                 role="Company Administrator",
+
                 is_active=True
             )
 
@@ -483,7 +812,9 @@ def register():
                 form.password.data
             )
 
-            db.session.add(user)
+            db.session.add(
+                user
+            )
 
             db.session.flush()
 
@@ -518,7 +849,9 @@ def register():
             "success"
         )
 
-        login_user(user)
+        login_user(
+            user
+        )
 
         return redirect(
             url_for(
@@ -545,6 +878,7 @@ def forgot_password():
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
+
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -568,29 +902,83 @@ def forgot_password():
             .strip()
         )
 
+        current_app.logger.info(
+            "PASSWORD RESET: "
+            "Forgot-password request received "
+            "for email=%s",
+            email
+        )
+
         user = User.query.filter_by(
             email=email
         ).first()
 
         if user and user.is_active:
 
-            token = generate_password_reset_token(
-                user
+            current_app.logger.info(
+                "PASSWORD RESET: User found."
             )
 
-            reset_url = url_for(
-                "auth.reset_password",
-                token=token,
-                _external=True
+            current_app.logger.info(
+                "PASSWORD RESET: User ID=%s",
+                user.id
             )
 
-            send_password_reset_email(
-                user,
-                reset_url
+            current_app.logger.info(
+                "PASSWORD RESET: DATABASE EMAIL=%s",
+                user.email
             )
 
-        # Deliberately generic.
-        # Do not reveal whether an email exists.
+            try:
+
+                token = generate_password_reset_token(
+                    user
+                )
+
+                reset_url = url_for(
+                    "auth.reset_password",
+                    token=token,
+                    _external=True
+                )
+
+                email_sent = send_password_reset_email(
+                    user,
+                    reset_url
+                )
+
+                if email_sent:
+
+                    current_app.logger.info(
+                        "PASSWORD RESET: "
+                        "Reset email sent successfully."
+                    )
+
+                else:
+
+                    current_app.logger.error(
+                        "PASSWORD RESET: "
+                        "Failed to send reset email."
+                    )
+
+            except Exception:
+
+                current_app.logger.exception(
+                    "PASSWORD RESET: "
+                    "Unexpected error processing request."
+                )
+
+        else:
+
+            current_app.logger.info(
+                "PASSWORD RESET: "
+                "No active account found."
+            )
+
+        # -------------------------------------------------
+        # GENERIC RESPONSE
+        # Prevent email/account enumeration.
+        # -------------------------------------------------
+
         flash(
             "If an account exists for that email, "
             "a password reset link has been sent.",
@@ -621,6 +1009,7 @@ def reset_password(token):
     if current_user.is_authenticated:
 
         if current_user.is_system_admin:
+
             return redirect(
                 url_for(
                     "system_admin.dashboard"
@@ -721,9 +1110,9 @@ def profile():
             ""
         ).strip()
 
-        # =====================================================
+        # =================================================
         # UPDATE PROFILE INFORMATION
-        # =====================================================
+        # =================================================
 
         if action == "update_profile":
 
@@ -745,6 +1134,7 @@ def profile():
             )
 
             if not username:
+
                 flash(
                     "Username is required.",
                     "danger"
@@ -755,6 +1145,7 @@ def profile():
                 )
 
             if not email:
+
                 flash(
                     "Email address is required.",
                     "danger"
@@ -782,6 +1173,7 @@ def profile():
                 )
 
             current_user.username = username
+
             current_user.email = email
 
             db.session.commit()
@@ -795,9 +1187,9 @@ def profile():
                 url_for("auth.profile")
             )
 
-        # =====================================================
+        # =================================================
         # CHANGE PASSWORD
-        # =====================================================
+        # =================================================
 
         if action == "change_password":
 
@@ -881,9 +1273,9 @@ def profile():
                 url_for("auth.profile")
             )
 
-        # =====================================================
+        # =================================================
         # APPEARANCE
-        # =====================================================
+        # =================================================
 
         if action == "update_appearance":
 
@@ -922,9 +1314,9 @@ def profile():
                 url_for("auth.profile")
             )
 
-        # =====================================================
+        # =================================================
         # NOTIFICATION PREFERENCES
-        # =====================================================
+        # =================================================
 
         if action == "update_notifications":
 
@@ -963,9 +1355,9 @@ def profile():
                 url_for("auth.profile")
             )
 
-        # =====================================================
+        # =================================================
         # SOUND PREFERENCES
-        # =====================================================
+        # =================================================
 
         if action == "update_sounds":
 
@@ -1032,6 +1424,7 @@ def profile():
     company = None
 
     if current_user.company_id:
+
         company = db.session.get(
             Company,
             current_user.company_id
@@ -1042,6 +1435,7 @@ def profile():
         user=current_user,
         company=company
     )
+
 
 # =========================================================
 # LOGOUT
