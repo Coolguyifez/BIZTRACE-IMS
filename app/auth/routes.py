@@ -119,64 +119,46 @@ def verify_password_reset_token(token):
     return user
 
 
-def send_password_reset_email(
-    user,
-    reset_url
-):
+def send_password_reset_email(user, reset_url):
+    """
+    Send password reset email using Flask-Mail/SMTP.
+    Returns True if the SMTP server accepts the message.
+    """
 
-    smtp_host = current_app.config.get(
-        "MAIL_SERVER"
-    )
+    smtp_host = current_app.config.get("MAIL_SERVER")
+    smtp_port = current_app.config.get("MAIL_PORT", 587)
+    smtp_username = current_app.config.get("MAIL_USERNAME")
+    smtp_password = current_app.config.get("MAIL_PASSWORD")
+    mail_sender = current_app.config.get("MAIL_DEFAULT_SENDER")
 
-    smtp_port = current_app.config.get(
-        "MAIL_PORT",
-        587
-    )
-
-    smtp_username = current_app.config.get(
-        "MAIL_USERNAME"
-    )
-
-    smtp_password = current_app.config.get(
-        "MAIL_PASSWORD"
-    )
-
-    smtp_use_tls = current_app.config.get(
-        "MAIL_USE_TLS",
-        True
-    )
-
-    mail_sender = current_app.config.get(
-        "MAIL_DEFAULT_SENDER"
-    )
-
-    if not (
-        smtp_host
-        and smtp_username
-        and smtp_password
-        and mail_sender
-    ):
-
-        current_app.logger.warning(
-            "Password reset email was not sent because "
-            "SMTP settings are not configured."
+    if not smtp_host:
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: MAIL_SERVER is not configured."
         )
+        return False
 
-        current_app.logger.warning(
-            "Password reset URL: %s",
-            reset_url
+    if not smtp_username:
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: MAIL_USERNAME is not configured."
         )
+        return False
 
+    if not smtp_password:
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: MAIL_PASSWORD is not configured."
+        )
+        return False
+
+    if not mail_sender:
+        current_app.logger.error(
+            "PASSWORD RESET EMAIL ERROR: MAIL_DEFAULT_SENDER is not configured."
+        )
         return False
 
     message = EmailMessage()
 
-    message["Subject"] = (
-        "Reset your BizTrace IMS password"
-    )
-
+    message["Subject"] = "Reset your BizTrace IMS password"
     message["From"] = mail_sender
-
     message["To"] = user.email
 
     message.set_content(
@@ -189,7 +171,7 @@ Use the link below to create a new password:
 
 {reset_url}
 
-This link expires in 30 minutes.
+This password reset link expires in 2 hours.
 
 If you did not request a password reset, you can safely ignore this email.
 
@@ -202,30 +184,79 @@ BizTrace IMS
 
     try:
 
+        current_app.logger.info(
+            "PASSWORD RESET: Connecting to SMTP server %s:%s",
+            smtp_host,
+            smtp_port
+        )
+
         with smtplib.SMTP(
             smtp_host,
             smtp_port,
-            timeout=20
+            timeout=30
         ) as server:
 
-            if smtp_use_tls:
+            server.ehlo()
+
+            if current_app.config.get(
+                "MAIL_USE_TLS",
+                True
+            ):
                 server.starttls()
+                server.ehlo()
+
+            current_app.logger.info(
+                "PASSWORD RESET: Authenticating SMTP account."
+            )
 
             server.login(
                 smtp_username,
                 smtp_password
             )
 
-            server.send_message(
-                message
+            current_app.logger.info(
+                "PASSWORD RESET: Sending email to %s",
+                user.email
             )
 
+            server.send_message(message)
+
+        current_app.logger.info(
+            "PASSWORD RESET: Email successfully accepted by SMTP server for %s",
+            user.email
+        )
+
         return True
+
+    except smtplib.SMTPAuthenticationError:
+
+        current_app.logger.exception(
+            "PASSWORD RESET EMAIL ERROR: SMTP authentication failed. "
+            "Check MAIL_USERNAME and MAIL_PASSWORD."
+        )
+
+        return False
+
+    except smtplib.SMTPConnectError:
+
+        current_app.logger.exception(
+            "PASSWORD RESET EMAIL ERROR: Could not connect to SMTP server."
+        )
+
+        return False
+
+    except smtplib.SMTPException:
+
+        current_app.logger.exception(
+            "PASSWORD RESET EMAIL ERROR: SMTP error occurred."
+        )
+
+        return False
 
     except Exception:
 
         current_app.logger.exception(
-            "Failed to send password reset email."
+            "PASSWORD RESET EMAIL ERROR: Unexpected email error."
         )
 
         return False
@@ -574,23 +605,51 @@ def forgot_password():
 
         if user and user.is_active:
 
-            token = generate_password_reset_token(
-                user
+            try:
+
+                token = generate_password_reset_token(
+                    user
+                )
+
+                reset_url = url_for(
+                    "auth.reset_password",
+                    token=token,
+                    _external=True
+                )
+
+                email_sent = send_password_reset_email(
+                    user,
+                    reset_url
+                )
+
+                if email_sent:
+
+                    current_app.logger.info(
+                        "PASSWORD RESET: Reset email sent successfully for %s",
+                        email
+                    )
+
+                else:
+
+                    current_app.logger.error(
+                        "PASSWORD RESET: Failed to send reset email for %s",
+                        email
+                    )
+
+            except Exception:
+
+                current_app.logger.exception(
+                    "PASSWORD RESET: Unexpected error processing request."
+                )
+
+        else:
+
+            current_app.logger.info(
+                "PASSWORD RESET: No active account found for requested email."
             )
 
-            reset_url = url_for(
-                "auth.reset_password",
-                token=token,
-                _external=True
-            )
-
-            send_password_reset_email(
-                user,
-                reset_url
-            )
-
-        # Deliberately generic.
-        # Do not reveal whether an email exists.
+        # Always keep the response generic.
+        # This prevents account/email enumeration.
         flash(
             "If an account exists for that email, "
             "a password reset link has been sent.",
@@ -606,7 +665,6 @@ def forgot_password():
     return render_template(
         "auth/forgot_password.html"
     )
-
 
 # =========================================================
 # RESET PASSWORD
