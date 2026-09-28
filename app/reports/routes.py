@@ -73,14 +73,12 @@ def report_dashboard():
 
     company_timezone = get_company_timezone()
 
-    # Always use the current company's timezone when
-    # determining today's date.
+    company_id = current_user.company_id
+
+    # Always determine "today" using the company's timezone.
     today = datetime.now(
         company_timezone
     ).date()
-
-    # Current company ID
-    company_id = current_user.company_id
 
     # =====================================================
     # DATE FILTER
@@ -163,17 +161,52 @@ def report_dashboard():
         )
 
     # =====================================================
-    # REPORT DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC DATETIME
+    #
+    # IMPORTANT:
+    #
+    # The user selects dates according to the company's
+    # timezone.
+    #
+    # Database timestamps are compared using UTC.
+    #
+    # Example:
+    #
+    # 28 Sep 00:00 Africa/Lagos
+    #        =
+    # 27 Sep 23:00 UTC
+    #
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    # Use the beginning of the day AFTER end_date.
+    #
+    # This is safer than time.max because it gives us
+    # an exclusive upper boundary.
+
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -185,7 +218,7 @@ def report_dashboard():
 
         Sale.sale_date >= start_datetime,
 
-        Sale.sale_date <= end_datetime
+        Sale.sale_date < end_datetime
     )
 
     total_sales = money(
@@ -234,7 +267,7 @@ def report_dashboard():
 
         Purchase.purchase_date >= start_datetime,
 
-        Purchase.purchase_date <= end_datetime
+        Purchase.purchase_date < end_datetime
     )
 
     total_purchases = money(
@@ -283,7 +316,7 @@ def report_dashboard():
 
         Expense.expense_date >= start_datetime,
 
-        Expense.expense_date <= end_datetime
+        Expense.expense_date < end_datetime
     )
 
     total_expenses = money(
@@ -310,7 +343,7 @@ def report_dashboard():
 
         Payment.payment_date >= start_datetime,
 
-        Payment.payment_date <= end_datetime
+        Payment.payment_date < end_datetime
     )
 
     total_payments = money(
@@ -329,13 +362,10 @@ def report_dashboard():
     )
 
     # =====================================================
-    # COST OF GOODS SOLD (COGS)
+    # COST OF GOODS SOLD
     #
     # COGS =
     # Quantity Sold × Product Purchase Price
-    #
-    # Purchases are NOT deducted directly from sales.
-    # Only the cost of products actually sold is included.
     # =====================================================
 
     total_cost_of_goods_sold = money(
@@ -361,16 +391,13 @@ def report_dashboard():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .scalar()
     )
 
     # =====================================================
     # GROSS PROFIT
-    #
-    # Gross Profit =
-    # Total Sales - Cost of Goods Sold
     # =====================================================
 
     gross_profit = (
@@ -380,12 +407,6 @@ def report_dashboard():
 
     # =====================================================
     # NET PROFIT
-    #
-    # Net Profit =
-    # Gross Profit - Operating Expenses
-    #
-    # Purchases are NOT deducted here because inventory
-    # purchases are represented through COGS when sold.
     # =====================================================
 
     net_profit = (
@@ -466,6 +487,17 @@ def report_dashboard():
 
     # =====================================================
     # DAILY SALES SUMMARY
+    #
+    # IMPORTANT:
+    #
+    # func.date() operates on the stored database
+    # timestamp. Since timestamps are UTC, the result can
+    # represent the wrong company-local calendar day.
+    #
+    # Therefore, convert each result to company timezone
+    # before displaying/grouping if exact local daily
+    # reporting is required.
+    #
     # =====================================================
 
     daily_sales = (
@@ -486,7 +518,7 @@ def report_dashboard():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .group_by(
             func.date(
@@ -523,7 +555,7 @@ def report_dashboard():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .group_by(
             func.date(
@@ -558,7 +590,7 @@ def report_dashboard():
 
             Expense.expense_date >= start_datetime,
 
-            Expense.expense_date <= end_datetime
+            Expense.expense_date < end_datetime
         )
         .group_by(
             Expense.category_id
@@ -787,16 +819,51 @@ def sales_report():
 
     # =====================================================
     # REPORT DATE/TIME RANGE
+    #
+    # IMPORTANT:
+    #
+    # start_date and end_date are COMPANY-LOCAL dates.
+    #
+    # Convert them to UTC before querying the database.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #        ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # 29 Sep 2026 00:00 Lagos
+    #        ↓
+    # 28 Sep 2026 23:00 UTC
+    #
+    # Using an exclusive end boundary avoids problems
+    # with microseconds at the end of the day.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -808,7 +875,7 @@ def sales_report():
 
         Sale.sale_date >= start_datetime,
 
-        Sale.sale_date <= end_datetime
+        Sale.sale_date < end_datetime
     )
 
     # =====================================================
@@ -908,57 +975,96 @@ def sales_report():
 
     # =====================================================
     # DAILY SALES
+    #
+    # IMPORTANT:
+    #
+    # Do NOT use:
+    #
+    #     func.date(Sale.sale_date)
+    #
+    # because Sale.sale_date is stored as UTC.
+    #
+    # Instead, use the already retrieved sales and convert
+    # every sale timestamp to the company's timezone before
+    # grouping by calendar date.
     # =====================================================
 
-    daily_sales_rows = (
-        db.session.query(
-            func.date(
-                Sale.sale_date
-            ).label(
-                "sale_day"
-            ),
+    daily_sales_totals = {}
 
-            func.coalesce(
-                func.sum(
-                    Sale.total
-                ),
-                0
-            ).label(
-                "total"
+    for sale in sales:
+
+        if not sale.sale_date:
+            continue
+
+        sale_datetime = sale.sale_date
+
+        # -------------------------------------------------
+        # Ensure timestamp is timezone-aware UTC
+        # -------------------------------------------------
+
+        if sale_datetime.tzinfo is None:
+
+            sale_datetime = sale_datetime.replace(
+                tzinfo=timezone.utc
+            )
+
+        else:
+
+            sale_datetime = sale_datetime.astimezone(
+                timezone.utc
+            )
+
+        # -------------------------------------------------
+        # Convert UTC → Company timezone
+        # -------------------------------------------------
+
+        local_sale_datetime = (
+            sale_datetime.astimezone(
+                company_timezone
             )
         )
-        .filter(
-            Sale.company_id == company_id,
 
-            Sale.sale_date >= start_datetime,
+        # -------------------------------------------------
+        # Get company-local calendar date
+        # -------------------------------------------------
 
-            Sale.sale_date <= end_datetime
+        sale_day = (
+            local_sale_datetime.date()
         )
-        .group_by(
-            func.date(
-                Sale.sale_date
+
+        # -------------------------------------------------
+        # Add sale amount to that local day
+        # -------------------------------------------------
+
+        daily_sales_totals[sale_day] = (
+            daily_sales_totals.get(
+                sale_day,
+                Decimal("0")
+            )
+            + Decimal(
+                str(
+                    sale.total or 0
+                )
             )
         )
-        .order_by(
-            func.date(
-                Sale.sale_date
-            )
-        )
-        .all()
-    )
+
+    # -----------------------------------------------------
+    # Convert daily sales into template/chart format
+    # -----------------------------------------------------
 
     daily_sales = [
         {
-            "date": str(
-                row.sale_day
-            ),
+            "date": sale_day.isoformat(),
 
             "total": float(
-                row.total or 0
+                total
             )
         }
 
-        for row in daily_sales_rows
+        for sale_day, total
+        in sorted(
+            daily_sales_totals.items()
+        )
     ]
 
     # =====================================================
@@ -1002,7 +1108,7 @@ def sales_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .group_by(
             Product.id,
@@ -1074,7 +1180,7 @@ def sales_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .group_by(
             Product.id,
@@ -1157,6 +1263,39 @@ def sales_report():
             remark = payment_status
 
         # -------------------------------------------------
+        # LOCAL SALE DATE
+        #
+        # Convert stored UTC timestamp to the company's
+        # local timezone before sending it to the template.
+        # -------------------------------------------------
+
+        local_sale_date = sale.sale_date
+
+        if local_sale_date:
+
+            if local_sale_date.tzinfo is None:
+
+                local_sale_date = (
+                    local_sale_date.replace(
+                        tzinfo=timezone.utc
+                    )
+                )
+
+            else:
+
+                local_sale_date = (
+                    local_sale_date.astimezone(
+                        timezone.utc
+                    )
+                )
+
+            local_sale_date = (
+                local_sale_date.astimezone(
+                    company_timezone
+                )
+            )
+
+        # -------------------------------------------------
         # EXPORT ROW
         # -------------------------------------------------
 
@@ -1166,7 +1305,7 @@ def sales_report():
                     sale.invoice_number
                 ),
 
-                "date": sale.sale_date,
+                "date": local_sale_date,
 
                 "customer": customer_name,
 
@@ -1375,17 +1514,54 @@ def payment_report():
         )
 
     # =====================================================
-    # DATETIME RANGE
+    # COMPANY DATE → UTC RANGE
+    #
+    # IMPORTANT:
+    #
+    # The user selects dates using the company's timezone.
+    #
+    # Database payment timestamps are stored in UTC.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #        =
+    # 27 Sep 2026 23:00 UTC
+    #
+    # Therefore:
+    #
+    # start_datetime = UTC beginning of start_date
+    #
+    # end_datetime = UTC beginning of the day AFTER
+    #                end_date
+    #
+    # The end boundary is EXCLUSIVE.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -1405,7 +1581,7 @@ def payment_report():
 
         Payment.payment_date >= start_datetime,
 
-        Payment.payment_date <= end_datetime
+        Payment.payment_date < end_datetime
     )
 
     payments = (
@@ -1572,7 +1748,7 @@ def payment_report():
 
             Payment.payment_date >= start_datetime,
 
-            Payment.payment_date <= end_datetime
+            Payment.payment_date < end_datetime
         )
         .group_by(
             Payment.method
@@ -1624,7 +1800,7 @@ def payment_report():
 
             Payment.payment_date >= start_datetime,
 
-            Payment.payment_date <= end_datetime,
+            Payment.payment_date < end_datetime,
 
             func.lower(
                 func.trim(
@@ -1685,7 +1861,7 @@ def payment_report():
 
             Payment.payment_date >= start_datetime,
 
-            Payment.payment_date <= end_datetime,
+            Payment.payment_date < end_datetime,
 
             func.lower(
                 func.trim(
@@ -1726,16 +1902,6 @@ def payment_report():
     # COMBINED BANK BREAKDOWN
     #
     # POS and Bank Transfer remain separate.
-    #
-    # Example:
-    #
-    # POS
-    #   Zenith Bank       ₦500,000
-    #
-    # Bank Transfer
-    #   Zenith Bank       ₦700,000
-    #
-    # They are NOT combined.
     # =====================================================
 
     bank_breakdown = []
@@ -1816,12 +1982,43 @@ def payment_report():
         )
 
         # -------------------------------------------------
-        # Remark intentionally blank
+        # Convert payment timestamp to company timezone
+        # before exporting/displaying the date.
+        # -------------------------------------------------
+
+        payment_datetime = payment.payment_date
+
+        if payment_datetime:
+
+            if payment_datetime.tzinfo is None:
+
+                payment_datetime = (
+                    payment_datetime.replace(
+                        tzinfo=timezone.utc
+                    )
+                )
+
+            else:
+
+                payment_datetime = (
+                    payment_datetime.astimezone(
+                        timezone.utc
+                    )
+                )
+
+            payment_datetime = (
+                payment_datetime.astimezone(
+                    company_timezone
+                )
+            )
+
+        # -------------------------------------------------
+        # Export row
         # -------------------------------------------------
 
         export_rows.append(
             {
-                "date": payment.payment_date,
+                "date": payment_datetime,
 
                 "reference": reference,
 
@@ -1933,7 +2130,7 @@ def receivables_report():
     company_id = current_user.company_id
 
     # Use the company's configured timezone when determining
-    # today's date.
+    # today's business date.
     today = datetime.now(
         company_timezone
     ).date()
@@ -2019,24 +2216,56 @@ def receivables_report():
         )
 
     # =====================================================
-    # DATETIME RANGE
+    # COMPANY LOCAL DATE → UTC DATETIME RANGE
+    #
+    # IMPORTANT:
+    #
+    # The selected dates represent COMPANY LOCAL dates.
+    #
+    # The database stores timestamps in UTC.
+    #
+    # Therefore:
+    #
+    # Start:
+    #     start_date 00:00 company timezone
+    #
+    # End:
+    #     day AFTER end_date 00:00 company timezone
+    #
+    # We use an exclusive end boundary.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
     # SALES QUERY
     #
     # Only sales belonging to the current company
-    # and within the selected date range.
+    # and within the selected COMPANY-LOCAL date range.
     # =====================================================
 
     sales_query = Sale.query.filter(
@@ -2044,7 +2273,7 @@ def receivables_report():
 
         Sale.sale_date >= start_datetime,
 
-        Sale.sale_date <= end_datetime
+        Sale.sale_date < end_datetime
     )
 
     sales = (
@@ -2170,18 +2399,56 @@ def receivables_report():
     )
 
     # =====================================================
+    # HELPER:
+    # GET SALE BUSINESS DATE
+    #
+    # sale_date is stored in UTC.
+    # Convert it back to the company's timezone before
+    # extracting the calendar date.
+    # =====================================================
+
+    def sale_business_date(sale):
+
+        sale_datetime = sale.sale_date
+
+        if sale_datetime is None:
+            return None
+
+        # If the database returned a naive datetime,
+        # treat it as UTC.
+        if sale_datetime.tzinfo is None:
+
+            sale_datetime = sale_datetime.replace(
+                tzinfo=timezone.utc
+            )
+
+        else:
+
+            sale_datetime = sale_datetime.astimezone(
+                timezone.utc
+            )
+
+        return sale_datetime.astimezone(
+            company_timezone
+        ).date()
+
+    # =====================================================
     # OVERDUE
     #
-    # Sale currently has no due_date field.
+    # Since Sale has no due_date field:
     #
-    # Therefore an outstanding invoice dated before
-    # today's company-local date is treated as overdue.
+    # An outstanding invoice whose COMPANY-LOCAL
+    # business date is before today is considered overdue.
     # =====================================================
 
     overdue_sales = [
         sale
         for sale in outstanding_sales
-        if sale.sale_date.date() < today
+        if (
+            sale_business_date(sale)
+            and
+            sale_business_date(sale) < today
+        )
     ]
 
     overdue_amount = sum(
@@ -2201,13 +2468,18 @@ def receivables_report():
     # =====================================================
     # CURRENT OUTSTANDING
     #
-    # Outstanding invoices dated today.
+    # Outstanding invoices dated today or later using
+    # the COMPANY-LOCAL calendar date.
     # =====================================================
 
     current_outstanding_sales = [
         sale
         for sale in outstanding_sales
-        if sale.sale_date.date() >= today
+        if (
+            sale_business_date(sale)
+            and
+            sale_business_date(sale) >= today
+        )
     ]
 
     current_outstanding_amount = sum(
@@ -2276,7 +2548,7 @@ def receivables_report():
         customer_id = sale.customer_id
 
         # -------------------------------------------------
-        # Named customer
+        # NAMED CUSTOMER
         # -------------------------------------------------
 
         if customer_id:
@@ -2292,7 +2564,7 @@ def receivables_report():
             )
 
         # -------------------------------------------------
-        # Walk-in customer
+        # WALK-IN CUSTOMER
         # -------------------------------------------------
 
         else:
@@ -2304,7 +2576,7 @@ def receivables_report():
             key = "walk-in"
 
         # -------------------------------------------------
-        # Initialize customer
+        # INITIALIZE CUSTOMER
         # -------------------------------------------------
 
         if key not in customer_totals:
@@ -2316,7 +2588,7 @@ def receivables_report():
             }
 
         # -------------------------------------------------
-        # Add outstanding balance
+        # ADD OUTSTANDING BALANCE
         # -------------------------------------------------
 
         customer_totals[key]["total"] += (
@@ -2372,8 +2644,8 @@ def receivables_report():
     # =====================================================
     # AGING SUMMARY
     #
-    # Since Sale has no due_date, aging is based on
-    # sale_date.
+    # Since Sale has no due_date, aging is based on the
+    # COMPANY-LOCAL sale date.
     # =====================================================
 
     aging_0_30 = Decimal("0")
@@ -2390,22 +2662,38 @@ def receivables_report():
             sale.balance
         )
 
-        sale_day = sale.sale_date.date()
+        sale_day = sale_business_date(
+            sale
+        )
+
+        if sale_day is None:
+            continue
 
         days_outstanding = (
             today - sale_day
         ).days
 
         # -------------------------------------------------
-        # 0–30 days
+        # FUTURE-DATED INVOICE
+        #
+        # Keep future-dated invoices in 0–30 rather than
+        # creating a negative aging bucket.
         # -------------------------------------------------
 
-        if days_outstanding <= 30:
+        if days_outstanding < 0:
 
             aging_0_30 += balance
 
         # -------------------------------------------------
-        # 31–60 days
+        # 0–30 DAYS
+        # -------------------------------------------------
+
+        elif days_outstanding <= 30:
+
+            aging_0_30 += balance
+
+        # -------------------------------------------------
+        # 31–60 DAYS
         # -------------------------------------------------
 
         elif days_outstanding <= 60:
@@ -2413,7 +2701,7 @@ def receivables_report():
             aging_31_60 += balance
 
         # -------------------------------------------------
-        # 61–90 days
+        # 61–90 DAYS
         # -------------------------------------------------
 
         elif days_outstanding <= 90:
@@ -2421,7 +2709,7 @@ def receivables_report():
             aging_61_90 += balance
 
         # -------------------------------------------------
-        # 91+ days
+        # 91+ DAYS
         # -------------------------------------------------
 
         else:
@@ -2512,12 +2800,23 @@ def receivables_report():
             status = "Unpaid"
 
         # -------------------------------------------------
+        # COMPANY-LOCAL SALE DATE
+        # -------------------------------------------------
+
+        business_date = sale_business_date(
+            sale
+        )
+
+        # -------------------------------------------------
         # OVERDUE STATUS
         # -------------------------------------------------
 
         if (
             balance > Decimal("0")
-            and sale.sale_date.date() < today
+            and
+            business_date is not None
+            and
+            business_date < today
         ):
 
             status = "Overdue"
@@ -2529,6 +2828,8 @@ def receivables_report():
         export_rows.append(
             {
                 "date": sale.sale_date,
+
+                "business_date": business_date,
 
                 "invoice": sale.invoice_number,
 
@@ -2667,7 +2968,8 @@ def payables_report():
 
     company_id = current_user.company_id
 
-    # Use the company's configured timezone
+    # Always determine today's date using the company's
+    # configured timezone.
     today = datetime.now(
         company_timezone
     ).date()
@@ -2706,17 +3008,48 @@ def payables_report():
         )
 
     # =====================================================
-    # DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # The user selects dates according to the company's
+    # timezone.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #        ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # We use an exclusive end boundary:
+    #
+    # 29 Sep 2026 00:00 Lagos
+    #
+    # This safely includes the entire selected end date.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -2728,7 +3061,7 @@ def payables_report():
 
         Purchase.purchase_date >= start_datetime,
 
-        Purchase.purchase_date <= end_datetime
+        Purchase.purchase_date < end_datetime
     )
 
     purchases = (
@@ -2757,7 +3090,7 @@ def payables_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -2776,7 +3109,7 @@ def payables_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -2795,7 +3128,7 @@ def payables_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -2889,7 +3222,7 @@ def payables_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .group_by(
             Purchase.payment_status
@@ -2917,10 +3250,12 @@ def payables_report():
     # =====================================================
     # AGING ANALYSIS
     #
-    # Purchase has no payment due date.
-    # purchase_date is therefore used as the aging date.
+    # purchase_date is used as the aging date because
+    # Purchase does not have a separate payment due date.
     #
-    # Only outstanding balances are included.
+    # IMPORTANT:
+    # Convert purchase_date from UTC to the company's
+    # timezone BEFORE extracting the calendar date.
     # =====================================================
 
     aging_0_30 = Decimal("0")
@@ -2963,19 +3298,43 @@ def payables_report():
 
             if purchase.purchase_date:
 
-                purchase_date = (
-                    purchase.purchase_date.date()
-                    if hasattr(
-                        purchase.purchase_date,
-                        "date"
+                # -----------------------------------------
+                # Convert stored timestamp to company
+                # timezone before extracting the date.
+                # -----------------------------------------
+
+                purchase_datetime = (
+                    purchase.purchase_date
+                )
+
+                if purchase_datetime.tzinfo is None:
+
+                    purchase_datetime = (
+                        purchase_datetime.replace(
+                            tzinfo=timezone.utc
+                        )
                     )
-                    else purchase.purchase_date
+
+                else:
+
+                    purchase_datetime = (
+                        purchase_datetime.astimezone(
+                            timezone.utc
+                        )
+                    )
+
+                purchase_local_date = (
+                    purchase_datetime
+                    .astimezone(
+                        company_timezone
+                    )
+                    .date()
                 )
 
                 age_days = max(
                     (
                         today
-                        - purchase_date
+                        - purchase_local_date
                     ).days,
                     0
                 )
@@ -3019,12 +3378,44 @@ def payables_report():
         )
 
         # =================================================
+        # DISPLAY DATE
+        #
+        # Convert UTC purchase timestamp back to the
+        # company's timezone.
+        # =================================================
+
+        if purchase.purchase_date:
+
+            purchase_datetime = (
+                purchase.purchase_date
+            )
+
+            if purchase_datetime.tzinfo is None:
+
+                purchase_datetime = (
+                    purchase_datetime.replace(
+                        tzinfo=timezone.utc
+                    )
+                )
+
+            purchase_local_datetime = (
+                purchase_datetime
+                .astimezone(
+                    company_timezone
+                )
+            )
+
+        else:
+
+            purchase_local_datetime = None
+
+        # =================================================
         # EXPORT ROW
         # =================================================
 
         export_rows.append(
             {
-                "date": purchase.purchase_date,
+                "date": purchase_local_datetime,
 
                 "purchase_number": (
                     purchase.purchase_number
@@ -3054,6 +3445,7 @@ def payables_report():
     aging_chart = [
         {
             "label": "0–30 Days",
+
             "total": float(
                 aging_0_30
             )
@@ -3061,6 +3453,7 @@ def payables_report():
 
         {
             "label": "31–60 Days",
+
             "total": float(
                 aging_31_60
             )
@@ -3068,6 +3461,7 @@ def payables_report():
 
         {
             "label": "61–90 Days",
+
             "total": float(
                 aging_61_90
             )
@@ -3075,6 +3469,7 @@ def payables_report():
 
         {
             "label": "91+ Days",
+
             "total": float(
                 aging_91_plus
             )
@@ -3220,22 +3615,58 @@ def profit_loss_report():
         )
 
     # =====================================================
-    # DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # The selected dates belong to the company's timezone.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #        ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # We use an EXCLUSIVE end boundary:
+    #
+    # start_datetime <= record < end_datetime
+    #
+    # This is safer than using time.max.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
     # SALES / REVENUE
     # =====================================================
+
+    sales_filter = (
+        Sale.company_id == company_id,
+        Sale.sale_date >= start_datetime,
+        Sale.sale_date < end_datetime
+    )
 
     total_sales = money(
         db.session.query(
@@ -3247,11 +3678,7 @@ def profit_loss_report():
             )
         )
         .filter(
-            Sale.company_id == company_id,
-
-            Sale.sale_date >= start_datetime,
-
-            Sale.sale_date <= end_datetime
+            *sales_filter
         )
         .scalar()
     )
@@ -3259,11 +3686,7 @@ def profit_loss_report():
     total_sales_count = (
         Sale.query
         .filter(
-            Sale.company_id == company_id,
-
-            Sale.sale_date >= start_datetime,
-
-            Sale.sale_date <= end_datetime
+            *sales_filter
         )
         .count()
     )
@@ -3300,7 +3723,7 @@ def profit_loss_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .scalar()
     )
@@ -3338,6 +3761,12 @@ def profit_loss_report():
     # OPERATING EXPENSES
     # =====================================================
 
+    expense_filter = (
+        Expense.company_id == company_id,
+        Expense.expense_date >= start_datetime,
+        Expense.expense_date < end_datetime
+    )
+
     total_expenses = money(
         db.session.query(
             func.coalesce(
@@ -3348,11 +3777,7 @@ def profit_loss_report():
             )
         )
         .filter(
-            Expense.company_id == company_id,
-
-            Expense.expense_date >= start_datetime,
-
-            Expense.expense_date <= end_datetime
+            *expense_filter
         )
         .scalar()
     )
@@ -3360,11 +3785,7 @@ def profit_loss_report():
     total_expense_count = (
         Expense.query
         .filter(
-            Expense.company_id == company_id,
-
-            Expense.expense_date >= start_datetime,
-
-            Expense.expense_date <= end_datetime
+            *expense_filter
         )
         .count()
     )
@@ -3437,59 +3858,75 @@ def profit_loss_report():
     ]
 
     # =====================================================
-    # DAILY PROFIT TREND
+    # DAILY SALES
+    #
+    # IMPORTANT:
+    #
+    # Do NOT use func.date(Sale.sale_date) here because
+    # sale_date is stored as UTC.
+    #
+    # Instead, retrieve the matching records and build
+    # the company-local daily map in Python.
     # =====================================================
 
-    daily_sales = (
-        db.session.query(
-            func.date(
-                Sale.sale_date
-            ).label("date"),
-
-            func.coalesce(
-                func.sum(
-                    Sale.total
-                ),
-                0
-            ).label("total")
-        )
+    daily_sales_records = (
+        Sale.query
         .filter(
             Sale.company_id == company_id,
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                Sale.sale_date
-            )
-        )
-        .order_by(
-            func.date(
-                Sale.sale_date
-            )
+            Sale.sale_date < end_datetime
         )
         .all()
     )
 
+    sales_map = {}
+
+    for sale in daily_sales_records:
+
+        sale_datetime = sale.sale_date
+
+        # Normalize database datetime to UTC.
+        if sale_datetime.tzinfo is None:
+
+            sale_datetime = sale_datetime.replace(
+                tzinfo=timezone.utc
+            )
+
+        else:
+
+            sale_datetime = sale_datetime.astimezone(
+                timezone.utc
+            )
+
+        local_date = (
+            sale_datetime
+            .astimezone(company_timezone)
+            .date()
+        )
+
+        date_key = local_date.isoformat()
+
+        sales_map[date_key] = (
+            sales_map.get(
+                date_key,
+                Decimal("0")
+            )
+            + money(sale.total)
+        )
+
     # =====================================================
     # DAILY COGS
+    #
+    # Calculate using the sale's COMPANY-LOCAL date.
     # =====================================================
 
-    daily_cogs = (
+    daily_cogs_records = (
         db.session.query(
-            func.date(
-                Sale.sale_date
-            ).label("date"),
-
-            func.coalesce(
-                func.sum(
-                    SaleItem.quantity
-                    * Product.purchase_price
-                ),
-                0
-            ).label("total")
+            Sale.sale_date,
+            SaleItem.quantity,
+            Product.purchase_price
         )
         .join(
             Sale,
@@ -3504,82 +3941,114 @@ def profit_loss_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                Sale.sale_date
-            )
-        )
-        .order_by(
-            func.date(
-                Sale.sale_date
-            )
+            Sale.sale_date < end_datetime
         )
         .all()
     )
 
+    cogs_map = {}
+
+    for row in daily_cogs_records:
+
+        sale_datetime = row.sale_date
+
+        if sale_datetime.tzinfo is None:
+
+            sale_datetime = sale_datetime.replace(
+                tzinfo=timezone.utc
+            )
+
+        else:
+
+            sale_datetime = sale_datetime.astimezone(
+                timezone.utc
+            )
+
+        local_date = (
+            sale_datetime
+            .astimezone(company_timezone)
+            .date()
+        )
+
+        date_key = local_date.isoformat()
+
+        quantity = (
+            row.quantity
+            if row.quantity is not None
+            else Decimal("0")
+        )
+
+        purchase_price = (
+            row.purchase_price
+            if row.purchase_price is not None
+            else Decimal("0")
+        )
+
+        row_cogs = (
+            quantity
+            * purchase_price
+        )
+
+        cogs_map[date_key] = (
+            cogs_map.get(
+                date_key,
+                Decimal("0")
+            )
+            + money(row_cogs)
+        )
+
     # =====================================================
     # DAILY EXPENSES
+    #
+    # Expenses are converted to company-local dates before
+    # grouping.
     # =====================================================
 
-    daily_expenses = (
-        db.session.query(
-            func.date(
-                Expense.expense_date
-            ).label("date"),
-
-            func.coalesce(
-                func.sum(
-                    Expense.amount
-                ),
-                0
-            ).label("total")
-        )
+    daily_expense_records = (
+        Expense.query
         .filter(
             Expense.company_id == company_id,
 
             Expense.expense_date >= start_datetime,
 
-            Expense.expense_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                Expense.expense_date
-            )
-        )
-        .order_by(
-            func.date(
-                Expense.expense_date
-            )
+            Expense.expense_date < end_datetime
         )
         .all()
     )
 
-    # =====================================================
-    # CREATE DAILY MAPS
-    # =====================================================
+    expenses_map = {}
 
-    sales_map = {
-        str(row.date): money(
-            row.total
-        )
-        for row in daily_sales
-    }
+    for expense in daily_expense_records:
 
-    cogs_map = {
-        str(row.date): money(
-            row.total
-        )
-        for row in daily_cogs
-    }
+        expense_datetime = expense.expense_date
 
-    expenses_map = {
-        str(row.date): money(
-            row.total
+        if expense_datetime.tzinfo is None:
+
+            expense_datetime = expense_datetime.replace(
+                tzinfo=timezone.utc
+            )
+
+        else:
+
+            expense_datetime = expense_datetime.astimezone(
+                timezone.utc
+            )
+
+        local_date = (
+            expense_datetime
+            .astimezone(company_timezone)
+            .date()
         )
-        for row in daily_expenses
-    }
+
+        date_key = local_date.isoformat()
+
+        expenses_map[date_key] = (
+            expenses_map.get(
+                date_key,
+                Decimal("0")
+            )
+            + money(expense.amount)
+        )
 
     # =====================================================
     # BUILD DAILY PROFIT TREND
@@ -3792,7 +4261,6 @@ def profit_loss_report():
         export_rows=export_rows
     )
 
-
 @reports_bp.route("/purchases")
 @company_permission_required("view_reports")
 def purchase_report():
@@ -3846,17 +4314,51 @@ def purchase_report():
         )
 
     # =========================================================
-    # REPORT DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #       ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # We use an exclusive end boundary:
+    #
+    # 29 Sep 2026 00:00 Lagos
+    #       ↓
+    # 28 Sep 2026 23:00 UTC
+    #
+    # Therefore:
+    #
+    # purchase_date >= start_datetime
+    # purchase_date < end_datetime
+    #
     # =========================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =========================================================
@@ -3868,7 +4370,7 @@ def purchase_report():
 
         Purchase.purchase_date >= start_datetime,
 
-        Purchase.purchase_date <= end_datetime
+        Purchase.purchase_date < end_datetime
     )
 
     purchases = (
@@ -3897,7 +4399,7 @@ def purchase_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -3920,7 +4422,7 @@ def purchase_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -3943,7 +4445,7 @@ def purchase_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .scalar()
     )
@@ -3978,7 +4480,7 @@ def purchase_report():
 
             Purchase.purchase_date >= start_datetime,
 
-            Purchase.purchase_date <= end_datetime
+            Purchase.purchase_date < end_datetime
         )
         .group_by(
             Purchase.payment_status
@@ -4003,58 +4505,101 @@ def purchase_report():
 
     # =========================================================
     # DAILY PURCHASE TREND
+    #
+    # IMPORTANT:
+    #
+    # Do NOT use:
+    #
+    #     func.date(Purchase.purchase_date)
+    #
+    # directly here because purchase_date is stored in UTC.
+    #
+    # Instead, group the already-filtered purchases by their
+    # company-local calendar date in Python.
+    #
+    # This guarantees that:
+    #
+    # 28 Sep 00:30 Lagos
+    #
+    # remains:
+    #
+    # 28 Sep
+    #
+    # instead of becoming:
+    #
+    # 27 Sep
+    #
     # =========================================================
 
-    daily_purchase_rows = (
-        db.session.query(
-            func.date(
-                Purchase.purchase_date
-            ).label("date"),
+    daily_purchase_data = {}
 
-            func.coalesce(
-                func.sum(
-                    Purchase.total
-                ),
-                0
-            ).label("total")
+    for purchase in purchases:
+
+        purchase_datetime = (
+            purchase.purchase_date
         )
-        .filter(
-            Purchase.company_id == company_id,
 
-            Purchase.purchase_date >= start_datetime,
+        if purchase_datetime is None:
+            continue
 
-            Purchase.purchase_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                Purchase.purchase_date
+        # Ensure the stored datetime is treated as UTC.
+        if purchase_datetime.tzinfo is None:
+
+            purchase_datetime = (
+                purchase_datetime.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+
+        else:
+
+            purchase_datetime = (
+                purchase_datetime.astimezone(
+                    timezone.utc
+                )
+            )
+
+        # Convert UTC → company timezone.
+        local_purchase_datetime = (
+            purchase_datetime.astimezone(
+                company_timezone
             )
         )
-        .order_by(
-            func.date(
-                Purchase.purchase_date
+
+        local_date = (
+            local_purchase_datetime.date()
+        )
+
+        if local_date not in daily_purchase_data:
+
+            daily_purchase_data[local_date] = (
+                Decimal("0")
+            )
+
+        daily_purchase_data[local_date] += (
+            money(
+                purchase.total
             )
         )
-        .all()
-    )
 
     daily_purchase_trend = [
-        {
-            "date": (
-                row.date.strftime("%d %b")
-                if hasattr(
-                    row.date,
-                    "strftime"
-                )
-                else str(row.date)
-            ),
 
-            "total": float(
-                money(row.total)
-            )
+        {
+            "date":
+                local_date.strftime(
+                    "%d %b"
+                ),
+
+            "total":
+                float(
+                    money(total)
+                )
         }
 
-        for row in daily_purchase_rows
+        for local_date, total
+        in sorted(
+            daily_purchase_data.items()
+        )
     ]
 
     # =========================================================
@@ -4123,6 +4668,7 @@ def purchase_report():
     # =========================================================
 
     outstanding_supplier_count = sum(
+
         1
 
         for row in supplier_breakdown
@@ -4273,9 +4819,9 @@ def expense_report():
     # =====================================================
 
     settings = get_current_company_settings()
+
     company_timezone = get_company_timezone()
 
-    # Current company
     company_id = current_user.company_id
 
     # Use the company's configured timezone
@@ -4317,17 +4863,47 @@ def expense_report():
         )
 
     # =====================================================
-    # DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # The selected dates are company-local dates.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #       ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # We use an EXCLUSIVE end boundary:
+    #
+    # [start_datetime, end_datetime)
+    #
+    # This avoids problems with microseconds at 23:59:59.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -4339,7 +4915,7 @@ def expense_report():
 
         Expense.expense_date >= start_datetime,
 
-        Expense.expense_date <= end_datetime
+        Expense.expense_date < end_datetime
     )
 
     expenses = (
@@ -4368,7 +4944,7 @@ def expense_report():
 
             Expense.expense_date >= start_datetime,
 
-            Expense.expense_date <= end_datetime
+            Expense.expense_date < end_datetime
         )
         .scalar()
     )
@@ -4416,7 +4992,7 @@ def expense_report():
 
             Expense.expense_date >= start_datetime,
 
-            Expense.expense_date <= end_datetime
+            Expense.expense_date < end_datetime
         )
         .group_by(
             Expense.payment_method
@@ -4450,7 +5026,9 @@ def expense_report():
                 ),
 
                 # Chart.js needs JSON-compatible numbers
-                "total": float(amount),
+                "total": float(
+                    amount
+                ),
 
                 "percentage": float(
                     percentage
@@ -4520,7 +5098,9 @@ def expense_report():
 
         else:
 
-            row["percentage"] = Decimal("0")
+            row["percentage"] = (
+                Decimal("0")
+            )
 
     # =====================================================
     # CATEGORY CHART
@@ -4543,67 +5123,100 @@ def expense_report():
     # =====================================================
     # DAILY EXPENSE TREND
     #
-    # Only dates with actual expenses.
+    # IMPORTANT:
+    #
+    # Do NOT use:
+    #
+    # func.date(Expense.expense_date)
+    #
+    # directly because the database timestamp is UTC.
+    #
+    # Example:
+    #
+    # 28 Sep 2026 00:30 Africa/Lagos
+    # =
+    # 27 Sep 2026 23:30 UTC
+    #
+    # func.date() would incorrectly identify this as
+    # 27 Sep.
+    #
+    # Instead, load the matching expenses and group them
+    # according to the company's local calendar date.
     # =====================================================
 
-    daily_expense_rows = (
-        db.session.query(
-            func.date(
-                Expense.expense_date
-            ).label("date"),
+    daily_expense_data = {}
 
-            func.coalesce(
-                func.sum(
-                    Expense.amount
-                ),
-                0
-            ).label("total")
+    for expense in expenses:
+
+        if not expense.expense_date:
+            continue
+
+        expense_datetime = (
+            expense.expense_date
         )
-        .filter(
-            Expense.company_id == company_id,
 
-            Expense.expense_date >= start_datetime,
+        # Normalize database datetime to UTC
+        if expense_datetime.tzinfo is None:
 
-            Expense.expense_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                Expense.expense_date
-            )
-        )
-        .order_by(
-            func.date(
-                Expense.expense_date
-            )
-        )
-        .all()
-    )
-
-    daily_expense_trend = []
-
-    for row in daily_expense_rows:
-
-        if hasattr(
-            row.date,
-            "strftime"
-        ):
-
-            date_label = row.date.strftime(
-                "%d %b"
+            expense_datetime = (
+                expense_datetime.replace(
+                    tzinfo=timezone.utc
+                )
             )
 
         else:
 
-            date_label = str(
-                row.date
+            expense_datetime = (
+                expense_datetime.astimezone(
+                    timezone.utc
+                )
             )
+
+        # Convert UTC → company timezone
+        local_expense_datetime = (
+            expense_datetime.astimezone(
+                company_timezone
+            )
+        )
+
+        local_expense_date = (
+            local_expense_datetime.date()
+        )
+
+        if local_expense_date not in daily_expense_data:
+
+            daily_expense_data[
+                local_expense_date
+            ] = Decimal("0")
+
+        daily_expense_data[
+            local_expense_date
+        ] += money(
+            expense.amount
+        )
+
+    # =====================================================
+    # BUILD DAILY EXPENSE TREND
+    # =====================================================
+
+    daily_expense_trend = []
+
+    for expense_date in sorted(
+        daily_expense_data.keys()
+    ):
 
         daily_expense_trend.append(
             {
-                "date": date_label,
+                "date": expense_date.strftime(
+                    "%d %b"
+                ),
 
                 "total": float(
-                    money(row.total)
+                    money(
+                        daily_expense_data[
+                            expense_date
+                        ]
+                    )
                 )
             }
         )
@@ -4670,6 +5283,10 @@ def expense_report():
 
     # =====================================================
     # EXPORT ROWS
+    #
+    # Keep the original datetime here.
+    # The template should convert it to company-local
+    # time/date when displaying it.
     # =====================================================
 
     export_rows = []
@@ -4818,7 +5435,19 @@ def inventory_report():
 
     company_id = current_user.company_id
 
-    # Use the company's configured timezone
+    # ============================================================
+    # COMPANY LOCAL REPORT DATE
+    #
+    # IMPORTANT:
+    #
+    # Inventory is a current-state report, so the report date
+    # should always come from the company's configured timezone.
+    #
+    # Example:
+    # If the company is in Africa/Lagos, "today" is determined
+    # using Africa/Lagos rather than the server's timezone.
+    # ============================================================
+
     report_date = datetime.now(
         company_timezone
     ).date()
@@ -4845,214 +5474,20 @@ def inventory_report():
 
     total_products = len(products)
 
-    total_quantity = sum(
-        (
-            money(product.quantity)
-            for product in products
-        ),
-        Decimal("0")
-    )
+    total_quantity = Decimal("0")
 
-    total_stock_value = sum(
-        (
-            money(product.quantity)
-            * money(product.purchase_price)
-            for product in products
-        ),
-        Decimal("0")
-    )
+    total_stock_value = Decimal("0")
 
-    total_selling_value = sum(
-        (
-            money(product.quantity)
-            * money(product.selling_price)
-            for product in products
-        ),
-        Decimal("0")
-    )
+    total_selling_value = Decimal("0")
 
     # ============================================================
-    # STOCK STATUS
+    # PREPARE PRODUCT VALUES
+    #
+    # Store calculated values once so we don't repeatedly
+    # convert the same database values.
     # ============================================================
 
-    low_stock_products = [
-        product
-        for product in products
-        if (
-            money(product.quantity)
-            <= money(product.minimum_stock)
-            and money(product.quantity)
-            > Decimal("0")
-        )
-    ]
-
-    out_of_stock_products = [
-        product
-        for product in products
-        if money(product.quantity)
-        <= Decimal("0")
-    ]
-
-    healthy_stock_products = [
-        product
-        for product in products
-        if (
-            money(product.quantity)
-            > money(product.minimum_stock)
-        )
-    ]
-
-    low_stock_count = len(
-        low_stock_products
-    )
-
-    out_of_stock_count = len(
-        out_of_stock_products
-    )
-
-    healthy_stock_count = len(
-        healthy_stock_products
-    )
-
-    # ============================================================
-    # POTENTIAL STOCK PROFIT
-    # ============================================================
-
-    potential_profit = (
-        total_selling_value
-        - total_stock_value
-    )
-
-    # ============================================================
-    # CATEGORY BREAKDOWN
-    # ============================================================
-
-    category_data = {}
-
-    for product in products:
-
-        category_name = (
-            product.category.name
-            if product.category
-            else "Uncategorized"
-        )
-
-        if category_name not in category_data:
-
-            category_data[category_name] = {
-                "category": category_name,
-                "products": 0,
-                "quantity": Decimal("0"),
-                "stock_value": Decimal("0")
-            }
-
-        row = category_data[
-            category_name
-        ]
-
-        quantity = money(
-            product.quantity
-        )
-
-        purchase_price = money(
-            product.purchase_price
-        )
-
-        row["products"] += 1
-
-        row["quantity"] += quantity
-
-        row["stock_value"] += (
-            quantity * purchase_price
-        )
-
-    category_breakdown = sorted(
-        category_data.values(),
-        key=lambda row: row["stock_value"],
-        reverse=True
-    )
-
-    # ============================================================
-    # CATEGORY PERCENTAGES
-    # ============================================================
-
-    for row in category_breakdown:
-
-        row["percentage"] = (
-            (
-                row["stock_value"]
-                / total_stock_value
-            )
-            * Decimal("100")
-
-            if total_stock_value
-            > Decimal("0")
-
-            else Decimal("0")
-        )
-
-    # ============================================================
-    # STOCK LEVEL DISTRIBUTION
-    # ============================================================
-
-    stock_level_chart = [
-        {
-            "status": "Healthy Stock",
-            "count": healthy_stock_count
-        },
-        {
-            "status": "Low Stock",
-            "count": low_stock_count
-        },
-        {
-            "status": "Out of Stock",
-            "count": out_of_stock_count
-        }
-    ]
-
-    # ============================================================
-    # TOP PRODUCTS BY STOCK VALUE
-    # ============================================================
-
-    product_value_data = []
-
-    for product in products:
-
-        quantity = money(
-            product.quantity
-        )
-
-        purchase_price = money(
-            product.purchase_price
-        )
-
-        stock_value = (
-            quantity * purchase_price
-        )
-
-        product_value_data.append(
-            {
-                "product": product.name,
-                "sku": product.sku,
-                "quantity": quantity,
-                "stock_value": stock_value
-            }
-        )
-
-    product_value_data.sort(
-        key=lambda row: row["stock_value"],
-        reverse=True
-    )
-
-    top_products = (
-        product_value_data[:10]
-    )
-
-    # ============================================================
-    # DETAILED INVENTORY ROWS
-    # ============================================================
-
-    inventory_rows = []
+    product_calculations = []
 
     for product in products:
 
@@ -5077,7 +5512,8 @@ def inventory_report():
         # --------------------------------------------------------
 
         stock_value = (
-            quantity * purchase_price
+            quantity
+            * purchase_price
         )
 
         # --------------------------------------------------------
@@ -5085,14 +5521,15 @@ def inventory_report():
         # --------------------------------------------------------
 
         selling_value = (
-            quantity * selling_price
+            quantity
+            * selling_price
         )
 
         # --------------------------------------------------------
         # POTENTIAL PROFIT
         # --------------------------------------------------------
 
-        product_potential_profit = (
+        potential_profit = (
             selling_value
             - stock_value
         )
@@ -5124,47 +5561,225 @@ def inventory_report():
         )
 
         # --------------------------------------------------------
-        # INVENTORY ROW
+        # STORE CALCULATIONS
         # --------------------------------------------------------
+
+        product_calculations.append(
+            {
+                "product": product,
+                "quantity": quantity,
+                "purchase_price": purchase_price,
+                "selling_price": selling_price,
+                "minimum_stock": minimum_stock,
+                "stock_value": stock_value,
+                "selling_value": selling_value,
+                "potential_profit": potential_profit,
+                "stock_status": stock_status,
+                "category": category_name
+            }
+        )
+
+        # --------------------------------------------------------
+        # SUMMARY TOTALS
+        # --------------------------------------------------------
+
+        total_quantity += quantity
+
+        total_stock_value += stock_value
+
+        total_selling_value += selling_value
+
+    # ============================================================
+    # STOCK STATUS COUNTS
+    # ============================================================
+
+    low_stock_count = sum(
+        1
+        for row in product_calculations
+        if row["stock_status"] == "Low Stock"
+    )
+
+    out_of_stock_count = sum(
+        1
+        for row in product_calculations
+        if row["stock_status"] == "Out of Stock"
+    )
+
+    healthy_stock_count = sum(
+        1
+        for row in product_calculations
+        if row["stock_status"] == "Healthy"
+    )
+
+    # ============================================================
+    # POTENTIAL STOCK PROFIT
+    # ============================================================
+
+    potential_profit = (
+        total_selling_value
+        - total_stock_value
+    )
+
+    # ============================================================
+    # CATEGORY BREAKDOWN
+    # ============================================================
+
+    category_data = {}
+
+    for row in product_calculations:
+
+        category_name = row["category"]
+
+        if category_name not in category_data:
+
+            category_data[category_name] = {
+                "category": category_name,
+                "products": 0,
+                "quantity": Decimal("0"),
+                "stock_value": Decimal("0")
+            }
+
+        category_row = category_data[
+            category_name
+        ]
+
+        category_row["products"] += 1
+
+        category_row["quantity"] += (
+            row["quantity"]
+        )
+
+        category_row["stock_value"] += (
+            row["stock_value"]
+        )
+
+    category_breakdown = sorted(
+        category_data.values(),
+        key=lambda row: row["stock_value"],
+        reverse=True
+    )
+
+    # ============================================================
+    # CATEGORY PERCENTAGES
+    # ============================================================
+
+    for row in category_breakdown:
+
+        if total_stock_value > Decimal("0"):
+
+            row["percentage"] = (
+                row["stock_value"]
+                / total_stock_value
+            ) * Decimal("100")
+
+        else:
+
+            row["percentage"] = Decimal("0")
+
+    # ============================================================
+    # STOCK LEVEL DISTRIBUTION
+    # ============================================================
+
+    stock_level_chart = [
+        {
+            "status": "Healthy Stock",
+            "count": healthy_stock_count
+        },
+        {
+            "status": "Low Stock",
+            "count": low_stock_count
+        },
+        {
+            "status": "Out of Stock",
+            "count": out_of_stock_count
+        }
+    ]
+
+    # ============================================================
+    # TOP PRODUCTS BY STOCK VALUE
+    # ============================================================
+
+    product_value_data = []
+
+    for row in product_calculations:
+
+        product = row["product"]
+
+        product_value_data.append(
+            {
+                "product": product.name,
+
+                "sku": product.sku,
+
+                "quantity": row["quantity"],
+
+                "stock_value": row["stock_value"]
+            }
+        )
+
+    product_value_data.sort(
+        key=lambda row: row["stock_value"],
+        reverse=True
+    )
+
+    top_products = (
+        product_value_data[:10]
+    )
+
+    # ============================================================
+    # DETAILED INVENTORY ROWS
+    # ============================================================
+
+    inventory_rows = []
+
+    for row in product_calculations:
+
+        product = row["product"]
 
         inventory_rows.append(
             {
                 "product": product.name,
+
                 "sku": product.sku,
-                "category": category_name,
+
+                "category": row["category"],
 
                 "unit": (
                     product.unit
                     or "piece"
                 ),
 
-                "quantity": quantity,
+                "quantity": (
+                    row["quantity"]
+                ),
 
                 "minimum_stock": (
-                    minimum_stock
+                    row["minimum_stock"]
                 ),
 
                 "purchase_price": (
-                    purchase_price
+                    row["purchase_price"]
                 ),
 
                 "selling_price": (
-                    selling_price
+                    row["selling_price"]
                 ),
 
                 "stock_value": (
-                    stock_value
+                    row["stock_value"]
                 ),
 
                 "selling_value": (
-                    selling_value
+                    row["selling_value"]
                 ),
 
                 "potential_profit": (
-                    product_potential_profit
+                    row["potential_profit"]
                 ),
 
-                "status": stock_status
+                "status": (
+                    row["stock_status"]
+                )
             }
         )
 
@@ -5172,14 +5787,18 @@ def inventory_report():
     # EXPORT ROWS
     # ============================================================
 
-    export_rows = inventory_rows
+    export_rows = list(
+        inventory_rows
+    )
 
     # ============================================================
-    # REPORT DATE
+    # REPORT DATE STRING
     # ============================================================
 
     report_date_string = (
-        report_date.strftime("%Y-%m-%d")
+        report_date.strftime(
+            "%Y-%m-%d"
+        )
     )
 
     # ============================================================
@@ -5259,11 +5878,13 @@ def staff_report():
     # ============================================================
 
     settings = get_current_company_settings()
+
     company_timezone = get_company_timezone()
 
     company_id = current_user.company_id
 
-    # Use the company's configured timezone
+    # Always use the company's configured timezone
+    # when determining today's date.
     today = datetime.now(
         company_timezone
     ).date()
@@ -5302,17 +5923,51 @@ def staff_report():
         )
 
     # ============================================================
-    # DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # The selected dates represent calendar dates in the
+    # company's timezone.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    # → 27 Sep 2026 23:00 UTC
+    #
+    # 29 Sep 2026 00:00 Lagos
+    # → 28 Sep 2026 23:00 UTC
+    #
+    # Therefore we use:
+    #
+    # >= start_datetime
+    # < end_datetime
+    #
+    # instead of <= end-of-day.
     # ============================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # ============================================================
@@ -5384,7 +6039,7 @@ def staff_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .group_by(
             Sale.created_by
@@ -5443,7 +6098,7 @@ def staff_report():
 
             Payment.payment_date >= start_datetime,
 
-            Payment.payment_date <= end_datetime
+            Payment.payment_date < end_datetime
         )
         .group_by(
             Payment.created_by
@@ -5495,7 +6150,7 @@ def staff_report():
 
             Expense.expense_date >= start_datetime,
 
-            Expense.expense_date <= end_datetime
+            Expense.expense_date < end_datetime
         )
         .group_by(
             Expense.created_by
@@ -5715,7 +6370,7 @@ def staff_report():
     # TRANSACTION ACTIVITY CHART
     # ============================================================
 
-    activity_chart = sorted(
+    activity_performance = sorted(
         staff_breakdown,
 
         key=lambda row:
@@ -5733,7 +6388,7 @@ def staff_report():
             )
         }
 
-        for row in activity_chart
+        for row in activity_performance
 
         if row["total_transactions"] > 0
     ]
@@ -5895,7 +6550,8 @@ def customer_report():
     # DATE RANGE
     # ============================================================
 
-    # Use the current company's configured timezone.
+    # Always determine today's date using the company's
+    # configured timezone.
     today = datetime.now(
         company_timezone
     ).date()
@@ -5906,14 +6562,18 @@ def customer_report():
 
     start_date = (
         parse_date(
-            request.args.get("start_date")
+            request.args.get(
+                "start_date"
+            )
         )
         or default_start
     )
 
     end_date = (
         parse_date(
-            request.args.get("end_date")
+            request.args.get(
+                "end_date"
+            )
         )
         or today
     )
@@ -5930,17 +6590,58 @@ def customer_report():
         )
 
     # ============================================================
-    # DATETIME RANGE
+    # COMPANY LOCAL DATE → UTC DATETIME
+    #
+    # IMPORTANT:
+    #
+    # The report dates are selected according to the company's
+    # timezone.
+    #
+    # The database timestamps are compared in UTC.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    #        ↓
+    # 27 Sep 2026 23:00 UTC
+    #
+    # End date is handled as an EXCLUSIVE boundary:
+    #
+    # 29 Sep 2026 00:00 Lagos
+    #        ↓
+    # 28 Sep 2026 23:00 UTC
+    #
+    # Therefore:
+    #
+    # sale_date >= start_datetime
+    # sale_date < end_datetime
+    #
     # ============================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # ============================================================
@@ -6021,7 +6722,7 @@ def customer_report():
 
             Sale.sale_date >= start_datetime,
 
-            Sale.sale_date <= end_datetime
+            Sale.sale_date < end_datetime
         )
         .group_by(
             Sale.customer_id
@@ -6388,6 +7089,7 @@ def customer_report():
         export_rows=export_rows
     )
 
+
 # =========================================================
 # CASH DEPOSIT REPORT
 # =========================================================
@@ -6445,17 +7147,52 @@ def cash_deposit_report():
         )
 
     # =====================================================
-    # REPORT DATE/TIME RANGE
+    # COMPANY LOCAL DATE → UTC RANGE
+    #
+    # The selected dates belong to the company's timezone.
+    #
+    # Example for Africa/Lagos:
+    #
+    # 28 Sep 2026 00:00 Lagos
+    # =
+    # 27 Sep 2026 23:00 UTC
+    #
+    # 29 Sep 2026 00:00 Lagos
+    # =
+    # 28 Sep 2026 23:00 UTC
+    #
+    # We therefore use:
+    #
+    # >= start_datetime
+    # < end_datetime
+    #
+    # instead of using time.max.
     # =====================================================
 
-    start_datetime = datetime.combine(
+    local_start_datetime = datetime.combine(
         start_date,
         time.min
+    ).replace(
+        tzinfo=company_timezone
     )
 
-    end_datetime = datetime.combine(
-        end_date,
-        time.max
+    local_end_datetime = datetime.combine(
+        end_date + timedelta(days=1),
+        time.min
+    ).replace(
+        tzinfo=company_timezone
+    )
+
+    start_datetime = (
+        local_start_datetime.astimezone(
+            timezone.utc
+        )
+    )
+
+    end_datetime = (
+        local_end_datetime.astimezone(
+            timezone.utc
+        )
     )
 
     # =====================================================
@@ -6479,7 +7216,7 @@ def cash_deposit_report():
 
         Payment.payment_date >= start_datetime,
 
-        Payment.payment_date <= end_datetime
+        Payment.payment_date < end_datetime
     )
 
     # =====================================================
@@ -6517,7 +7254,7 @@ def cash_deposit_report():
 
         Expense.expense_date >= start_datetime,
 
-        Expense.expense_date <= end_datetime
+        Expense.expense_date < end_datetime
     )
 
     # =====================================================
@@ -6559,7 +7296,7 @@ def cash_deposit_report():
 
         CashDeposit.deposit_date >= start_datetime,
 
-        CashDeposit.deposit_date <= end_datetime
+        CashDeposit.deposit_date < end_datetime
     )
 
     # =====================================================
@@ -6596,8 +7333,9 @@ def cash_deposit_report():
     # CASH AVAILABLE
     #
     # Cash received
-    # minus cash expenses
-    # minus cash already deposited.
+    # - cash expenses
+    # - cash already deposited
+    # = cash available to deposit
     # =====================================================
 
     cash_available = (
@@ -6606,8 +7344,7 @@ def cash_deposit_report():
         - total_cash_deposited
     )
 
-    # Never display a negative amount as money available
-    # for a new deposit.
+    # Never display a negative amount as available cash.
     if cash_available < Decimal("0"):
 
         cash_available = Decimal("0")
@@ -6650,7 +7387,7 @@ def cash_deposit_report():
 
             CashDeposit.deposit_date >= start_datetime,
 
-            CashDeposit.deposit_date <= end_datetime
+            CashDeposit.deposit_date < end_datetime
         )
         .group_by(
             CashDeposit.bank_name
@@ -6687,65 +7424,92 @@ def cash_deposit_report():
 
     # =====================================================
     # DAILY DEPOSIT TREND
+    #
+    # IMPORTANT:
+    #
+    # CashDeposit.deposit_date is stored as UTC.
+    #
+    # func.date(deposit_date) would group according to
+    # UTC rather than the company's local calendar date.
+    #
+    # Therefore, fetch the deposits and group them in
+    # Python after converting each timestamp to the
+    # company's timezone.
     # =====================================================
 
-    daily_deposit_rows = (
-        db.session.query(
-            func.date(
-                CashDeposit.deposit_date
-            ).label(
-                "date"
-            ),
+    daily_deposit_totals = {}
 
-            func.coalesce(
-                func.sum(
-                    CashDeposit.amount
-                ),
-                0
-            ).label(
-                "total"
+    for deposit in deposits:
+
+        if not deposit.deposit_date:
+            continue
+
+        deposit_datetime = deposit.deposit_date
+
+        # Make sure the stored datetime is timezone-aware
+        # and treated as UTC when necessary.
+
+        if deposit_datetime.tzinfo is None:
+
+            deposit_datetime = (
+                deposit_datetime.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+
+        else:
+
+            deposit_datetime = (
+                deposit_datetime.astimezone(
+                    timezone.utc
+                )
+            )
+
+        # Convert UTC → company timezone
+
+        local_deposit_datetime = (
+            deposit_datetime.astimezone(
+                company_timezone
             )
         )
-        .filter(
-            CashDeposit.company_id == company_id,
 
-            CashDeposit.deposit_date >= start_datetime,
+        local_date = (
+            local_deposit_datetime.date()
+        )
 
-            CashDeposit.deposit_date <= end_datetime
-        )
-        .group_by(
-            func.date(
-                CashDeposit.deposit_date
+        # Accumulate the deposit amount for that
+        # company-local calendar date.
+
+        daily_deposit_totals[local_date] = (
+            daily_deposit_totals.get(
+                local_date,
+                Decimal("0")
             )
+            + Decimal(str(deposit.amount or 0))
         )
-        .order_by(
-            func.date(
-                CashDeposit.deposit_date
-            )
-        )
-        .all()
-    )
+
+    # =====================================================
+    # BUILD DAILY TREND
+    # =====================================================
 
     daily_deposit_trend = [
 
         {
-            "date": (
-                row.date.strftime("%d %b")
-                if hasattr(
-                    row.date,
-                    "strftime"
-                )
-                else str(row.date)
+            "date": local_date.strftime(
+                "%d %b"
             ),
 
             "total": float(
                 money(
-                    row.total
+                    total
                 )
             )
         }
 
-        for row in daily_deposit_rows
+        for local_date, total
+        in sorted(
+            daily_deposit_totals.items()
+        )
 
     ]
 
@@ -6938,3 +7702,4 @@ def cash_deposit_report():
 
         export_rows=export_rows
     )
+
