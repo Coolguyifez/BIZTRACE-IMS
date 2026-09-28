@@ -1,0 +1,4425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0a84ff"
+    >
+
+    <meta
+        name="description"
+        content="BizTrace IMS Company Admin Welcome Guide and User Manual"
+    >
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('static', filename='icons/1.png') }}"
+    >
+
+    <title>Welcome Guide | BizTrace IMS</title>
+
+
+    <!-- Bootstrap -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- Bootstrap Icons -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- Inter -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <style>
+
+        /* =====================================================
+           VARIABLES
+        ===================================================== */
+
+        :root {
+
+            --primary: #0a84ff;
+            --primary-soft: rgba(10,132,255,.10);
+
+            --background: #f5f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f8f9fc;
+
+            --text: #1d1d1f;
+            --muted: #6e6e73;
+
+            --border: rgba(0,0,0,.08);
+
+            --success: #198754;
+            --warning: #f59e0b;
+            --danger: #dc3545;
+
+            --sidebar-width: 270px;
+
+            --shadow:
+                0 12px 35px rgba(0,0,0,.07);
+
+            --radius: 18px;
+
+        }
+
+
+        /* =====================================================
+           DARK MODE
+        ===================================================== */
+
+        html[data-theme="dark"],
+        html.system-dark {
+
+            --background: #0f1115;
+            --surface: #181a20;
+            --surface-soft: #20232b;
+
+            --text: #f5f5f7;
+            --muted: #a1a1a6;
+
+            --border: rgba(255,255,255,.10);
+
+            --shadow:
+                0 15px 40px rgba(0,0,0,.30);
+
+        }
+
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        html {
+
+            scroll-behavior: smooth;
+
+            scrollbar-width: none;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            font-family:
+                'Inter', sans-serif;
+
+            color: var(--text);
+
+            background: var(--background);
+
+            line-height: 1.65;
+
+        }
+
+
+        body::-webkit-scrollbar {
+
+            width: 0;
+
+            height: 0;
+
+        }
+
+
+        a {
+
+            text-decoration: none;
+
+        }
+
+
+        /* =====================================================
+           TOP NAVBAR
+        ===================================================== */
+
+        .topbar {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            height: 72px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 28px;
+
+            background:
+                color-mix(
+                    in srgb,
+                    var(--surface) 92%,
+                    transparent
+                );
+
+            backdrop-filter: blur(20px);
+
+            border-bottom:
+                1px solid var(--border);
+
+        }
+
+
+        .brand {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 11px;
+
+            color: var(--text);
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+        }
+
+
+        .brand-icon {
+
+            width: 38px;
+
+            height: 38px;
+
+            border-radius: 11px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: var(--primary);
+
+            color: #ffffff;
+
+            box-shadow:
+                0 7px 18px rgba(10,132,255,.22);
+
+        }
+
+
+        .brand small {
+
+            color: var(--primary);
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+        }
+
+
+        .top-actions {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        .top-btn {
+
+            width: 40px;
+
+            height: 40px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border: 1px solid var(--border);
+
+            border-radius: 11px;
+
+            background: var(--surface);
+
+            color: var(--text);
+
+            cursor: pointer;
+
+            transition: .2s ease;
+
+        }
+
+
+        .top-btn:hover {
+
+            color: var(--primary);
+
+            border-color: rgba(10,132,255,.30);
+
+        }
+
+
+        .back-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            padding: 9px 14px;
+
+            border-radius: 11px;
+
+            background: var(--primary);
+
+            color: #ffffff;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+        }
+
+
+        .back-btn:hover {
+
+            color: #ffffff;
+
+            opacity: .92;
+
+        }
+
+
+        /* =====================================================
+           PAGE LAYOUT
+        ===================================================== */
+
+        .page-layout {
+
+            display: grid;
+
+            grid-template-columns:
+                var(--sidebar-width)
+                minmax(0, 1fr);
+
+            max-width: 1500px;
+
+            margin: 0 auto;
+
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .guide-sidebar {
+
+            position: sticky;
+
+            top: 72px;
+
+            height:
+                calc(100vh - 72px);
+
+            overflow-y: auto;
+
+            padding: 26px 18px;
+
+            border-right:
+                1px solid var(--border);
+
+            scrollbar-width: none;
+
+        }
+
+
+        .guide-sidebar::-webkit-scrollbar {
+
+            display: none;
+
+        }
+
+
+        .sidebar-title {
+
+            font-size: 11px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .10em;
+
+            font-weight: 800;
+
+            color: var(--muted);
+
+            padding: 0 12px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .guide-nav {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 3px;
+
+        }
+
+
+        .guide-nav a {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 9px 12px;
+
+            border-radius: 10px;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            transition: .2s ease;
+
+        }
+
+
+        .guide-nav a i {
+
+            width: 20px;
+
+            text-align: center;
+
+            font-size: 14px;
+
+        }
+
+
+        .guide-nav a:hover {
+
+            background: var(--primary-soft);
+
+            color: var(--primary);
+
+        }
+
+
+        .sidebar-note {
+
+            margin-top: 22px;
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+            background: var(--primary-soft);
+
+            border:
+                1px solid rgba(10,132,255,.12);
+
+        }
+
+
+        .sidebar-note strong {
+
+            display: block;
+
+            font-size: 12px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        .sidebar-note p {
+
+            margin: 0;
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            line-height: 1.55;
+
+        }
+
+
+        /* =====================================================
+           MAIN CONTENT
+        ===================================================== */
+
+        .guide-content {
+
+            min-width: 0;
+
+            padding: 42px 48px 70px;
+
+        }
+
+
+        .content-inner {
+
+            max-width: 1000px;
+
+            margin: 0 auto;
+
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+
+            position: relative;
+
+            overflow: hidden;
+
+            padding: 48px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0a84ff,
+                    #006ee6
+                );
+
+            color: #ffffff;
+
+            box-shadow:
+                0 22px 55px rgba(10,132,255,.20);
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .hero::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 300px;
+
+            height: 300px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255,255,255,.10);
+
+            top: -150px;
+
+            right: -100px;
+
+        }
+
+
+        .hero::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+
+            height: 220px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255,255,255,.06);
+
+            bottom: -130px;
+
+            left: 35%;
+
+        }
+
+
+        .hero-content {
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+
+        .hero-icon {
+
+            width: 58px;
+
+            height: 58px;
+
+            border-radius: 17px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                rgba(255,255,255,.16);
+
+            font-size: 27px;
+
+            margin-bottom: 22px;
+
+        }
+
+
+        .hero h1 {
+
+            font-size: 38px;
+
+            line-height: 1.1;
+
+            letter-spacing: -1.5px;
+
+            font-weight: 800;
+
+            margin: 0 0 12px;
+
+        }
+
+
+        .hero p {
+
+            max-width: 760px;
+
+            margin: 0;
+
+            color:
+                rgba(255,255,255,.88);
+
+            font-size: 15px;
+
+        }
+
+
+        .hero-badges {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-top: 24px;
+
+        }
+
+
+        .hero-badge {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            padding: 7px 11px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,.13);
+
+            border:
+                1px solid rgba(255,255,255,.15);
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+        }
+
+
+        /* =====================================================
+           GUIDE SECTIONS
+        ===================================================== */
+
+        .guide-section {
+
+            scroll-margin-top: 95px;
+
+            margin-bottom: 24px;
+
+            padding: 28px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            background: var(--surface);
+
+            box-shadow: var(--shadow);
+
+        }
+
+
+        .section-header {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 15px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .section-icon {
+
+            width: 44px;
+
+            height: 44px;
+
+            flex-shrink: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background: var(--primary-soft);
+
+            color: var(--primary);
+
+            font-size: 19px;
+
+        }
+
+
+        .section-header h2 {
+
+            margin: 0;
+
+            font-size: 20px;
+
+            line-height: 1.3;
+
+            letter-spacing: -.4px;
+
+            font-weight: 800;
+
+        }
+
+
+        .section-header p {
+
+            margin: 5px 0 0;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+        }
+
+
+        .section-content {
+
+            font-size: 14px;
+
+        }
+
+
+        .section-content p {
+
+            color: var(--muted);
+
+        }
+
+
+        .section-content ul {
+
+            padding-left: 20px;
+
+            margin-bottom: 0;
+
+        }
+
+
+        .section-content li {
+
+            margin-bottom: 7px;
+
+        }
+
+
+        .section-content li::marker {
+
+            color: var(--primary);
+
+        }
+
+
+        /* =====================================================
+           INFO BOX
+        ===================================================== */
+
+        .info-box {
+
+            display: flex;
+
+            gap: 13px;
+
+            padding: 16px;
+
+            margin: 20px 0;
+
+            border-radius: 14px;
+
+            background: var(--primary-soft);
+
+            border:
+                1px solid rgba(10,132,255,.12);
+
+        }
+
+
+        .info-box.warning {
+
+            background:
+                rgba(245,158,11,.08);
+
+            border-color:
+                rgba(245,158,11,.18);
+
+        }
+
+
+        .info-box.success {
+
+            background:
+                rgba(25,135,84,.08);
+
+            border-color:
+                rgba(25,135,84,.16);
+
+        }
+
+
+        .info-box i {
+
+            color: var(--primary);
+
+            font-size: 18px;
+
+        }
+
+
+        .info-box.warning i {
+
+            color: var(--warning);
+
+        }
+
+
+        .info-box.success i {
+
+            color: var(--success);
+
+        }
+
+
+        .info-box strong {
+
+            display: block;
+
+            font-size: 13px;
+
+            margin-bottom: 3px;
+
+        }
+
+
+        .info-box p {
+
+            margin: 0;
+
+            font-size: 12px;
+
+            color: var(--muted);
+
+        }
+
+
+        /* =====================================================
+           DEVICE CARDS
+        ===================================================== */
+
+        .device-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 12px;
+
+            margin-top: 18px;
+
+        }
+
+
+        .device-card {
+
+            padding: 18px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 15px;
+
+            background: var(--surface-soft);
+
+        }
+
+
+        .device-card i {
+
+            display: block;
+
+            font-size: 23px;
+
+            color: var(--primary);
+
+            margin-bottom: 9px;
+
+        }
+
+
+        .device-card strong {
+
+            display: block;
+
+            font-size: 13px;
+
+            margin-bottom: 4px;
+
+        }
+
+
+        .device-card span {
+
+            display: block;
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            line-height: 1.55;
+
+        }
+
+
+        /* =====================================================
+           PRINT STEPS
+        ===================================================== */
+
+        .print-steps {
+
+            counter-reset: print-step;
+
+            display: grid;
+
+            gap: 10px;
+
+            margin-top: 18px;
+
+        }
+
+
+        .print-step {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            padding: 13px;
+
+            border-radius: 12px;
+
+            background: var(--surface-soft);
+
+            border:
+                1px solid var(--border);
+
+        }
+
+
+        .print-step-number {
+
+            width: 28px;
+
+            height: 28px;
+
+            flex-shrink: 0;
+
+            border-radius: 9px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: var(--primary);
+
+            color: #ffffff;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+        }
+
+
+        .print-step span {
+
+            font-size: 12px;
+
+            color: var(--muted);
+
+            padding-top: 4px;
+
+        }
+
+
+        /* =====================================================
+           SUBSCRIPTION CARDS
+        ===================================================== */
+
+        .pricing-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 14px;
+
+            margin-top: 18px;
+
+        }
+
+
+        .pricing-card {
+
+            padding: 22px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 16px;
+
+            background: var(--surface-soft);
+
+        }
+
+
+        .pricing-card.featured {
+
+            border-color:
+                rgba(10,132,255,.28);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    var(--primary-soft),
+                    var(--surface-soft)
+                );
+
+        }
+
+
+        .pricing-label {
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+        }
+
+
+        .pricing-price {
+
+            margin-top: 7px;
+
+            font-size: 26px;
+
+            font-weight: 800;
+
+            letter-spacing: -1px;
+
+        }
+
+
+        .pricing-price small {
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            font-weight: 500;
+
+        }
+
+
+        .saving {
+
+            display: inline-flex;
+
+            margin-top: 8px;
+
+            padding: 5px 8px;
+
+            border-radius: 7px;
+
+            background:
+                rgba(25,135,84,.10);
+
+            color: var(--success);
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+        }
+
+
+        /* =====================================================
+           PAYMENT
+        ===================================================== */
+
+        .payment-card {
+
+            padding: 20px;
+
+            border-radius: 16px;
+
+            background: var(--surface-soft);
+
+            border:
+                1px solid var(--border);
+
+            margin-top: 18px;
+
+        }
+
+
+        .payment-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 10px 0;
+
+            border-bottom:
+                1px solid var(--border);
+
+        }
+
+
+        .payment-row:last-child {
+
+            border-bottom: 0;
+
+        }
+
+
+        .payment-row span {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+        }
+
+
+        .payment-row strong {
+
+            font-size: 12px;
+
+            text-align: right;
+
+        }
+
+
+        /* =====================================================
+           EQUATION
+        ===================================================== */
+
+        .cash-equation {
+
+            padding: 18px;
+
+            margin-top: 18px;
+
+            border-radius: 15px;
+
+            text-align: center;
+
+            background: var(--surface-soft);
+
+            border:
+                1px solid var(--border);
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+        }
+
+
+        .cash-equation span {
+
+            color: var(--primary);
+
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        .guide-footer {
+
+            text-align: center;
+
+            padding: 25px 10px;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+        }
+
+
+        .guide-footer strong {
+
+            color: var(--text);
+
+        }
+
+
+        /* =====================================================
+           MOBILE NAV
+        ===================================================== */
+
+        .mobile-nav {
+
+            display: none;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .mobile-nav select {
+
+            width: 100%;
+
+            min-height: 45px;
+
+            padding: 0 13px;
+
+            border-radius: 11px;
+
+            border:
+                1px solid var(--border);
+
+            background: var(--surface);
+
+            color: var(--text);
+
+            outline: none;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 1050px) {
+
+            .guide-content {
+
+                padding: 35px 28px 60px;
+
+            }
+
+        }
+
+
+        @media (max-width: 850px) {
+
+            .page-layout {
+
+                display: block;
+
+            }
+
+
+            .guide-sidebar {
+
+                display: none;
+
+            }
+
+
+            .mobile-nav {
+
+                display: block;
+
+            }
+
+
+            .guide-content {
+
+                padding: 25px 18px 50px;
+
+            }
+
+
+            .hero {
+
+                padding: 32px 25px;
+
+                border-radius: 22px;
+
+            }
+
+
+            .hero h1 {
+
+                font-size: 30px;
+
+            }
+
+
+            .device-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .pricing-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .topbar {
+
+                height: 64px;
+
+                padding: 0 15px;
+
+            }
+
+
+            .brand {
+
+                font-size: 16px;
+
+            }
+
+
+            .brand-icon {
+
+                width: 35px;
+
+                height: 35px;
+
+            }
+
+
+            .back-btn span {
+
+                display: none;
+
+            }
+
+
+            .guide-content {
+
+                padding: 18px 12px 40px;
+
+            }
+
+
+            .hero {
+
+                padding: 28px 20px;
+
+            }
+
+
+            .hero h1 {
+
+                font-size: 27px;
+
+            }
+
+
+            .hero p {
+
+                font-size: 13px;
+
+            }
+
+
+            .guide-section {
+
+                padding: 20px 17px;
+
+                border-radius: 15px;
+
+            }
+
+
+            .section-header h2 {
+
+                font-size: 18px;
+
+            }
+
+
+            .section-content {
+
+                font-size: 13px;
+
+            }
+
+
+            .payment-row {
+
+                flex-direction: column;
+
+                gap: 3px;
+
+            }
+
+
+            .payment-row strong {
+
+                text-align: left;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           PRINT
+        ===================================================== */
+
+        @media print {
+
+            :root {
+
+                --background: #ffffff !important;
+                --surface: #ffffff !important;
+                --surface-soft: #ffffff !important;
+                --text: #000000 !important;
+                --muted: #333333 !important;
+                --border: #dddddd !important;
+
+            }
+
+
+            html,
+            body {
+
+                background: #ffffff !important;
+
+                color: #000000 !important;
+
+            }
+
+
+            .topbar,
+            .guide-sidebar,
+            .mobile-nav,
+            .top-actions {
+
+                display: none !important;
+
+            }
+
+
+            .page-layout {
+
+                display: block;
+
+                max-width: none;
+
+            }
+
+
+            .guide-content {
+
+                padding: 0 !important;
+
+            }
+
+
+            .content-inner {
+
+                max-width: none;
+
+            }
+
+
+            .hero {
+
+                background: #ffffff !important;
+
+                color: #000000 !important;
+
+                box-shadow: none !important;
+
+                border:
+                    1px solid #dddddd;
+
+            }
+
+
+            .hero p {
+
+                color: #333333 !important;
+
+            }
+
+
+            .hero-badge {
+
+                color: #000000 !important;
+
+                background: #ffffff !important;
+
+                border:
+                    1px solid #dddddd;
+
+            }
+
+
+            .hero-icon {
+
+                background: #f1f1f1 !important;
+
+                color: #000000 !important;
+
+            }
+
+
+            .guide-section {
+
+                box-shadow: none !important;
+
+                break-inside: avoid;
+
+                page-break-inside: avoid;
+
+            }
+
+
+            .section-icon {
+
+                background: #f1f1f1 !important;
+
+                color: #000000 !important;
+
+            }
+
+
+            .guide-section,
+            .pricing-card,
+            .device-card,
+            .payment-card,
+            .print-step,
+            .cash-equation {
+
+                background: #ffffff !important;
+
+            }
+
+
+            a {
+
+                color: #000000 !important;
+
+            }
+
+
+            .guide-footer {
+
+                color: #333333 !important;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     TOPBAR
+====================================================== -->
+
+<header class="topbar">
+
+    <a
+        href="{{ url_for('auth.welcome') }}"
+        class="brand"
+    >
+
+        <span class="brand-icon">
+
+            <i class="bi bi-bar-chart-fill"></i>
+
+        </span>
+
+        <span>
+
+            BizTrace
+
+            <small>IMS</small>
+
+        </span>
+
+    </a>
+
+
+    <div class="top-actions">
+
+        <button
+            type="button"
+            class="top-btn"
+            id="themeButton"
+            title="Change theme"
+            aria-label="Change theme"
+        >
+
+            <i class="bi bi-moon-stars"></i>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="top-btn"
+            onclick="window.print()"
+            title="Print guide"
+            aria-label="Print guide"
+        >
+
+            <i class="bi bi-printer"></i>
+
+        </button>
+
+
+        <a
+            href="{{ url_for('auth.login') }}"
+            class="back-btn"
+        >
+
+            <i class="bi bi-box-arrow-in-right"></i>
+
+            <span>Sign in</span>
+
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     PAGE LAYOUT
+====================================================== -->
+
+<div class="page-layout">
+
+
+    <!-- =================================================
+         SIDEBAR
+    ================================================== -->
+
+    <aside class="guide-sidebar">
+
+        <div class="sidebar-title">
+
+            Guide Contents
+
+        </div>
+
+
+        <nav class="guide-nav">
+
+            <a href="#company">
+
+                <i class="bi bi-building"></i>
+
+                Company Setup
+
+            </a>
+
+
+            <a href="#users">
+
+                <i class="bi bi-people"></i>
+
+                Users & Staff
+
+            </a>
+
+
+            <a href="#inventory">
+
+                <i class="bi bi-box-seam"></i>
+
+                Products & Inventory
+
+            </a>
+
+
+            <a href="#purchases">
+
+                <i class="bi bi-cart3"></i>
+
+                Purchases
+
+            </a>
+
+
+            <a href="#sales">
+
+                <i class="bi bi-cash-stack"></i>
+
+                Sales
+
+            </a>
+
+
+            <a href="#expenses">
+
+                <i class="bi bi-wallet2"></i>
+
+                Expenses
+
+            </a>
+
+
+            <a href="#payments">
+
+                <i class="bi bi-bank"></i>
+
+                Cash & Payments
+
+            </a>
+
+
+            <a href="#reports">
+
+                <i class="bi bi-bar-chart"></i>
+
+                Reports
+
+            </a>
+
+
+            <a href="#devices">
+
+                <i class="bi bi-phone"></i>
+
+                Devices
+
+            </a>
+
+
+            <a href="#security">
+
+                <i class="bi bi-shield-lock"></i>
+
+                Security
+
+            </a>
+
+
+            <a href="#subscription">
+
+                <i class="bi bi-credit-card"></i>
+
+                Subscription
+
+            </a>
+
+
+            <a href="#payment-details">
+
+                <i class="bi bi-bank2"></i>
+
+                Payment Details
+
+            </a>
+
+
+            <a href="#renewal">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                Renewal
+
+            </a>
+
+
+            <a href="#deactivation">
+
+                <i class="bi bi-person-x"></i>
+
+                Deactivation
+
+            </a>
+
+
+            <a href="#printing">
+
+                <i class="bi bi-printer"></i>
+
+                Printing
+
+            </a>
+
+
+            <a href="#help">
+
+                <i class="bi bi-headset"></i>
+
+                Need Help
+
+            </a>
+
+
+            <a href="#best-practices">
+
+                <i class="bi bi-check2-circle"></i>
+
+                Best Practices
+
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+
+            <strong>
+
+                💡 Quick Tip
+
+            </strong>
+
+            <p>
+
+                Use a PC/Desktop for configuration and
+                report printing. When using mobile,
+                Landscape mode is recommended.
+
+            </p>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
+
+    <main class="guide-content">
+
+        <div class="content-inner">
+
+
+            <!-- MOBILE NAV -->
+
+            <div class="mobile-nav">
+
+                <select
+                    id="mobileNavigation"
+                    aria-label="Guide sections"
+                >
+
+                    <option value="">
+                        Jump to a section
+                    </option>
+
+                    <option value="#company">
+                        Company Setup
+                    </option>
+
+                    <option value="#users">
+                        Users & Staff
+                    </option>
+
+                    <option value="#inventory">
+                        Products & Inventory
+                    </option>
+
+                    <option value="#purchases">
+                        Purchases
+                    </option>
+
+                    <option value="#sales">
+                        Sales
+                    </option>
+
+                    <option value="#expenses">
+                        Expenses
+                    </option>
+
+                    <option value="#payments">
+                        Cash & Payments
+                    </option>
+
+                    <option value="#reports">
+                        Reports
+                    </option>
+
+                    <option value="#devices">
+                        Mobile & Devices
+                    </option>
+
+                    <option value="#security">
+                        Security
+                    </option>
+
+                    <option value="#subscription">
+                        Subscription
+                    </option>
+
+                    <option value="#payment-details">
+                        Payment Details
+                    </option>
+
+                    <option value="#renewal">
+                        Subscription Renewal
+                    </option>
+
+                    <option value="#deactivation">
+                        Account Deactivation
+                    </option>
+
+                    <option value="#printing">
+                        Printing
+                    </option>
+
+                    <option value="#help">
+                        Need Help
+                    </option>
+
+                    <option value="#best-practices">
+                        Best Practices
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- =================================================
+                 HERO
+            ================================================== -->
+
+            <section class="hero">
+
+                <div class="hero-content">
+
+                    <div class="hero-icon">
+
+                        <i class="bi bi-stars"></i>
+
+                    </div>
+
+
+                    <h1>
+
+                        Welcome to BizTrace IMS
+
+                    </h1>
+
+
+                    <p>
+
+                        Your complete business management system
+                        for managing sales, purchases, inventory,
+                        expenses, customers, suppliers, payments,
+                        bookings, reports and other business
+                        operations from one place.
+
+                    </p>
+
+
+                    <div class="hero-badges">
+
+                        <span class="hero-badge">
+
+                            <i class="bi bi-building"></i>
+
+                            Company Admin Guide
+
+                        </span>
+
+
+                        <span class="hero-badge">
+
+                            <i class="bi bi-phone"></i>
+
+                            Mobile Friendly
+
+                        </span>
+
+
+                        <span class="hero-badge">
+
+                            <i class="bi bi-printer"></i>
+
+                            Print Ready
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INTRO
+            ================================================== -->
+
+            <section class="guide-section">
+
+                <div class="section-content">
+
+                    <p>
+
+                        <strong>Dear Company Admin,</strong>
+
+                    </p>
+
+                    <p>
+
+                        Thank you for registering your company
+                        with BizTrace IMS. This guide explains
+                        the main features of the system and
+                        provides recommendations for configuring
+                        and using your company workspace.
+
+                    </p>
+
+                    <div class="info-box">
+
+                        <i class="bi bi-lightbulb"></i>
+
+                        <div>
+
+                            <strong>Getting started</strong>
+
+                            <p>
+
+                                We recommend configuring your
+                                company settings first, then
+                                creating users, adding products
+                                and setting up your opening stock
+                                before recording regular
+                                transactions.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 1 COMPANY
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="company"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🏢
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            1. Company Setup & Configuration
+                        </h2>
+
+                        <p>
+                            Configure your company workspace
+                            before starting regular operations.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        After registration, the Company Admin
+                        should first review the company settings
+                        and configure:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            Company name and business information
+                        </li>
+
+                        <li>
+                            Company logo
+                        </li>
+
+                        <li>
+                            Currency and currency symbol
+                        </li>
+
+                        <li>
+                            Timezone
+                        </li>
+
+                        <li>
+                            Date and time format
+                        </li>
+
+                        <li>
+                            Invoice numbering
+                        </li>
+
+                        <li>
+                            Purchase numbering
+                        </li>
+
+                        <li>
+                            Booking numbering
+                        </li>
+
+                        <li>
+                            Stock settings
+                        </li>
+
+                        <li>
+                            Low-stock notifications
+                        </li>
+
+                        <li>
+                            Other business preferences
+                        </li>
+
+                    </ul>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-display"></i>
+
+                        <div>
+
+                            <strong>
+                                Recommended device
+                            </strong>
+
+                            <p>
+
+                                For the best experience when
+                                configuring company settings,
+                                use a <strong>PC, Desktop or
+                                Tablet</strong> where possible.
+
+                                If using a mobile phone, keep
+                                the phone in <strong>Landscape
+                                mode</strong>, especially when
+                                working with tables, forms or
+                                multiple fields.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 2 USERS
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="users"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        👥
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            2. Users & Staff
+                        </h2>
+
+                        <p>
+                            Manage staff access and permissions.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        The Company Admin can create staff
+                        accounts and assign appropriate roles
+                        and permissions.
+
+                    </p>
+
+
+                    <p>
+
+                        You can control who can:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>View the dashboard</li>
+
+                        <li>Manage products</li>
+
+                        <li>Manage sales</li>
+
+                        <li>Manage purchases</li>
+
+                        <li>Manage customers</li>
+
+                        <li>Manage suppliers</li>
+
+                        <li>Record expenses</li>
+
+                        <li>Manage bookings</li>
+
+                        <li>View reports</li>
+
+                        <li>Manage company settings</li>
+
+                    </ul>
+
+
+                    <div class="info-box warning">
+
+                        <i class="bi bi-shield-exclamation"></i>
+
+                        <div>
+
+                            <strong>
+                                Security recommendation
+                            </strong>
+
+                            <p>
+
+                                Only give users the permissions
+                                required for their responsibilities.
+                                Each staff member should have an
+                                individual account instead of
+                                sharing login credentials.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 3 INVENTORY
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="inventory"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        📦
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            3. Products & Inventory
+                        </h2>
+
+                        <p>
+                            Build and maintain your product
+                            inventory.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Start by adding your products.
+
+                        For each product, enter information such
+                        as:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Product name</li>
+
+                        <li>SKU</li>
+
+                        <li>Category</li>
+
+                        <li>Unit</li>
+
+                        <li>Purchase price</li>
+
+                        <li>Selling price</li>
+
+                        <li>Opening quantity</li>
+
+                        <li>Minimum stock level</li>
+
+                    </ul>
+
+
+                    <p class="mt-3">
+
+                        BizTrace IMS can help you monitor:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Current stock quantity</li>
+
+                        <li>Stock value</li>
+
+                        <li>Selling value</li>
+
+                        <li>Low-stock items</li>
+
+                        <li>Out-of-stock items</li>
+
+                        <li>Potential profit</li>
+
+                    </ul>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-box-seam"></i>
+
+                        <div>
+
+                            <strong>
+                                Important
+                            </strong>
+
+                            <p>
+
+                                Always ensure product information
+                                and opening quantities are entered
+                                correctly before recording
+                                transactions.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 4 PURCHASES
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="purchases"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🛒
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            4. Purchases
+                        </h2>
+
+                        <p>
+                            Record purchases from suppliers.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Use the <strong>Purchase</strong> section
+                        when buying stock from suppliers.
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Supplier</li>
+
+                        <li>Products purchased</li>
+
+                        <li>Quantities</li>
+
+                        <li>Purchase prices</li>
+
+                        <li>Payment information</li>
+
+                        <li>Outstanding balances</li>
+
+                    </ul>
+
+
+                    <p>
+
+                        Recording purchases correctly helps keep
+                        your inventory and supplier records up to
+                        date.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 5 SALES
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="sales"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        💰
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            5. Sales
+                        </h2>
+
+                        <p>
+                            Record and manage customer transactions.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Use the <strong>Sales</strong> section
+                        to record customer transactions.
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Customer sales</li>
+
+                        <li>Products sold</li>
+
+                        <li>Quantities</li>
+
+                        <li>Discounts</li>
+
+                        <li>Payments</li>
+
+                        <li>Paid invoices</li>
+
+                        <li>Partially paid invoices</li>
+
+                        <li>Unpaid invoices</li>
+
+                        <li>Customer balances</li>
+
+                    </ul>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-receipt"></i>
+
+                        <div>
+
+                            <strong>
+                                Keep records current
+                            </strong>
+
+                            <p>
+
+                                Always record sales promptly and
+                                accurately to keep your inventory,
+                                payments and financial records
+                                up to date.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 6 EXPENSES
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="expenses"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        💵
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            6. Expenses
+                        </h2>
+
+                        <p>
+                            Record business and operating expenses.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Record business expenses such as:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Transportation</li>
+
+                        <li>Rent</li>
+
+                        <li>Utilities</li>
+
+                        <li>Salaries</li>
+
+                        <li>Maintenance</li>
+
+                        <li>Office expenses</li>
+
+                        <li>Operational expenses</li>
+
+                        <li>Other business expenses</li>
+
+                    </ul>
+
+
+                    <p>
+
+                        Always select the correct payment method
+                        when recording an expense, especially
+                        when recording <strong>cash expenses</strong>.
+
+                    </p>
+
+
+                    <div class="info-box warning">
+
+                        <i class="bi bi-cash-coin"></i>
+
+                        <div>
+
+                            <strong>
+                                Cash expenses matter
+                            </strong>
+
+                            <p>
+
+                                Cash expenses are important for
+                                accurate cash management and cash
+                                deposit calculations.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 7 PAYMENTS
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="payments"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🏦
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            7. Cash & Payments
+                        </h2>
+
+                        <p>
+                            Maintain accurate payment records.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Record payments accurately and select the
+                        correct payment method.
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Cash</li>
+
+                        <li>Bank Transfer</li>
+
+                        <li>Card</li>
+
+                        <li>Other available payment methods</li>
+
+                    </ul>
+
+
+                    <div class="cash-equation">
+
+                        <span>Cash Received</span>
+
+                        −
+
+                        <span>Cash Expenses</span>
+
+                        −
+
+                        <span>Cash Deposited</span>
+
+                        =
+
+                        <span>Cash Available</span>
+
+                    </div>
+
+
+                    <p class="mt-3">
+
+                        Therefore, always record cash sales,
+                        cash expenses and cash deposits accurately.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 8 REPORTS
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="reports"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        📊
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            8. Reports
+                        </h2>
+
+                        <p>
+                            Review your business information and
+                            performance.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        The <strong>Reports</strong> section
+                        provides information about your business
+                        operations and performance, including:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Sales reports</li>
+
+                        <li>Purchase reports</li>
+
+                        <li>Expense reports</li>
+
+                        <li>Inventory reports</li>
+
+                        <li>Profitability information</li>
+
+                        <li>Receivables</li>
+
+                        <li>Payables</li>
+
+                        <li>Payment information</li>
+
+                        <li>Stock valuation</li>
+
+                        <li>Cash information</li>
+
+                        <li>Other business summaries</li>
+
+                    </ul>
+
+
+                    <p>
+
+                        Use the available date filters to view
+                        information for specific periods.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 9 DEVICES
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="devices"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        📱
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            9. Mobile & Device Usage
+                        </h2>
+
+                        <p>
+                            Recommended devices for different
+                            BizTrace IMS activities.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        BizTrace IMS can be accessed from different
+                        devices.
+
+                    </p>
+
+
+                    <div class="device-grid">
+
+                        <div class="device-card">
+
+                            <i class="bi bi-pc-display"></i>
+
+                            <strong>
+                                PC / Desktop
+                            </strong>
+
+                            <span>
+
+                                Recommended for full system usage,
+                                company configuration, detailed
+                                reports and printing.
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="device-card">
+
+                            <i class="bi bi-tablet"></i>
+
+                            <strong>
+                                Tablet
+                            </strong>
+
+                            <span>
+
+                                Suitable for most business
+                                operations and company
+                                configuration.
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="device-card">
+
+                            <i class="bi bi-phone"></i>
+
+                            <strong>
+                                Mobile Phone
+                            </strong>
+
+                            <span>
+
+                                Suitable for quick access,
+                                routine operations and sales
+                                invoice printing.
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-phone-landscape"></i>
+
+                        <div>
+
+                            <strong>
+                                Use Landscape mode on mobile
+                            </strong>
+
+                            <p>
+
+                                When using a mobile phone, keep
+                                the phone in <strong>Landscape
+                                mode</strong>, especially when
+                                configuring settings, working
+                                with tables, viewing reports,
+                                reviewing invoices or managing
+                                products.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        For report printing, however,
+                        <strong>PC/Desktop is recommended.</strong>
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 10 SECURITY
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="security"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🔐
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            10. Security
+                        </h2>
+
+                        <p>
+                            Protect your company account and data.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <ul>
+
+                        <li>
+                            Keep passwords confidential.
+                        </li>
+
+                        <li>
+                            Never share administrator login details.
+                        </li>
+
+                        <li>
+                            Create individual accounts for staff.
+                        </li>
+
+                        <li>
+                            Assign permissions carefully.
+                        </li>
+
+                        <li>
+                            Change passwords when necessary.
+                        </li>
+
+                        <li>
+                            Log out from shared computers.
+                        </li>
+
+                        <li>
+                            Avoid saving passwords on public or
+                            shared devices.
+                        </li>
+
+                    </ul>
+
+
+                    <div class="info-box warning">
+
+                        <i class="bi bi-shield-lock"></i>
+
+                        <div>
+
+                            <strong>
+                                Company Admin responsibility
+                            </strong>
+
+                            <p>
+
+                                The Company Admin is responsible
+                                for properly managing company
+                                users, permissions and account
+                                security.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 11 SUBSCRIPTION
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="subscription"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        💳
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            11. Subscription
+                        </h2>
+
+                        <p>
+                            Choose a monthly or yearly subscription.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <div class="pricing-grid">
+
+
+                        <div class="pricing-card">
+
+                            <div class="pricing-label">
+
+                                Monthly Plan
+
+                            </div>
+
+
+                            <div class="pricing-price">
+
+                                ₦15,000
+
+                                <small>
+                                    / month
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="pricing-card featured">
+
+                            <div class="pricing-label">
+
+                                Yearly Plan
+
+                            </div>
+
+
+                            <div class="pricing-price">
+
+                                ₦144,000
+
+                                <small>
+                                    / year
+                                </small>
+
+                            </div>
+
+
+                            <span class="saving">
+
+                                Save 20%
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box success">
+
+                        <i class="bi bi-piggy-bank"></i>
+
+                        <div>
+
+                            <strong>
+                                Yearly subscription saving
+                            </strong>
+
+                            <p>
+
+                                Paying ₦15,000 monthly for
+                                12 months would cost ₦180,000.
+
+                                The yearly plan is ₦144,000,
+                                providing a saving of ₦36,000,
+                                equivalent to 20%.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-gift"></i>
+
+                        <div>
+
+                            <strong>
+                                New Registration Promo
+                            </strong>
+
+                            <p>
+
+                                Every newly registered company
+                                receives a <strong>1-week
+                                promotional period</strong> to
+                                explore and use BizTrace IMS.
+
+                                After the promotional period,
+                                an active subscription is required
+                                to continue using the system.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 12 PAYMENT DETAILS
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="payment-details"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🏦
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            12. Payment Details
+                        </h2>
+
+                        <p>
+                            Subscription payment information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <div class="payment-card">
+
+                        <div class="payment-row">
+
+                            <span>
+                                Bank
+                            </span>
+
+                            <strong>
+                                First Bank
+                            </strong>
+
+                        </div>
+
+
+                        <div class="payment-row">
+
+                            <span>
+                                Account Number
+                            </span>
+
+                            <strong>
+                                3099295142
+                            </strong>
+
+                        </div>
+
+
+                        <div class="payment-row">
+
+                            <span>
+                                Account Name
+                            </span>
+
+                            <strong>
+                                Ikukaiwe Emmanuel
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box success">
+
+                        <i class="bi bi-check-circle"></i>
+
+                        <div>
+
+                            <strong>
+                                After payment
+                            </strong>
+
+                            <p>
+
+                                Send your payment receipt or
+                                proof of payment to the
+                                administrator so your subscription
+                                can be confirmed and activated.
+
+                                Please include your
+                                <strong>company name</strong>
+                                when sending payment confirmation.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 13 RENEWAL
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="renewal"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🔄
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            13. Subscription Renewal
+                        </h2>
+
+                        <p>
+                            Keep your subscription active.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        Before your subscription expires, ensure
+                        that your company renews its subscription
+                        to avoid interruption of service.
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            <strong>Monthly:</strong>
+                            ₦15,000
+                        </li>
+
+                        <li>
+                            <strong>Yearly:</strong>
+                            ₦144,000 — 20% saving
+                        </li>
+
+                    </ul>
+
+
+                    <p>
+
+                        After payment, send the payment receipt
+                        or proof of payment to the administrator
+                        for confirmation and activation.
+
+                    </p>
+
+
+                    <div class="info-box warning">
+
+                        <i class="bi bi-exclamation-triangle"></i>
+
+                        <div>
+
+                            <strong>
+                                Expired subscription
+                            </strong>
+
+                            <p>
+
+                                If your company account becomes
+                                deactivated because of an expired
+                                subscription, contact the
+                                administrator and provide your
+                                payment details or proof of
+                                payment where applicable.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 14 DEACTIVATION
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="deactivation"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        ⚙️
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            14. Account & Company Deactivation
+                        </h2>
+
+                        <p>
+                            What happens when a company account
+                            is deactivated.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        If your company account is deactivated,
+                        you may be unable to access the BizTrace
+                        IMS dashboard and company features.
+
+                    </p>
+
+
+                    <p>
+
+                        Deactivation may occur when:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            A subscription expires.
+                        </li>
+
+                        <li>
+                            Payment has not been confirmed.
+                        </li>
+
+                        <li>
+                            The company account requires
+                            administrative attention.
+                        </li>
+
+                        <li>
+                            The account has been manually
+                            deactivated by the System Administrator.
+                        </li>
+
+                    </ul>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-receipt"></i>
+
+                        <div>
+
+                            <strong>
+                                Already made payment?
+                            </strong>
+
+                            <p>
+
+                                Send your payment receipt or
+                                proof of payment to the
+                                administrator for verification.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 15 PRINTING
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="printing"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🖨️
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            15. Printing & Display Guidelines
+                        </h2>
+
+                        <p>
+                            Important instructions for printing
+                            reports and documents.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <div class="info-box warning">
+
+                        <i class="bi bi-printer"></i>
+
+                        <div>
+
+                            <strong>
+                                PC/Desktop recommended
+                            </strong>
+
+                            <p>
+
+                                For the best printing experience,
+                                it is strongly advisable to use
+                                a <strong>PC or Desktop computer</strong>.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        Before printing any report:
+
+                    </p>
+
+
+                    <div class="print-steps">
+
+
+                        <div class="print-step">
+
+                            <div class="print-step-number">
+                                1
+                            </div>
+
+                            <span>
+                                Open the report you want to print.
+                            </span>
+
+                        </div>
+
+
+                        <div class="print-step">
+
+                            <div class="print-step-number">
+                                2
+                            </div>
+
+                            <span>
+                                Switch BizTrace IMS to
+                                <strong>Light Mode</strong>.
+                            </span>
+
+                        </div>
+
+
+                        <div class="print-step">
+
+                            <div class="print-step-number">
+                                3
+                            </div>
+
+                            <span>
+                                Confirm that the report is
+                                displayed correctly.
+                            </span>
+
+                        </div>
+
+
+                        <div class="print-step">
+
+                            <div class="print-step-number">
+                                4
+                            </div>
+
+                            <span>
+                                Click the Print option.
+                            </span>
+
+                        </div>
+
+
+                        <div class="print-step">
+
+                            <div class="print-step-number">
+                                5
+                            </div>
+
+                            <span>
+                                Review the print preview before
+                                sending the document to the printer.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box warning mt-4">
+
+                        <i class="bi bi-image"></i>
+
+                        <div>
+
+                            <strong>
+                                Charts and images may require
+                                repeated printing
+                            </strong>
+
+                            <p>
+
+                                Some reports may contain charts,
+                                images or other graphical elements.
+                                In some cases, a chart or image may
+                                not appear immediately in the
+                                browser's print preview.
+
+                                If this happens, cancel the print
+                                preview and select <strong>Print</strong>
+                                again. You may need to repeat the
+                                print action until the chart or image
+                                appears correctly.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box success">
+
+                        <i class="bi bi-brightness-high"></i>
+
+                        <div>
+
+                            <strong>
+                                Always print in Light Mode
+                            </strong>
+
+                            <p>
+
+                                For reports, invoices and other
+                                documents, always switch BizTrace
+                                IMS to <strong>Light Mode</strong>
+                                before printing for better
+                                readability and print output.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        Before sending a document to the printer,
+                        always check the print preview and confirm
+                        that all pages, information, charts and
+                        images are displayed correctly.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 16 HELP
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="help"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        📩
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            16. Need Help?
+                        </h2>
+
+                        <p>
+                            Contact the administrator when you
+                            encounter a problem.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <p>
+
+                        If you experience any problem while using
+                        BizTrace IMS, contact the administrator
+                        with:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Your company name</li>
+
+                        <li>Your registered email</li>
+
+                        <li>A short description of the problem</li>
+
+                        <li>
+                            Screenshot or screen recording where
+                            necessary
+                        </li>
+
+                    </ul>
+
+
+                    <div class="info-box">
+
+                        <i class="bi bi-headset"></i>
+
+                        <div>
+
+                            <strong>
+                                Providing more information helps
+                            </strong>
+
+                            <p>
+
+                                Screenshots, screen recordings and
+                                clear descriptions can help us
+                                understand and resolve issues
+                                faster.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        We can assist with:
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Account access</li>
+
+                        <li>User configuration</li>
+
+                        <li>Subscription and activation</li>
+
+                        <li>System configuration</li>
+
+                        <li>General system usage</li>
+
+                    </ul>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 17 BEST PRACTICES
+            ================================================== -->
+
+            <section
+                class="guide-section"
+                id="best-practices"
+            >
+
+                <div class="section-header">
+
+                    <div class="section-icon">
+
+                        🎯
+
+                    </div>
+
+                    <div>
+
+                        <h2>
+                            17. Best Practices
+                        </h2>
+
+                        <p>
+                            Recommended practices for smooth
+                            business operations.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="section-content">
+
+                    <ul>
+
+                        <li>
+                            Complete company settings before
+                            starting regular transactions.
+                        </li>
+
+                        <li>
+                            Add your products and opening stock
+                            correctly.
+                        </li>
+
+                        <li>
+                            Create individual accounts for staff.
+                        </li>
+
+                        <li>
+                            Assign only the permissions required
+                            by each staff member.
+                        </li>
+
+                        <li>
+                            Record purchases and sales promptly.
+                        </li>
+
+                        <li>
+                            Record expenses accurately.
+                        </li>
+
+                        <li>
+                            Select the correct payment method for
+                            every transaction.
+                        </li>
+
+                        <li>
+                            Record cash expenses and cash deposits
+                            accurately.
+                        </li>
+
+                        <li>
+                            Review reports regularly.
+                        </li>
+
+                        <li>
+                            Keep your account credentials secure.
+                        </li>
+
+                        <li>
+                            Use <strong>Light Mode when printing</strong>.
+                        </li>
+
+                        <li>
+                            Use a <strong>PC/Desktop</strong> for
+                            printing and major configuration tasks.
+                        </li>
+
+                        <li>
+                            Use <strong>mobile/tablet</strong> for
+                            routine operations and sales invoice
+                            printing.
+                        </li>
+
+                        <li>
+                            Keep mobile devices in
+                            <strong>Landscape mode</strong> when
+                            working with detailed pages.
+                        </li>
+
+                        <li>
+                            Keep your subscription active to avoid
+                            service interruption.
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 FINAL
+            ================================================== -->
+
+            <section class="guide-section">
+
+                <div class="section-content text-center">
+
+                    <div
+                        style="
+                            font-size: 38px;
+                            margin-bottom: 12px;
+                        "
+                    >
+
+                        🎉
+
+                    </div>
+
+
+                    <h2
+                        style="
+                            font-size: 24px;
+                            font-weight: 800;
+                            margin-bottom: 8px;
+                        "
+                    >
+
+                        Thank You for Choosing BizTrace IMS
+
+                    </h2>
+
+
+                    <p>
+
+                        We appreciate your trust in
+                        <strong>BizTrace IMS</strong> and look
+                        forward to helping you manage your business
+                        more efficiently.
+
+                    </p>
+
+
+                    <div
+                        style="
+                            margin-top: 20px;
+                            color: var(--primary);
+                            font-weight: 800;
+                        "
+                    >
+
+                        BizTrace IMS
+
+                    </div>
+
+
+                    <div
+                        style="
+                            color: var(--muted);
+                            font-size: 12px;
+                            font-style: italic;
+                        "
+                    >
+
+                        Business Management. Simplified.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- FOOTER -->
+
+            <footer class="guide-footer">
+
+                <strong>BizTrace IMS</strong>
+
+                <br>
+
+                Business Management. Simplified.
+
+                <br>
+
+                <span>
+                    Company Admin Welcome & User Guide
+                </span>
+
+            </footer>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================== -->
+
+<script>
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+(function () {
+
+    const root =
+        document.documentElement;
+
+    const themeButton =
+        document.getElementById("themeButton");
+
+    const mediaQuery =
+        window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        );
+
+
+    function applyTheme() {
+
+        const savedTheme =
+            localStorage.getItem("theme") || "system";
+
+
+        root.removeAttribute("data-theme");
+
+        root.classList.remove("system-dark");
+
+
+        if (savedTheme === "dark") {
+
+            root.setAttribute(
+                "data-theme",
+                "dark"
+            );
+
+        }
+
+        else if (savedTheme === "light") {
+
+            root.setAttribute(
+                "data-theme",
+                "light"
+            );
+
+        }
+
+        else if (savedTheme === "system") {
+
+            if (mediaQuery.matches) {
+
+                root.classList.add(
+                    "system-dark"
+                );
+
+            }
+
+        }
+
+
+        updateThemeIcon();
+
+    }
+
+
+    function updateThemeIcon() {
+
+        if (!themeButton) {
+
+            return;
+
+        }
+
+
+        const icon =
+            themeButton.querySelector("i");
+
+
+        const currentTheme =
+            localStorage.getItem("theme") || "system";
+
+
+        if (currentTheme === "dark") {
+
+            icon.className =
+                "bi bi-sun";
+
+            themeButton.title =
+                "Switch to light mode";
+
+        }
+
+        else {
+
+            icon.className =
+                "bi bi-moon-stars";
+
+            themeButton.title =
+                "Switch to dark mode";
+
+        }
+
+    }
+
+
+    function toggleTheme() {
+
+        const current =
+            localStorage.getItem("theme") || "system";
+
+
+        if (current === "dark") {
+
+            localStorage.setItem(
+                "theme",
+                "light"
+            );
+
+        }
+
+        else {
+
+            localStorage.setItem(
+                "theme",
+                "dark"
+            );
+
+        }
+
+
+        applyTheme();
+
+
+        window.dispatchEvent(
+            new Event("themechange")
+        );
+
+    }
+
+
+    if (themeButton) {
+
+        themeButton.addEventListener(
+            "click",
+            toggleTheme
+        );
+
+    }
+
+
+    mediaQuery.addEventListener(
+        "change",
+        function () {
+
+            const saved =
+                localStorage.getItem("theme") || "system";
+
+
+            if (saved === "system") {
+
+                applyTheme();
+
+            }
+
+        }
+    );
+
+
+    applyTheme();
+
+})();
+
+
+/* =========================================================
+   MOBILE NAVIGATION
+========================================================= */
+
+(function () {
+
+    const navigation =
+        document.getElementById(
+            "mobileNavigation"
+        );
+
+
+    if (!navigation) {
+
+        return;
+
+    }
+
+
+    navigation.addEventListener(
+        "change",
+        function () {
+
+            const target =
+                this.value;
+
+
+            if (!target) {
+
+                return;
+
+            }
+
+
+            const element =
+                document.querySelector(target);
+
+
+            if (element) {
+
+                element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+        }
+    );
+
+})();
+
+
+/* =========================================================
+   PRINT MODE
+========================================================= */
+
+window.addEventListener(
+    "beforeprint",
+    function () {
+
+        document.documentElement
+            .setAttribute(
+                "data-print",
+                "true"
+            );
+
+    }
+);
+
+
+window.addEventListener(
+    "afterprint",
+    function () {
+
+        document.documentElement
+            .removeAttribute(
+                "data-print"
+            );
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
