@@ -691,12 +691,9 @@ def login():
             )
 
         if not company.is_active:
-
             flash(
-                "Your company account is currently "
-                "inactive. Please contact the "
-                "system administrator.",
-                "danger"
+                "COMPANY_DEACTIVATED",
+                "company_deactivated"
             )
 
             return redirect(
@@ -1455,3 +1452,18 @@ def logout():
     return redirect(
         url_for("auth.welcome")
     )
+
+
+
+@auth_bp.route("/terms")
+def terms():
+    return render_template("legal/terms.html")
+
+
+@auth_bp.route("/privacy")
+def privacy():
+    return render_template("legal/privacy.html")
+
+@auth_bp.route("/welcome-guide")
+def welcome_guide():
+    return render_template("auth/welcome_guide.html")
