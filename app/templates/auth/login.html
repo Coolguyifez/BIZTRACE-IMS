@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -18,108 +16,139 @@
     <title>Sign In</title>
 
     <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('static', filename='icons/1.png') }}"
+    >
+
+    <!-- Bootstrap -->
+    <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/1.png') }}">
 
+    <!-- Bootstrap Icons -->
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
         rel="stylesheet"
     >
 
-    <!-- Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Inter -->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
 
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
     <style>
 
-        :root {
+        /* =====================================================
+           ROOT
+        ===================================================== */
 
+        :root {
             --primary: #0a84ff;
+            --primary-dark: #0077ed;
 
             --background: #f5f5f7;
-
-            --surface: rgba(255,255,255,.88);
+            --surface: rgba(255, 255, 255, .92);
 
             --text: #1d1d1f;
-
             --muted: #6e6e73;
 
-            --border: rgba(0,0,0,.08);
+            --border: rgba(0, 0, 0, .08);
 
+            --input-background: rgba(127, 127, 127, .06);
+
+            --danger: #ff3b30;
+            --success: #34c759;
+            --warning: #ff9500;
+
+            --guide-surface: #ffffff;
+            --guide-soft: #f5f7fb;
         }
 
 
         /* =====================================================
-        HIDE SCROLLBARS
+           DARK MODE
         ===================================================== */
-
-        /* Chrome, Edge, Safari */
-        html,
-        body,
-        .sidebar-inner {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar,
-        .sidebar-inner::-webkit-scrollbar {
-            display: none;
-            width: 0;
-            height: 0;
-        }
-
 
         html[data-theme="dark"],
         html.system-dark {
 
             --background: #0f1115;
-
-            --surface: rgba(24,26,32,.90);
+            --surface: rgba(24, 26, 32, .94);
 
             --text: #f5f5f7;
-
             --muted: #a1a1a6;
 
-            --border: rgba(255,255,255,.10);
+            --border: rgba(255, 255, 255, .10);
 
+            --input-background: rgba(255, 255, 255, .06);
+
+            --guide-surface: #181a20;
+            --guide-soft: #20232b;
         }
 
+
+        /* =====================================================
+           GLOBAL
+        ===================================================== */
 
         * {
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
 
         body {
-
-            margin: 0;
-
             min-height: 100vh;
 
             font-family:
                 'Inter', sans-serif;
 
-
             color: var(--text);
-
             background: var(--background);
 
+            transition:
+                background .25s ease,
+                color .25s ease;
         }
 
+
+        /* =====================================================
+           AUTH PAGE
+        ===================================================== */
 
         .auth-page {
 
             min-height: 100vh;
 
             display: flex;
-
             align-items: center;
-
             justify-content: center;
 
             padding: 24px;
@@ -127,16 +156,18 @@
             position: relative;
 
             overflow: hidden;
-
         }
 
+
+        /* =====================================================
+           BACKGROUND ORBS
+        ===================================================== */
 
         .background-orb {
 
             position: absolute;
 
             width: 420px;
-
             height: 420px;
 
             border-radius: 50%;
@@ -146,41 +177,39 @@
             opacity: .18;
 
             pointer-events: none;
-
         }
-
 
         .orb-one {
 
             background: #0a84ff;
 
             top: -180px;
-
             left: -120px;
-
         }
-
 
         .orb-two {
 
             background: #7c3aed;
 
             right: -180px;
-
             bottom: -180px;
-
         }
 
+
+        /* =====================================================
+           MAIN WRAPPER
+        ===================================================== */
 
         .auth-wrapper {
 
             width: 100%;
-
             max-width: 1100px;
 
             display: grid;
 
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns:
+                1fr
+                1fr;
 
             background: var(--surface);
 
@@ -191,18 +220,20 @@
             overflow: hidden;
 
             box-shadow:
-                0 30px 80px rgba(0,0,0,.12);
+                0 30px 80px rgba(0, 0, 0, .12);
 
             backdrop-filter: blur(24px);
-
             -webkit-backdrop-filter: blur(24px);
 
             position: relative;
 
             z-index: 2;
-
         }
 
+
+        /* =====================================================
+           BRAND PANEL
+        ===================================================== */
 
         .auth-brand-panel {
 
@@ -213,7 +244,7 @@
             background:
                 linear-gradient(
                     145deg,
-                    rgba(10,132,255,.14),
+                    rgba(10, 132, 255, .14),
                     transparent 60%
                 );
 
@@ -222,7 +253,6 @@
             flex-direction: column;
 
             justify-content: space-between;
-
         }
 
 
@@ -242,13 +272,17 @@
 
             font-size: 20px;
 
+            width: fit-content;
+        }
+
+        .brand:hover {
+            color: var(--text);
         }
 
 
         .brand-icon {
 
             width: 42px;
-
             height: 42px;
 
             border-radius: 13px;
@@ -256,7 +290,6 @@
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             background: var(--primary);
@@ -264,15 +297,29 @@
             color: white;
 
             box-shadow:
-                0 10px 25px rgba(10,132,255,.28);
+                0 10px 25px rgba(10, 132, 255, .28);
 
+            flex-shrink: 0;
         }
 
 
+        .brand-name {
+            line-height: 1;
+        }
+
+
+        .brand-name small {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
         .hero-content {
-
             max-width: 440px;
-
         }
 
 
@@ -288,7 +335,7 @@
 
             border-radius: 999px;
 
-            background: rgba(10,132,255,.10);
+            background: rgba(10, 132, 255, .10);
 
             color: var(--primary);
 
@@ -297,7 +344,6 @@
             font-weight: 700;
 
             margin-bottom: 22px;
-
         }
 
 
@@ -309,10 +355,9 @@
 
             letter-spacing: -2.5px;
 
-            font-weight: 750;
+            font-weight: 800;
 
             margin-bottom: 20px;
-
         }
 
 
@@ -323,9 +368,12 @@
             font-size: 17px;
 
             line-height: 1.7;
-
         }
 
+
+        /* =====================================================
+           FEATURES
+        ===================================================== */
 
         .feature-list {
 
@@ -334,7 +382,6 @@
             display: grid;
 
             gap: 15px;
-
         }
 
 
@@ -349,14 +396,12 @@
             color: var(--muted);
 
             font-size: 14px;
-
         }
 
 
         .feature-item i {
 
             width: 30px;
-
             height: 30px;
 
             border-radius: 9px;
@@ -364,15 +409,65 @@
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             color: var(--primary);
 
-            background: rgba(10,132,255,.10);
+            background: rgba(10, 132, 255, .10);
 
+            flex-shrink: 0;
         }
 
+
+        /* =====================================================
+           WELCOME GUIDE BUTTON
+        ===================================================== */
+
+        .guide-button {
+
+            margin-top: 28px;
+
+            width: 100%;
+
+            min-height: 50px;
+
+            border: 1px solid rgba(10, 132, 255, .20);
+
+            border-radius: 15px;
+
+            background:
+                rgba(10, 132, 255, .07);
+
+            color: var(--primary);
+
+            font-weight: 700;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 9px;
+
+            transition: .2s ease;
+        }
+
+
+        .guide-button:hover {
+
+            background:
+                rgba(10, 132, 255, .13);
+
+            border-color:
+                rgba(10, 132, 255, .35);
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =====================================================
+           FORM PANEL
+        ===================================================== */
 
         .auth-form-panel {
 
@@ -381,7 +476,6 @@
             display: flex;
 
             align-items: center;
-
         }
 
 
@@ -392,14 +486,12 @@
             max-width: 420px;
 
             margin: auto;
-
         }
 
 
         .mobile-brand {
 
             display: none;
-
         }
 
 
@@ -407,12 +499,11 @@
 
             font-size: 32px;
 
-            font-weight: 750;
+            font-weight: 800;
 
             letter-spacing: -1px;
 
             margin-bottom: 8px;
-
         }
 
 
@@ -421,9 +512,12 @@
             color: var(--muted);
 
             margin-bottom: 30px;
-
         }
 
+
+        /* =====================================================
+           FORM
+        ===================================================== */
 
         .form-label {
 
@@ -432,14 +526,12 @@
             font-weight: 650;
 
             margin-bottom: 8px;
-
         }
 
 
         .input-group-modern {
 
             position: relative;
-
         }
 
 
@@ -456,7 +548,6 @@
             color: var(--muted);
 
             z-index: 5;
-
         }
 
 
@@ -470,7 +561,7 @@
 
             border-radius: 15px;
 
-            background: rgba(127,127,127,.06);
+            background: var(--input-background);
 
             color: var(--text);
 
@@ -479,7 +570,14 @@
             outline: none;
 
             transition: .2s ease;
+        }
 
+
+        .modern-input::placeholder {
+
+            color: var(--muted);
+
+            opacity: .75;
         }
 
 
@@ -488,10 +586,17 @@
             border-color: var(--primary);
 
             box-shadow:
-                0 0 0 4px rgba(10,132,255,.12);
+                0 0 0 4px rgba(10, 132, 255, .12);
 
+            background: var(--input-background);
+
+            color: var(--text);
         }
 
+
+        /* =====================================================
+           PASSWORD
+        ===================================================== */
 
         .password-toggle {
 
@@ -515,20 +620,28 @@
 
             border-radius: 10px;
 
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
         }
 
 
         .password-toggle:hover {
 
-            background: rgba(127,127,127,.10);
+            background:
+                rgba(127, 127, 127, .10);
 
+            color: var(--text);
         }
 
 
+        /* =====================================================
+           REMEMBER / FORGOT
+        ===================================================== */
+
         .form-check-input {
-
             cursor: pointer;
-
         }
 
 
@@ -538,6 +651,7 @@
 
             font-size: 13px;
 
+            cursor: pointer;
         }
 
 
@@ -550,16 +664,122 @@
             font-size: 13px;
 
             font-weight: 650;
-
         }
 
 
         .forgot-link:hover {
-
             text-decoration: underline;
-
         }
 
+
+        /* =====================================================
+           TERMS
+        ===================================================== */
+
+        .terms-container {
+
+            margin-top: 20px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .terms-check {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 10px;
+
+            padding: 13px 14px;
+
+            border-radius: 14px;
+
+            border: 1px solid var(--border);
+
+            background:
+                rgba(127, 127, 127, .035);
+
+            transition: .2s ease;
+        }
+
+
+        .terms-check:hover {
+
+            border-color:
+                rgba(10, 132, 255, .30);
+
+            background:
+                rgba(10, 132, 255, .035);
+        }
+
+
+        .terms-check.is-invalid {
+
+            border-color:
+                rgba(255, 59, 48, .45);
+
+            background:
+                rgba(255, 59, 48, .045);
+        }
+
+
+        .terms-check .form-check-input {
+
+            margin-top: 3px;
+
+            flex-shrink: 0;
+        }
+
+
+        .terms-text {
+
+            color: var(--muted);
+
+            font-size: 12.5px;
+
+            line-height: 1.6;
+        }
+
+
+        .terms-text a {
+
+            color: var(--primary);
+
+            text-decoration: none;
+
+            font-weight: 650;
+        }
+
+
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+
+
+        .terms-error {
+
+            display: none;
+
+            color: var(--danger);
+
+            font-size: 12px;
+
+            margin-top: 7px;
+
+            padding-left: 3px;
+        }
+
+
+        .terms-error.show {
+            display: block;
+        }
+
+
+        /* =====================================================
+           PRIMARY BUTTON
+        ===================================================== */
 
         .btn-primary-modern {
 
@@ -580,19 +800,37 @@
             transition: .2s ease;
 
             box-shadow:
-                0 10px 24px rgba(10,132,255,.22);
-
+                0 10px 24px rgba(10, 132, 255, .22);
         }
 
 
-        .btn-primary-modern:hover {
+        .btn-primary-modern:hover:not(:disabled) {
 
-            background: #0077ed;
+            background: var(--primary-dark);
 
             transform: translateY(-1px);
-
         }
 
+
+        .btn-primary-modern:active:not(:disabled) {
+
+            transform: translateY(0);
+        }
+
+
+        .btn-primary-modern:disabled {
+
+            opacity: .55;
+
+            cursor: not-allowed;
+
+            box-shadow: none;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
 
         .auth-footer {
 
@@ -603,7 +841,6 @@
             color: var(--muted);
 
             font-size: 14px;
-
         }
 
 
@@ -614,9 +851,17 @@
             text-decoration: none;
 
             font-weight: 700;
-
         }
 
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+
+        /* =====================================================
+           ALERTS
+        ===================================================== */
 
         .alert {
 
@@ -625,9 +870,656 @@
             border-radius: 14px;
 
             font-size: 13px;
-
         }
 
+
+        /* =====================================================
+           DEACTIVATED PANEL
+        ===================================================== */
+
+        .deactivated-panel {
+
+            border:
+                1px solid rgba(255, 59, 48, .18);
+
+            background:
+                rgba(255, 59, 48, .055);
+
+            border-radius: 22px;
+
+            padding: 24px;
+
+            margin-bottom: 24px;
+        }
+
+
+        .deactivated-icon {
+
+            width: 56px;
+            height: 56px;
+
+            border-radius: 17px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(255, 59, 48, .10);
+
+            color: var(--danger);
+
+            font-size: 25px;
+
+            margin-bottom: 17px;
+        }
+
+
+        .deactivated-panel h3 {
+
+            font-size: 19px;
+
+            font-weight: 800;
+
+            margin-bottom: 8px;
+        }
+
+
+        .deactivated-panel p {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            line-height: 1.65;
+
+            margin-bottom: 18px;
+        }
+
+
+        .payment-box {
+
+            border-radius: 16px;
+
+            background:
+                rgba(127, 127, 127, .07);
+
+            border: 1px solid var(--border);
+
+            padding: 16px;
+
+            margin-bottom: 16px;
+        }
+
+
+        .payment-box-title {
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .7px;
+
+            font-weight: 800;
+
+            color: var(--muted);
+
+            margin-bottom: 12px;
+        }
+
+
+        .payment-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 7px 0;
+
+            font-size: 13px;
+        }
+
+
+        .payment-row span:first-child {
+            color: var(--muted);
+        }
+
+
+        .payment-row strong {
+
+            color: var(--text);
+
+            text-align: right;
+        }
+
+
+        .deactivated-note {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 9px;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        .deactivated-note i {
+
+            color: var(--primary);
+
+            margin-top: 2px;
+        }
+
+
+        .btn-back-login {
+
+            width: 100%;
+
+            min-height: 50px;
+
+            border-radius: 14px;
+
+            border: 1px solid var(--border);
+
+            background: transparent;
+
+            color: var(--text);
+
+            font-weight: 650;
+
+            transition: .2s ease;
+        }
+
+
+        .btn-back-login:hover {
+
+            background:
+                rgba(127, 127, 127, .08);
+
+            color: var(--text);
+        }
+
+
+        /* =====================================================
+           WELCOME GUIDE MODAL
+        ===================================================== */
+
+        .guide-modal .modal-dialog {
+
+            max-width: 1100px;
+
+            margin: 20px auto;
+        }
+
+
+        .guide-modal .modal-content {
+
+            border: 1px solid var(--border);
+
+            border-radius: 28px;
+
+            overflow: hidden;
+
+            background: var(--guide-surface);
+
+            color: var(--text);
+
+            box-shadow:
+                0 30px 100px rgba(0, 0, 0, .25);
+        }
+
+
+        .guide-header {
+
+            padding: 24px 30px;
+
+            border-bottom: 1px solid var(--border);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(10, 132, 255, .12),
+                    transparent
+                );
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 10;
+        }
+
+
+        .guide-brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+        }
+
+
+        .guide-brand-icon {
+
+            width: 46px;
+            height: 46px;
+
+            border-radius: 14px;
+
+            background: var(--primary);
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            font-size: 20px;
+        }
+
+
+        .guide-brand h2 {
+
+            font-size: 21px;
+
+            font-weight: 800;
+
+            margin: 0;
+
+            letter-spacing: -.5px;
+        }
+
+
+        .guide-brand p {
+
+            margin: 3px 0 0;
+
+            color: var(--muted);
+
+            font-size: 12px;
+        }
+
+
+        .guide-body {
+
+            padding: 35px;
+
+            max-height: calc(100vh - 150px);
+
+            overflow-y: auto;
+
+            scrollbar-width: thin;
+        }
+
+
+        .guide-hero {
+
+            padding: 30px;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(10, 132, 255, .12),
+                    rgba(124, 58, 237, .08)
+                );
+
+            border: 1px solid var(--border);
+
+            margin-bottom: 28px;
+        }
+
+
+        .guide-hero h1 {
+
+            font-size: clamp(28px, 4vw, 42px);
+
+            letter-spacing: -1.5px;
+
+            font-weight: 800;
+
+            margin-bottom: 12px;
+        }
+
+
+        .guide-hero p {
+
+            color: var(--muted);
+
+            max-width: 800px;
+
+            line-height: 1.7;
+
+            margin: 0;
+        }
+
+
+        .guide-section {
+
+            padding: 26px;
+
+            border-radius: 20px;
+
+            border: 1px solid var(--border);
+
+            background: var(--guide-surface);
+
+            margin-bottom: 18px;
+
+            transition: .2s ease;
+        }
+
+
+        .guide-section:hover {
+
+            border-color:
+                rgba(10, 132, 255, .20);
+        }
+
+
+        .guide-section-header {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 15px;
+
+            margin-bottom: 17px;
+        }
+
+
+        .guide-number {
+
+            width: 42px;
+            height: 42px;
+
+            min-width: 42px;
+
+            border-radius: 13px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(10, 132, 255, .10);
+
+            color: var(--primary);
+
+            font-weight: 800;
+
+            font-size: 14px;
+        }
+
+
+        .guide-section h3 {
+
+            margin: 0;
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+            letter-spacing: -.3px;
+        }
+
+
+        .guide-section p {
+
+            color: var(--muted);
+
+            line-height: 1.7;
+
+            font-size: 14px;
+        }
+
+
+        .guide-section ul {
+
+            margin: 0;
+
+            padding-left: 20px;
+
+            color: var(--muted);
+        }
+
+
+        .guide-section li {
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+        }
+
+
+        .guide-section li:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .guide-highlight {
+
+            padding: 18px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(10, 132, 255, .07);
+
+            border:
+                1px solid rgba(10, 132, 255, .14);
+
+            margin-top: 16px;
+        }
+
+
+        .guide-highlight strong {
+
+            color: var(--text);
+        }
+
+
+        .guide-warning {
+
+            padding: 18px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(255, 149, 0, .08);
+
+            border:
+                1px solid rgba(255, 149, 0, .16);
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            line-height: 1.7;
+
+            margin-top: 16px;
+        }
+
+
+        .guide-success {
+
+            padding: 18px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(52, 199, 89, .08);
+
+            border:
+                1px solid rgba(52, 199, 89, .16);
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            line-height: 1.7;
+
+            margin-top: 16px;
+        }
+
+
+        /* =====================================================
+           PRICING
+        ===================================================== */
+
+        .pricing-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 15px;
+
+            margin-top: 16px;
+        }
+
+
+        .pricing-card {
+
+            padding: 20px;
+
+            border-radius: 17px;
+
+            background: var(--guide-soft);
+
+            border: 1px solid var(--border);
+        }
+
+
+        .pricing-card-title {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .6px;
+
+            font-weight: 800;
+
+            margin-bottom: 8px;
+        }
+
+
+        .pricing-card-price {
+
+            font-size: 25px;
+
+            font-weight: 800;
+
+            color: var(--text);
+        }
+
+
+        .pricing-card-sub {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            margin-top: 3px;
+        }
+
+
+        /* =====================================================
+           PAYMENT GUIDE
+        ===================================================== */
+
+        .bank-details {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 12px;
+
+            margin-top: 18px;
+        }
+
+
+        .bank-detail {
+
+            padding: 17px;
+
+            border-radius: 15px;
+
+            background: var(--guide-soft);
+
+            border: 1px solid var(--border);
+        }
+
+
+        .bank-detail span {
+
+            display: block;
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .5px;
+
+            font-weight: 700;
+
+            margin-bottom: 7px;
+        }
+
+
+        .bank-detail strong {
+
+            color: var(--text);
+
+            font-size: 14px;
+        }
+
+
+        /* =====================================================
+           GUIDE FOOTER
+        ===================================================== */
+
+        .guide-footer {
+
+            text-align: center;
+
+            padding: 28px 10px 10px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
 
         @media (max-width: 850px) {
 
@@ -636,29 +1528,82 @@
                 max-width: 520px;
 
                 grid-template-columns: 1fr;
-
             }
+
 
             .auth-brand-panel {
 
                 display: none;
-
             }
+
 
             .auth-form-panel {
 
                 padding: 36px 28px;
-
             }
+
 
             .mobile-brand {
 
                 display: flex;
 
                 margin-bottom: 34px;
-
             }
 
+
+            .guide-modal .modal-dialog {
+
+                margin: 8px;
+
+                max-width: none;
+            }
+
+
+            .guide-body {
+
+                padding: 20px;
+
+                max-height: calc(100vh - 110px);
+            }
+
+
+            .bank-details {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        @media (max-width: 600px) {
+
+            .pricing-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .guide-header {
+
+                padding: 18px;
+            }
+
+
+            .guide-body {
+
+                padding: 14px;
+            }
+
+
+            .guide-hero {
+
+                padding: 22px;
+            }
+
+
+            .guide-section {
+
+                padding: 20px;
+            }
         }
 
 
@@ -667,31 +1612,155 @@
             .auth-page {
 
                 padding: 12px;
-
             }
+
 
             .auth-wrapper {
 
                 border-radius: 24px;
-
             }
+
 
             .auth-form-panel {
 
                 padding: 28px 20px;
-
             }
+
 
             .auth-form h2 {
 
                 font-size: 28px;
-
             }
 
+
+            .deactivated-panel {
+
+                padding: 20px;
+            }
+
+
+            .payment-row {
+
+                align-items: flex-start;
+
+                flex-direction: column;
+
+                gap: 2px;
+            }
+
+
+            .payment-row strong {
+
+                text-align: left;
+            }
+
+
+            .terms-text {
+
+                font-size: 12px;
+            }
+        }
+
+
+        /* =====================================================
+           PRINT
+        ===================================================== */
+
+        @media print {
+
+            body {
+                background: white !important;
+
+                color: #111 !important;
+            }
+
+            .auth-page,
+            .auth-wrapper {
+                display: none !important;
+            }
+
+            .modal-backdrop {
+                display: none !important;
+            }
+
+            .guide-modal {
+                position: static !important;
+
+                display: block !important;
+
+                width: 100% !important;
+
+                height: auto !important;
+
+                overflow: visible !important;
+            }
+
+            .guide-modal .modal-dialog {
+
+                max-width: none !important;
+
+                margin: 0 !important;
+            }
+
+            .guide-modal .modal-content {
+
+                border: 0 !important;
+
+                box-shadow: none !important;
+
+                border-radius: 0 !important;
+
+                background: white !important;
+
+                color: #111 !important;
+            }
+
+            .guide-header {
+
+                position: static !important;
+
+                background: white !important;
+
+                color: #111 !important;
+            }
+
+            .guide-body {
+
+                max-height: none !important;
+
+                overflow: visible !important;
+
+                padding: 20px !important;
+            }
+
+            .guide-section {
+
+                break-inside: avoid;
+
+                background: white !important;
+
+                color: #111 !important;
+            }
+
+            .guide-section p,
+            .guide-section li,
+            .guide-hero p,
+            .guide-footer {
+
+                color: #444 !important;
+            }
+
+            .btn-close {
+
+                display: none !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
         }
 
     </style>
-
 </head>
 
 
@@ -699,10 +1768,16 @@
 
 <div class="auth-page">
 
+    <!-- Background -->
     <div class="background-orb orb-one"></div>
     <div class="background-orb orb-two"></div>
 
+
     <div class="auth-wrapper">
+
+        <!-- =================================================
+             LEFT BRAND PANEL
+        ================================================== -->
 
         <section class="auth-brand-panel">
 
@@ -715,7 +1790,12 @@
                     <i class="bi bi-bar-chart-fill"></i>
                 </span>
 
-                <span>BizTrace<small><small class="text-primary"> IMS</small></small></span>
+                <span class="brand-name">
+                    BizTrace
+                    <small class="text-primary">
+                        IMS
+                    </small>
+                </span>
 
             </a>
 
@@ -723,13 +1803,18 @@
             <div class="hero-content">
 
                 <span class="hero-badge">
+
                     <i class="bi bi-stars"></i>
+
                     Business management, simplified
+
                 </span>
+
 
                 <h1>
                     Everything your business needs.
                 </h1>
+
 
                 <p>
                     Manage sales, purchases, inventory,
@@ -741,41 +1826,83 @@
                 <div class="feature-list">
 
                     <div class="feature-item">
+
                         <i class="bi bi-check2"></i>
+
                         Sales and customer management
+
                     </div>
 
+
                     <div class="feature-item">
+
                         <i class="bi bi-check2"></i>
+
                         Real-time inventory visibility
+
                     </div>
 
+
                     <div class="feature-item">
+
                         <i class="bi bi-check2"></i>
+
                         Purchase and supplier tracking
+
                     </div>
 
+
                     <div class="feature-item">
+
                         <i class="bi bi-check2"></i>
+
                         Reports and financial insights
+
                     </div>
 
                 </div>
 
+
+                <!-- WELCOME GUIDE BUTTON -->
+
+                <button
+                    type="button"
+                    class="guide-button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#welcomeGuideModal"
+                >
+
+                    <i class="bi bi-book-half"></i>
+
+                    Read BizTrace Welcome Guide
+
+                </button>
+
             </div>
 
 
-            <small class="text-body-muted">
-                © {{ now().year if now is defined else 2026 }}
+            <small style="color: var(--muted);">
+
+                ©
+                {{ now().year if now is defined else 2026 }}
                 BizTrace IMS
+
             </small>
 
         </section>
 
 
+
+        <!-- =================================================
+             RIGHT FORM PANEL
+        ================================================== -->
+
         <section class="auth-form-panel">
 
             <div class="auth-form">
+
+
+                <!-- Mobile brand -->
 
                 <a
                     href="{{ url_for('auth.welcome') }}"
@@ -784,187 +1911,501 @@
 
                     <span class="brand-icon">
                         <i class="bi bi-bar-chart-fill"></i>
-                </span>
+                    </span>
 
-                <span>BizTrace<small><small class="text-primary"> IMS</small></small></span>
+                    <span class="brand-name">
+
+                        BizTrace
+
+                        <small class="text-primary">
+                            IMS
+                        </small>
+
+                    </span>
+
                 </a>
 
 
-                <h2>
-                    Welcome back
-                </h2>
+                <!-- =================================================
+                     FLASH MESSAGES
+                ================================================== -->
 
-                <p class="auth-subtitle">
-                    Sign in to continue to your workspace.
-                </p>
+                {% set messages = get_flashed_messages(with_categories=true) %}
+
+                {% set ns = namespace(deactivated=false) %}
 
 
-                {% with messages = get_flashed_messages(
-                    with_categories=true
-                ) %}
+                {% for category, message in messages %}
 
-                    {% if messages %}
+                    {% if category == "company_deactivated" %}
 
-                        {% for category, message in messages %}
+                        {% set ns.deactivated = true %}
 
-                            <div
-                                class="alert alert-{{ category }} mb-3"
-                            >
-                                {{ message }}
+
+                        <!-- COMPANY DEACTIVATED -->
+
+                        <div class="deactivated-panel">
+
+                            <div class="deactivated-icon">
+
+                                <i class="bi bi-lock-fill"></i>
+
                             </div>
 
-                        {% endfor %}
 
-                    {% endif %}
-
-                {% endwith %}
-
-
-                <form
-                    method="POST"
-                    novalidate
-                >
-
-                    <input
-                        type="hidden"
-                        name="csrf_token"
-                        value="{{ csrf_token() }}"
-                    >
+                            <h3>
+                                Company Account Deactivated
+                            </h3>
 
 
-                    <div class="mb-3">
+                            <p>
+                                Your company account is currently
+                                inactive and you cannot access
+                                BizTrace IMS.
+                            </p>
 
-                        <label
-                            class="form-label"
-                            for="{{ form.email.id }}"
-                        >
-                            Email address
-                        </label>
 
-                        <div class="input-group-modern">
+                            <div class="payment-box">
 
-                            <i class="bi bi-envelope"></i>
+                                <div class="payment-box-title">
 
-                            {{ form.email(
-                                class="modern-input",
-                                placeholder="you@example.com",
-                                autocomplete="email"
-                            ) }}
+                                    Subscription & Payment
 
-                        </div>
+                                </div>
 
-                        {% for error in form.email.errors %}
 
-                            <div class="text-danger small mt-1">
-                                {{ error }}
+                                <div class="payment-row">
+
+                                    <span>
+                                        Monthly
+                                    </span>
+
+                                    <strong>
+                                        ₦15,000 / month
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="payment-row">
+
+                                    <span>
+                                        Yearly
+                                    </span>
+
+                                    <strong>
+                                        ₦144,000 / year
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="payment-row">
+
+                                    <span>
+                                        Yearly savings
+                                    </span>
+
+                                    <strong class="text-success">
+                                        ₦36,000 / 20%
+                                    </strong>
+
+                                </div>
+
+
+                                <hr
+                                    style="
+                                        border-color: var(--border);
+                                        opacity: .7;
+                                    "
+                                >
+
+
+                                <div class="payment-row">
+
+                                    <span>
+                                        Bank
+                                    </span>
+
+                                    <strong>
+                                        First Bank
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="payment-row">
+
+                                    <span>
+                                        Account Number
+                                    </span>
+
+                                    <strong>
+                                        3099295142
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="payment-row">
+
+                                    <span>
+                                        Account Name
+                                    </span>
+
+                                    <strong>
+                                        Ikukaiwe Emmanuel
+                                    </strong>
+
+                                </div>
+
                             </div>
 
-                        {% endfor %}
 
-                    </div>
+                            <div class="deactivated-note">
 
+                                <i class="bi bi-info-circle-fill"></i>
 
-                    <div class="mb-3">
+                                <span>
 
-                        <label
-                            class="form-label"
-                            for="{{ form.password.id }}"
-                        >
-                            Password
-                        </label>
+                                    If you have already made payment,
+                                    please send your payment receipt
+                                    or proof of payment to the
+                                    administrator for verification
+                                    and account reactivation.
 
-                        <div class="input-group-modern">
+                                </span>
 
-                            <i class="bi bi-lock"></i>
-
-                            {{ form.password(
-                                class="modern-input",
-                                placeholder="Enter your password",
-                                autocomplete="current-password",
-                                id="loginPassword"
-                            ) }}
-
-                            <button
-                                type="button"
-                                class="password-toggle"
-                                onclick="togglePassword(
-                                    'loginPassword',
-                                    this
-                                )"
-                                aria-label="Show password"
-                            >
-                                <i class="bi bi-eye"></i>
-                            </button>
-
-                        </div>
-
-                        {% for error in form.password.errors %}
-
-                            <div class="text-danger small mt-1">
-                                {{ error }}
                             </div>
-
-                        {% endfor %}
-
-                    </div>
-
-
-                    <div class="d-flex justify-content-between
-                                align-items-center mb-4">
-
-                        <div class="form-check">
-
-                            {{ form.remember(
-                                class="form-check-input"
-                            ) }}
-
-                            <label
-                                class="form-check-label"
-                                for="{{ form.remember.id }}"
-                            >
-                                Remember me
-                            </label>
 
                         </div>
 
 
                         <a
-                            href="{{ url_for(
-                                'auth.forgot_password'
-                            ) }}"
-                            class="forgot-link"
+                            href="{{ url_for('auth.login') }}"
+                            class="
+                                btn-back-login
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                                text-decoration-none
+                            "
                         >
-                            Forgot password?
+
+                            <i class="bi bi-arrow-left me-2"></i>
+
+                            Back to Sign In
+
+                        </a>
+
+
+                    {% else %}
+
+
+                        <!-- NORMAL FLASH MESSAGE -->
+
+                        <div
+                            class="
+                                alert
+                                alert-{{ category }}
+                                mb-3
+                            "
+                            role="alert"
+                        >
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+
+                <!-- =================================================
+                     NORMAL LOGIN FORM
+                ================================================== -->
+
+                {% if not ns.deactivated %}
+
+
+                    <h2>
+                        Welcome back
+                    </h2>
+
+
+                    <p class="auth-subtitle">
+                        Sign in to continue to your workspace.
+                    </p>
+
+
+                    <form
+                        method="POST"
+                        novalidate
+                        id="loginForm"
+                    >
+
+                        <!-- CSRF -->
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+
+                        <!-- =================================================
+                             EMAIL
+                        ================================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                class="form-label"
+                                for="{{ form.email.id }}"
+                            >
+                                Email address
+                            </label>
+
+
+                            <div class="input-group-modern">
+
+                                <i class="bi bi-envelope"></i>
+
+                                {{ form.email(
+                                    class="modern-input",
+                                    placeholder="you@example.com",
+                                    autocomplete="email"
+                                ) }}
+
+                            </div>
+
+
+                            {% for error in form.email.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             PASSWORD
+                        ================================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                class="form-label"
+                                for="{{ form.password.id }}"
+                            >
+                                Password
+                            </label>
+
+
+                            <div class="input-group-modern">
+
+                                <i class="bi bi-lock"></i>
+
+
+                                {{ form.password(
+                                    class="modern-input",
+                                    placeholder="Enter your password",
+                                    autocomplete="current-password",
+                                    id="loginPassword"
+                                ) }}
+
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    onclick="togglePassword(
+                                        'loginPassword',
+                                        this
+                                    )"
+                                    aria-label="Show password"
+                                >
+
+                                    <i class="bi bi-eye"></i>
+
+                                </button>
+
+                            </div>
+
+
+                            {% for error in form.password.errors %}
+
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             REMEMBER / FORGOT
+                        ================================================== -->
+
+                        <div
+                            class="
+                                d-flex
+                                justify-content-between
+                                align-items-center
+                                mb-3
+                            "
+                        >
+
+                            <div class="form-check">
+
+                                {{ form.remember(
+                                    class="form-check-input"
+                                ) }}
+
+
+                                <label
+                                    class="form-check-label"
+                                    for="{{ form.remember.id }}"
+                                >
+                                    Remember me
+                                </label>
+
+                            </div>
+
+
+                            <a
+                                href="{{ url_for('auth.forgot_password') }}"
+                                class="forgot-link"
+                            >
+                                Forgot password?
+                            </a>
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             TERMS & PRIVACY
+                        ================================================== -->
+
+                        <div class="terms-container">
+
+                            <div
+                                class="terms-check"
+                                id="termsContainer"
+                            >
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    id="termsAgreement"
+                                    name="terms_agreement"
+                                    value="1"
+                                    required
+                                >
+
+
+                                <label
+                                    for="termsAgreement"
+                                    class="terms-text"
+                                >
+
+                                    I agree to the
+
+                                    <a
+                                        href="{{ url_for('auth.terms') }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        Terms & Conditions
+                                    </a>
+
+                                    and acknowledge that I have read
+                                    and understood the
+
+                                    <a
+                                        href="{{ url_for('auth.privacy') }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        Privacy Policy
+                                    </a>.
+
+                                </label>
+
+                            </div>
+
+
+                            <div
+                                class="terms-error"
+                                id="termsError"
+                            >
+
+                                <i
+                                    class="bi bi-exclamation-circle me-1"
+                                ></i>
+
+                                You must agree to the Terms & Conditions
+                                and Privacy Policy before signing in.
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             SIGN IN BUTTON
+                        ================================================== -->
+
+                        <button
+                            type="submit"
+                            class="btn-primary-modern"
+                            id="signInButton"
+                            disabled
+                        >
+
+                            <i
+                                class="
+                                    bi
+                                    bi-box-arrow-in-right
+                                    me-2
+                                "
+                            ></i>
+
+                            Sign in
+
+                        </button>
+
+                    </form>
+
+
+
+                    <!-- =================================================
+                         REGISTER
+                    ================================================== -->
+
+                    <div class="auth-footer">
+
+                        Don't have an account?
+
+                        <a
+                            href="{{ url_for('auth.register') }}"
+                        >
+                            Create one
                         </a>
 
                     </div>
 
 
-                    <button
-                        type="submit"
-                        class="btn-primary-modern"
-                    >
-
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
-
-                        Sign in
-
-                    </button>
-
-                </form>
-
-
-                <div class="auth-footer">
-
-                    Don't have an account?
-
-                    <a
-                        href="{{ url_for('auth.register') }}"
-                    >
-                        Create one
-                    </a>
-
-                </div>
+                {% endif %}
 
             </div>
 
@@ -975,27 +2416,1440 @@
 </div>
 
 
+
+<!-- =============================================================
+     BIZTRACE WELCOME GUIDE MODAL
+============================================================= -->
+
+<div
+    class="modal fade guide-modal"
+    id="welcomeGuideModal"
+    tabindex="-1"
+    aria-labelledby="welcomeGuideModalLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+
+            <!-- GUIDE HEADER -->
+
+            <div class="guide-header">
+
+                <div
+                    class="
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        gap-3
+                    "
+                >
+
+                    <div class="guide-brand">
+
+                        <div class="guide-brand-icon">
+
+                            <i class="bi bi-bar-chart-fill"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h2 id="welcomeGuideModalLabel">
+                                BizTrace IMS
+                            </h2>
+
+                            <p>
+                                Welcome Guide & Getting Started
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-2 no-print">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-primary"
+                            onclick="printGuide()"
+                        >
+
+                            <i class="bi bi-printer me-1"></i>
+
+                            Print
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- GUIDE BODY -->
+
+            <div class="guide-body">
+
+
+                <!-- HERO -->
+
+                <div class="guide-hero">
+
+                    <h1>
+                        Welcome to BizTrace IMS
+                    </h1>
+
+
+                    <p>
+
+                        Dear Company Admin,
+
+                        Welcome to <strong>BizTrace IMS</strong>,
+                        your complete business management system
+                        for managing <strong>sales, purchases,
+                        inventory, expenses, customers, suppliers,
+                        payments, bookings, reports, and other
+                        business operations</strong> from one place.
+
+                        Thank you for registering your company with us.
+                        Below is a quick guide to help you get started
+                        and get the best experience from BizTrace IMS.
+
+                    </p>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     1. COMPANY SETUP
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            01
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Company Setup & Configuration
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+
+                        <li>
+                            Company name and business information
+                        </li>
+
+                        <li>
+                            Company logo
+                        </li>
+
+                        <li>
+                            Currency and currency symbol
+                        </li>
+
+                        <li>
+                            Timezone
+                        </li>
+
+                        <li>
+                            Date and time format
+                        </li>
+
+                        <li>
+                            Invoice numbering
+                        </li>
+
+                        <li>
+                            Purchase numbering
+                        </li>
+
+                        <li>
+                            Booking numbering
+                        </li>
+
+                        <li>
+                            Stock settings
+                        </li>
+
+                        <li>
+                            Low-stock notifications
+                        </li>
+
+                        <li>
+                            Other business preferences
+                        </li>
+
+                    </ul>
+
+
+                    <div class="guide-warning">
+
+                        <strong>Recommended device:</strong>
+
+                        Use a PC/Desktop/Tablet for the best experience
+                        when configuring settings.
+
+                        Mobile users should keep their phone in
+                        <strong>Landscape mode</strong> for settings
+                        and areas containing tables, forms, multiple
+                        fields and detailed information.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     2. USERS
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            02
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Users & Staff
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        Company Admin can create staff accounts and
+                        assign roles and permissions for different
+                        parts of the system.
+
+                    </p>
+
+
+                    <ul>
+
+                        <li>Dashboard</li>
+                        <li>Products</li>
+                        <li>Sales</li>
+                        <li>Purchases</li>
+                        <li>Customers</li>
+                        <li>Suppliers</li>
+                        <li>Expenses</li>
+                        <li>Bookings</li>
+                        <li>Reports</li>
+                        <li>Company Settings</li>
+
+                    </ul>
+
+
+                    <div class="guide-highlight">
+
+                        <strong>Best practice:</strong>
+
+                        Only give staff members the permissions
+                        required for their responsibilities.
+
+                        Each staff member should have their own
+                        individual account.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     3. PRODUCTS
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            03
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Products & Inventory
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Add and maintain accurate product information.
+                    </p>
+
+
+                    <ul>
+
+                        <li>Product name</li>
+                        <li>SKU</li>
+                        <li>Category</li>
+                        <li>Unit</li>
+                        <li>Purchase price</li>
+                        <li>Selling price</li>
+                        <li>Opening quantity</li>
+                        <li>Minimum stock level</li>
+
+                    </ul>
+
+
+                    <p class="mt-3 mb-0">
+
+                        Monitor current quantity, stock value,
+                        selling value, low-stock items, out-of-stock
+                        products and potential profit.
+
+                    </p>
+
+
+                    <div class="guide-warning">
+
+                        Enter opening quantities correctly before
+                        recording regular transactions.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     4. PURCHASES
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            04
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Purchases
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Use Purchases to record inventory acquired
+                        from suppliers.
+                    </p>
+
+
+                    <ul>
+
+                        <li>Supplier information</li>
+                        <li>Products</li>
+                        <li>Quantities</li>
+                        <li>Purchase prices</li>
+                        <li>Payment information</li>
+                        <li>Outstanding balances</li>
+
+                    </ul>
+
+
+                    <p class="mb-0 mt-3">
+
+                        Keeping purchase records updated helps maintain
+                        accurate inventory and supplier information.
+
+                    </p>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     5. SALES
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            05
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Sales
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Record customer sales accurately and promptly.
+                    </p>
+
+
+                    <ul>
+
+                        <li>Customer sales</li>
+                        <li>Products and quantities</li>
+                        <li>Discounts</li>
+                        <li>Payments</li>
+                        <li>Paid invoices</li>
+                        <li>Partially paid invoices</li>
+                        <li>Unpaid invoices</li>
+                        <li>Customer balances</li>
+
+                    </ul>
+
+
+                    <div class="guide-highlight">
+
+                        Record sales promptly and accurately to keep
+                        inventory, payment and financial records
+                        current.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     6. EXPENSES
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            06
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Expenses
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Record business expenses such as:
+                    </p>
+
+
+                    <ul>
+
+                        <li>Transportation</li>
+                        <li>Rent</li>
+                        <li>Utilities</li>
+                        <li>Salaries</li>
+                        <li>Maintenance</li>
+                        <li>Office expenses</li>
+                        <li>Operational expenses</li>
+                        <li>Other business expenses</li>
+
+                    </ul>
+
+
+                    <div class="guide-warning">
+
+                        Select the correct payment method, especially
+                        when recording cash expenses.
+
+                        Cash expenses are important for cash management
+                        and deposit calculations.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     7. CASH & PAYMENTS
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            07
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Cash & Payments
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        BizTrace IMS supports payment methods such as:
+                    </p>
+
+
+                    <ul>
+
+                        <li>Cash</li>
+                        <li>Bank Transfer</li>
+                        <li>Card</li>
+                        <li>Other</li>
+
+                    </ul>
+
+
+                    <div class="guide-highlight">
+
+                        <strong>
+                            Cash Available Calculation
+                        </strong>
+
+                        <br><br>
+
+                        Cash Received − Cash Expenses −
+                        Cash Deposited = Cash Available
+
+                    </div>
+
+
+                    <p class="mt-3 mb-0">
+
+                        Record cash sales, expenses and deposits
+                        accurately so that cash information remains
+                        reliable.
+
+                    </p>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     8. REPORTS
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            08
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Reports
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        BizTrace IMS provides business information
+                        through reports including:
+                    </p>
+
+
+                    <ul>
+
+                        <li>Sales reports</li>
+                        <li>Purchase reports</li>
+                        <li>Expense reports</li>
+                        <li>Inventory reports</li>
+                        <li>Profitability reports</li>
+                        <li>Receivables</li>
+                        <li>Payables</li>
+                        <li>Payment information</li>
+                        <li>Stock valuation</li>
+                        <li>Cash information</li>
+                        <li>Other business summaries</li>
+
+                    </ul>
+
+
+                    <p class="mt-3 mb-0">
+
+                        Use the available date filters to review
+                        information for the required period.
+
+                    </p>
+
+
+                    <div class="guide-warning">
+
+                        <strong>
+                            Important Report Printing Guidelines
+                        </strong>
+
+                        <ul class="mt-3">
+
+                            <li>
+                                Strongly advisable to use a
+                                PC/Desktop.
+                            </li>
+
+                            <li>
+                                Switch BizTrace IMS to
+                                <strong>Light Mode</strong>.
+                            </li>
+
+                            <li>
+                                Confirm that the report displays
+                                correctly.
+                            </li>
+
+                            <li>
+                                Click Print.
+                            </li>
+
+                            <li>
+                                Review the print preview.
+                            </li>
+
+                            <li>
+                                If a chart or image is missing,
+                                cancel the print preview and select
+                                Print again.
+                            </li>
+
+                            <li>
+                                You may need to repeat the process
+                                until the chart or image appears.
+                            </li>
+
+                            <li>
+                                Always check the final print preview
+                                before printing.
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     9. MOBILE
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            09
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Mobile & Device Usage
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+
+                        <li>
+                            <strong>PC/Desktop:</strong>
+                            Recommended for full system usage,
+                            configuration and printing.
+                        </li>
+
+                        <li>
+                            <strong>Tablet:</strong>
+                            Suitable for most operations and
+                            configuration.
+                        </li>
+
+                        <li>
+                            <strong>Mobile:</strong>
+                            Suitable for quick access and routine
+                            operations.
+                        </li>
+
+                        <li>
+                            Mobile devices can also be used for
+                            sales invoice printing.
+                        </li>
+
+                        <li>
+                            Use <strong>Landscape mode</strong>
+                            for settings, tables, reports, invoices,
+                            products and multi-field forms.
+                        </li>
+
+                        <li>
+                            PC/Desktop is recommended for report
+                            printing.
+                        </li>
+
+                    </ul>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     10. SECURITY
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            10
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Security
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+
+                        <li>
+                            Keep passwords confidential.
+                        </li>
+
+                        <li>
+                            Never share the administrator login.
+                        </li>
+
+                        <li>
+                            Use individual staff accounts.
+                        </li>
+
+                        <li>
+                            Assign permissions carefully.
+                        </li>
+
+                        <li>
+                            Change passwords when necessary.
+                        </li>
+
+                        <li>
+                            Log out when using shared computers.
+                        </li>
+
+                        <li>
+                            Avoid saving passwords on public or
+                            shared devices.
+                        </li>
+
+                    </ul>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     11. SUBSCRIPTION
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            11
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Subscription
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="pricing-grid">
+
+                        <div class="pricing-card">
+
+                            <div class="pricing-card-title">
+                                Monthly
+                            </div>
+
+                            <div class="pricing-card-price">
+                                ₦15,000
+                            </div>
+
+                            <div class="pricing-card-sub">
+                                per month
+                            </div>
+
+                        </div>
+
+
+                        <div class="pricing-card">
+
+                            <div class="pricing-card-title">
+                                Yearly
+                            </div>
+
+                            <div class="pricing-card-price">
+                                ₦144,000
+                            </div>
+
+                            <div class="pricing-card-sub">
+                                per year
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="guide-success">
+
+                        <strong>
+                            Annual Saving: ₦36,000 (20%)
+                        </strong>
+
+                        <br><br>
+
+                        ₦15,000 × 12 = ₦180,000
+
+                        <br>
+
+                        Yearly subscription = ₦144,000
+
+                        <br>
+
+                        Saving = ₦36,000 (20%)
+
+                    </div>
+
+
+                    <div class="guide-warning">
+
+                        <strong>
+                            New Registration Promotional Period
+                        </strong>
+
+                        <br><br>
+
+                        New companies receive a
+                        <strong>1-week promotional period</strong>
+                        to explore and use BizTrace IMS.
+
+                        After the promotional period,
+                        an active subscription is required.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     12. PAYMENT
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            12
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Payment Details
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="bank-details">
+
+                        <div class="bank-detail">
+
+                            <span>
+                                Bank
+                            </span>
+
+                            <strong>
+                                First Bank
+                            </strong>
+
+                        </div>
+
+
+                        <div class="bank-detail">
+
+                            <span>
+                                Account Number
+                            </span>
+
+                            <strong>
+                                3099295142
+                            </strong>
+
+                        </div>
+
+
+                        <div class="bank-detail">
+
+                            <span>
+                                Account Name
+                            </span>
+
+                            <strong>
+                                Ikukaiwe Emmanuel
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="guide-highlight">
+
+                        After payment, send the receipt or proof of
+                        payment to the administrator for confirmation
+                        and activation.
+
+                        <br><br>
+
+                        <strong>
+                            Always include your company name when
+                            sending payment proof.
+                        </strong>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     13. RENEWAL
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            13
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Subscription Renewal
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Renew your subscription before expiry to
+                        avoid interruption.
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            Monthly: ₦15,000
+                        </li>
+
+                        <li>
+                            Yearly: ₦144,000 — 20% saving
+                        </li>
+
+                        <li>
+                            Send payment proof for confirmation.
+                        </li>
+
+                        <li>
+                            If deactivated because of an expired
+                            subscription, contact the administrator
+                            and provide your payment details or proof.
+                        </li>
+
+                    </ul>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     14. DEACTIVATION
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            14
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Account & Company Deactivation
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        Access may be blocked in situations such as:
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            Subscription expiry
+                        </li>
+
+                        <li>
+                            Payment requiring confirmation
+                        </li>
+
+                        <li>
+                            Administrator attention being required
+                        </li>
+
+                        <li>
+                            Manual deactivation by the System
+                            Administrator
+                        </li>
+
+                    </ul>
+
+
+                    <div class="guide-highlight">
+
+                        If payment has already been made,
+                        send the payment proof to the administrator
+                        for verification.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     15. PRINTING
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            15
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                General Printing & Display Tips
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+
+                        <li>
+                            Use a PC/Desktop whenever possible.
+                        </li>
+
+                        <li>
+                            Switch to Light Mode before printing.
+                        </li>
+
+                        <li>
+                            Check the report before printing.
+                        </li>
+
+                        <li>
+                            Check the print preview.
+                        </li>
+
+                        <li>
+                            Confirm all pages and information are
+                            visible.
+                        </li>
+
+                        <li>
+                            Confirm charts and images are displayed.
+                        </li>
+
+                        <li>
+                            Repeat the print process if an image
+                            or chart is missing.
+                        </li>
+
+                        <li>
+                            Confirm the correct printer and paper size.
+                        </li>
+
+                        <li>
+                            Review the final document before printing.
+                        </li>
+
+                    </ul>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     16. HELP
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            16
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Need Help?
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+                        When contacting the administrator for support,
+                        provide the following information:
+                    </p>
+
+
+                    <ul>
+
+                        <li>
+                            Company name
+                        </li>
+
+                        <li>
+                            Registered email
+                        </li>
+
+                        <li>
+                            Short description of the issue
+                        </li>
+
+                        <li>
+                            Screenshot or screen recording when
+                            applicable
+                        </li>
+
+                    </ul>
+
+
+                    <p class="mt-3 mb-0">
+                        Support can include:
+                    </p>
+
+
+                    <ul class="mt-2">
+
+                        <li>
+                            Account access
+                        </li>
+
+                        <li>
+                            User configuration
+                        </li>
+
+                        <li>
+                            Subscription and activation
+                        </li>
+
+                        <li>
+                            System configuration
+                        </li>
+
+                        <li>
+                            General system usage
+                        </li>
+
+                    </ul>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     17. BEST PRACTICES
+                ================================================== -->
+
+                <section class="guide-section">
+
+                    <div class="guide-section-header">
+
+                        <div class="guide-number">
+                            17
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Best Practices
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+
+                        <li>
+                            Complete company settings before regular
+                            transactions.
+                        </li>
+
+                        <li>
+                            Add products and opening stock correctly.
+                        </li>
+
+                        <li>
+                            Give staff individual accounts.
+                        </li>
+
+                        <li>
+                            Assign only required permissions.
+                        </li>
+
+                        <li>
+                            Record purchases promptly.
+                        </li>
+
+                        <li>
+                            Record sales promptly.
+                        </li>
+
+                        <li>
+                            Record expenses accurately.
+                        </li>
+
+                        <li>
+                            Select the correct payment method.
+                        </li>
+
+                        <li>
+                            Record cash expenses and deposits
+                            accurately.
+                        </li>
+
+                        <li>
+                            Review reports regularly.
+                        </li>
+
+                        <li>
+                            Keep login credentials secure.
+                        </li>
+
+                        <li>
+                            Use Light Mode when printing.
+                        </li>
+
+                        <li>
+                            Use PC/Desktop for printing and major
+                            configuration.
+                        </li>
+
+                        <li>
+                            Use mobile/tablet devices for routine
+                            operations and sales invoice printing.
+                        </li>
+
+                        <li>
+                            Use Landscape mode for detailed pages.
+                        </li>
+
+                        <li>
+                            Keep your subscription active.
+                        </li>
+
+                    </ul>
+
+
+                    <div class="guide-success">
+
+                        Following these practices will help keep
+                        your BizTrace IMS records accurate, organized
+                        and easier to manage.
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     GUIDE FOOTER
+                ================================================== -->
+
+                <div class="guide-footer">
+
+                    <strong>
+                        BizTrace IMS
+                    </strong>
+
+                    <br>
+
+                    Business management made simple.
+
+                    <br><br>
+
+                    ©
+                    {{ now().year if now is defined else 2026 }}
+                    BizTrace IMS
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- Bootstrap JS -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+
+
 <script>
 
-function togglePassword(
-    inputId,
-    button
-) {
+/* =========================================================
+   PASSWORD TOGGLE
+========================================================= */
+
+function togglePassword(inputId, button) {
 
     const input =
         document.getElementById(inputId);
 
+    if (!input) {
+        return;
+    }
+
+
     const icon =
         button.querySelector("i");
 
-    if (
-        input.type === "password"
-    ) {
+
+    if (input.type === "password") {
 
         input.type = "text";
 
         icon.className =
             "bi bi-eye-slash";
+
+        button.setAttribute(
+            "aria-label",
+            "Hide password"
+        );
 
     } else {
 
@@ -1004,34 +3858,136 @@ function togglePassword(
         icon.className =
             "bi bi-eye";
 
+        button.setAttribute(
+            "aria-label",
+            "Show password"
+        );
     }
-
 }
 
 
+
+/* =========================================================
+   TERMS & CONDITIONS
+========================================================= */
+
 (function () {
 
-    const root = document.documentElement;
+    const form =
+        document.getElementById("loginForm");
 
-    const mediaQuery = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+    const checkbox =
+        document.getElementById("termsAgreement");
+
+    const button =
+        document.getElementById("signInButton");
+
+    const container =
+        document.getElementById("termsContainer");
+
+    const error =
+        document.getElementById("termsError");
+
+
+    if (
+        !form ||
+        !checkbox ||
+        !button ||
+        !container ||
+        !error
+    ) {
+        return;
+    }
+
+
+    function updateButton() {
+
+        if (checkbox.checked) {
+
+            button.disabled = false;
+
+            container.classList.remove(
+                "is-invalid"
+            );
+
+            error.classList.remove(
+                "show"
+            );
+
+        } else {
+
+            button.disabled = true;
+        }
+    }
+
+
+    checkbox.addEventListener(
+        "change",
+        updateButton
     );
+
+
+    form.addEventListener(
+        "submit",
+        function (event) {
+
+            if (!checkbox.checked) {
+
+                event.preventDefault();
+
+                container.classList.add(
+                    "is-invalid"
+                );
+
+                error.classList.add(
+                    "show"
+                );
+
+                checkbox.focus();
+            }
+
+        }
+    );
+
+
+    updateButton();
+
+})();
+
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+(function () {
+
+    const root =
+        document.documentElement;
+
+
+    const mediaQuery =
+        window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        );
 
 
     function applyTheme() {
 
         const savedTheme =
-            localStorage.getItem("theme") || "system";
+            localStorage.getItem("theme")
+            || "system";
 
 
-        /* Remove previous theme states */
-
-        root.removeAttribute("data-theme");
-
-        root.classList.remove("system-dark");
+        root.removeAttribute(
+            "data-theme"
+        );
 
 
-        /* DARK */
+        root.classList.remove(
+            "system-dark"
+        );
+
 
         if (savedTheme === "dark") {
 
@@ -1044,8 +4000,6 @@ function togglePassword(
         }
 
 
-        /* LIGHT */
-
         if (savedTheme === "light") {
 
             root.setAttribute(
@@ -1057,58 +4011,125 @@ function togglePassword(
         }
 
 
-        /* SYSTEM */
+        if (
+            savedTheme === "system" &&
+            mediaQuery.matches
+        ) {
 
-        if (savedTheme === "system") {
-
-            if (mediaQuery.matches) {
-
-                root.classList.add(
-                    "system-dark"
-                );
-
-            }
-
+            root.classList.add(
+                "system-dark"
+            );
         }
 
     }
 
 
-    /* Apply theme immediately */
-
     applyTheme();
 
 
-    /* Watch for OS theme changes */
+    if (mediaQuery.addEventListener) {
 
-    mediaQuery.addEventListener(
-        "change",
-        function () {
+        mediaQuery.addEventListener(
+            "change",
+            function () {
 
-            const savedTheme =
-                localStorage.getItem("theme") || "system";
+                const savedTheme =
+                    localStorage.getItem("theme")
+                    || "system";
 
-            if (savedTheme === "system") {
 
-                applyTheme();
+                if (
+                    savedTheme === "system"
+                ) {
+
+                    applyTheme();
+                }
 
             }
+        );
 
-        }
-    );
+    }
 
-
-    /* Allow other pages/components to trigger a theme update */
 
     window.addEventListener(
         "themechange",
         applyTheme
     );
 
-
 })();
+
+
+
+/* =========================================================
+   PRINT WELCOME GUIDE
+========================================================= */
+
+function printGuide() {
+
+    const modalElement =
+        document.getElementById(
+            "welcomeGuideModal"
+        );
+
+
+    if (!modalElement) {
+        return;
+    }
+
+
+    const modal =
+        bootstrap.Modal.getInstance(
+            modalElement
+        );
+
+
+    if (modal) {
+        modal.hide();
+    }
+
+
+    setTimeout(
+        function () {
+
+            modalElement.classList.add(
+                "show"
+            );
+
+            modalElement.style.display =
+                "block";
+
+            document.body.classList.add(
+                "modal-open"
+            );
+
+            window.print();
+
+
+            setTimeout(
+                function () {
+
+                    modalElement.classList.remove(
+                        "show"
+                    );
+
+                    modalElement.style.display =
+                        "none";
+
+                    document.body.classList.remove(
+                        "modal-open"
+                    );
+
+                },
+                500
+            );
+
+        },
+        300
+    );
+
+}
+
 </script>
 
 </body>
-
 </html>
