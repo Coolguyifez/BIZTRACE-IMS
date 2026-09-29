@@ -201,7 +201,11 @@
 
             <div class="col-xl-4">
 
+                {% if current_user.has_permission("view_payments") %}
+
+
                 <div class="card border-0 shadow-sm mb-4">
+                    
 
                     <div class="card-header bg-transparent border-0 p-4">
 
@@ -293,6 +297,8 @@
                     </div>
 
                 </div>
+
+                {% endif %}
 
 
                 <!-- =================================================
