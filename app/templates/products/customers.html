@@ -248,7 +248,9 @@
 
                         </td>
 
-                        <td class="text-muted">{{customer.notes}}</td>
+                        <td class="text-muted text-wrap">
+                            {{ customer.notes | replace('\n', '<br>') | safe }}
+                        </td>
 
 
                         <!-- STATUS -->
