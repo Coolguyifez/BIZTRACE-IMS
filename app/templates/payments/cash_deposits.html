@@ -376,7 +376,7 @@ Cash Deposits
     <!-- =====================================================
          ADD DEPOSIT
     ====================================================== -->
-
+    {% if current_user.has_permission("manage_cash_deposits") %}
     <div class="card border-0 shadow-sm mb-4">
 
         <div class="card-header bg-transparent border-0 pt-4 px-4">
@@ -610,6 +610,7 @@ Cash Deposits
         </div>
 
     </div>
+    {% endif %}
 
 
     <!-- =====================================================
