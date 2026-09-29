@@ -797,11 +797,11 @@ Cash Deposits
                                         {% if deposit.notes %}
 
                                             <span
-                                                class="text-dark"
+                                                class="text-dark text-wrap"
                                                 title="{{ deposit.notes }}"
                                             >
 
-                                                {{ deposit.notes[:1000] }}
+                                                {{ deposit.notes[:1000] | replace ('\n', '<br>') | safe}}
 
                                                 {% if deposit.notes|length > 1000 %}
                                                     ...
