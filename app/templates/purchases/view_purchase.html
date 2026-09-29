@@ -904,8 +904,8 @@
 
                 </h6>
 
-                <p class="text-muted mb-0">
-                    {{ purchase.notes }}
+                <p class="text-muted mb-0 text-wrap">
+                    {{ purchase.notes | replace ('\n', '<br>') | safe }}
                 </p>
 
             </div>
