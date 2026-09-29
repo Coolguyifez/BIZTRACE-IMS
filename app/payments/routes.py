@@ -265,6 +265,14 @@ def payments():
     company_id = current_user.company_id
 
     # -----------------------------------------------------
+    # PERMISSION CHECK
+    # -----------------------------------------------------
+
+    can_manage_payments = current_user.has_permission(
+        "manage_payments"
+    )
+
+    # -----------------------------------------------------
     # PAYMENT QUERY
     # -----------------------------------------------------
 
@@ -284,27 +292,15 @@ def payments():
         )
     )
 
-    search = request.args.get(
-        "q",
-        ""
-    ).strip()
+    search = request.args.get("q", "").strip()
 
     if search:
-
         query = query.filter(
             or_(
-                Payment.reference.ilike(
-                    f"%{search}%"
-                ),
-                Payment.method.ilike(
-                    f"%{search}%"
-                ),
-                Sale.invoice_number.ilike(
-                    f"%{search}%"
-                ),
-                Customer.name.ilike(
-                    f"%{search}%"
-                )
+                Payment.reference.ilike(f"%{search}%"),
+                Payment.method.ilike(f"%{search}%"),
+                Sale.invoice_number.ilike(f"%{search}%"),
+                Customer.name.ilike(f"%{search}%")
             )
         )
 
@@ -312,12 +308,14 @@ def payments():
     # PERIOD
     # -----------------------------------------------------
 
-    period = request.args.get(
-        "period",
-        "all"
-    )
-
     current_company = now_company()
+
+    # Users without manage_payments can ONLY view today's
+    # payments. Ignore any period passed through the URL.
+    if can_manage_payments:
+        period = request.args.get("period", "all")
+    else:
+        period = "daily"
 
     month = request.args.get(
         "month",
@@ -371,9 +369,7 @@ def payments():
             year = current_company.year
 
         period_start, period_end = (
-            company_year_boundaries(
-                year
-            )
+            company_year_boundaries(year)
         )
 
     # -----------------------------------------------------
@@ -381,7 +377,6 @@ def payments():
     # -----------------------------------------------------
 
     if period_start and period_end:
-
         query = query.filter(
             Payment.payment_date >= period_start,
             Payment.payment_date < period_end
@@ -448,36 +443,43 @@ def payments():
         Decimal("0")
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # TODAY'S PAYMENTS
-    # =====================================================
+    # -----------------------------------------------------
 
     today_start, today_end = (
         company_day_boundaries()
     )
 
+    # Query today's payments separately so this statistic
+    # remains accurate even when a manager selects another
+    # reporting period.
+    today_payments = (
+        Payment.query
+        .join(
+            Sale,
+            Payment.sale_id == Sale.id
+        )
+        .filter(
+            Payment.company_id == company_id,
+            Payment.sale_id.isnot(None),
+            Payment.payment_date >= today_start,
+            Payment.payment_date < today_end
+        )
+        .all()
+    )
+
     today_total = sum(
         (
             payment.amount or 0
-            for payment in payments
-            if (
-                payment.payment_date
-                and
-                ensure_utc(
-                    payment.payment_date
-                ) >= today_start
-                and
-                ensure_utc(
-                    payment.payment_date
-                ) < today_end
-            )
+            for payment in today_payments
         ),
         Decimal("0")
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # EXPENSES
-    # =====================================================
+    # -----------------------------------------------------
 
     expense_query = (
         Expense.query
@@ -487,16 +489,12 @@ def payments():
     )
 
     if period_start and period_end:
-
         expense_query = expense_query.filter(
             Expense.expense_date >= period_start,
             Expense.expense_date < period_end
         )
 
-    expenses = (
-        expense_query
-        .all()
-    )
+    expenses = expense_query.all()
 
     total_expenses = sum(
         (
@@ -516,8 +514,7 @@ def payments():
             for expense in expenses
             if (
                 expense.payment_method
-                and
-                expense.payment_method.strip().lower()
+                and expense.payment_method.strip().lower()
                 == "cash"
             )
         ),
@@ -528,17 +525,13 @@ def payments():
     # TODAY'S EXPENSES
     # -----------------------------------------------------
 
-    today_expense_query = (
+    today_expenses_list = (
         Expense.query
         .filter(
             Expense.company_id == company_id,
             Expense.expense_date >= today_start,
             Expense.expense_date < today_end
         )
-    )
-
-    today_expenses_list = (
-        today_expense_query
         .all()
     )
 
@@ -560,8 +553,7 @@ def payments():
             for expense in today_expenses_list
             if (
                 expense.payment_method
-                and
-                expense.payment_method.strip().lower()
+                and expense.payment_method.strip().lower()
                 == "cash"
             )
         ),
@@ -573,8 +565,7 @@ def payments():
     # -----------------------------------------------------
 
     net_payments = (
-        total_amount -
-        total_expenses
+        total_amount - total_expenses
     )
 
     # -----------------------------------------------------
@@ -582,8 +573,7 @@ def payments():
     # -----------------------------------------------------
 
     cash_net = (
-        cash_total -
-        cash_expenses
+        cash_total - cash_expenses
     )
 
     # -----------------------------------------------------
@@ -619,14 +609,15 @@ def payments():
         today_cash_expenses=today_cash_expenses,
 
         cash_net=cash_net,
-
         net_payments=net_payments,
 
         search=search,
         period=period,
         month=month,
         year=year,
-        years=years
+        years=years,
+
+        can_manage_payments=can_manage_payments
     )
 
 
