@@ -675,14 +675,14 @@
 
             {% if sale.notes %}
 
-            <div class="mt-4 pt-4 border-top">
+            <div class="mt-4 pt-4 border-top text-wrap">
 
                 <div class="small text-muted mb-1">
                     NOTES
                 </div>
 
                 <div>
-                    {{ sale.notes }}
+                    {{ sale.notes | replace ('\n', '<br>') | safe}}
                 </div>
 
             </div>
