@@ -1398,18 +1398,13 @@ def edit_purchase(purchase_id):
     purchase = (
         Purchase.query
         .filter(
-            Purchase.id ==
-                purchase_id,
-
-            Purchase.company_id
-                == current_user.company_id
+            Purchase.id == purchase_id,
+            Purchase.company_id == current_user.company_id
         )
         .first_or_404()
     )
 
-    form = PurchaseForm(
-        obj=purchase
-    )
+    form = PurchaseForm(obj=purchase)
 
     suppliers = get_purchase_suppliers()
     products = get_purchase_products()
@@ -1447,13 +1442,11 @@ def edit_purchase(purchase_id):
 
     if form.validate_on_submit():
 
-        # -------------------------------------------------
+        # =================================================
         # DATE VALIDATION
-        # -------------------------------------------------
+        # =================================================
 
-        date_error = validate_purchase_dates(
-            form
-        )
+        date_error = validate_purchase_dates(form)
 
         if date_error:
 
@@ -1469,9 +1462,9 @@ def edit_purchase(purchase_id):
                 purchase
             )
 
-        # -------------------------------------------------
+        # =================================================
         # FORM ITEMS
-        # -------------------------------------------------
+        # =================================================
 
         product_ids = request.form.getlist(
             "product_id"
@@ -1497,14 +1490,12 @@ def edit_purchase(purchase_id):
             )
         )
 
-        items, error = (
-            validate_purchase_items(
-                product_ids,
-                quantities,
-                unit_costs,
-                manufacturing_dates,
-                expiry_dates
-            )
+        items, error = validate_purchase_items(
+            product_ids,
+            quantities,
+            unit_costs,
+            manufacturing_dates,
+            expiry_dates
         )
 
         if error:
@@ -1521,9 +1512,9 @@ def edit_purchase(purchase_id):
                 purchase
             )
 
-        # -------------------------------------------------
+        # =================================================
         # TOTALS
-        # -------------------------------------------------
+        # =================================================
 
         discount = Decimal(
             form.discount.data or 0
@@ -1533,12 +1524,10 @@ def edit_purchase(purchase_id):
             form.tax.data or 0
         )
 
-        subtotal, total = (
-            calculate_purchase_totals(
-                items,
-                discount,
-                tax
-            )
+        subtotal, total = calculate_purchase_totals(
+            items,
+            discount,
+            tax
         )
 
         if discount > subtotal:
@@ -1570,9 +1559,9 @@ def edit_purchase(purchase_id):
                 purchase
             )
 
-        # -------------------------------------------------
+        # =================================================
         # PAYMENTS
-        # -------------------------------------------------
+        # =================================================
 
         payments, payment_result = (
             get_purchase_payment_data()
@@ -1594,9 +1583,9 @@ def edit_purchase(purchase_id):
 
         amount_paid = payment_result
 
-        # -------------------------------------------------
+        # =================================================
         # PAYMENT LIMIT
-        # -------------------------------------------------
+        # =================================================
 
         if amount_paid > total:
 
@@ -1613,48 +1602,137 @@ def edit_purchase(purchase_id):
                 purchase
             )
 
-        balance = (
-            total - amount_paid
-        )
+        balance = total - amount_paid
 
-        # -------------------------------------------------
+        # =================================================
         # SAVE ORIGINAL ITEMS
-        # -------------------------------------------------
+        # =================================================
 
         old_items = list(
             purchase.items
         )
 
-        # -------------------------------------------------
-        # VERIFY ORIGINAL STOCK CAN BE REVERSED
-        # -------------------------------------------------
+        # =================================================
+        # BUILD OLD STOCK MAP
+        # =================================================
+        #
+        # Product ID -> original purchase quantity
+        #
+        # This lets us compare the OLD purchase against
+        # the NEW purchase instead of reversing everything.
+        #
+        # =================================================
 
-        original_quantities = {}
+        old_quantities = {}
 
         for old_item in old_items:
 
-            product_id = (
-                old_item.product_id
+            product_id = old_item.product_id
+
+            quantity = Decimal(
+                str(old_item.quantity or 0)
             )
 
-            original_quantities[
-                product_id
-            ] = (
-                original_quantities.get(
+            old_quantities[product_id] = (
+                old_quantities.get(
                     product_id,
                     Decimal("0")
                 )
-                + Decimal(
-                    str(
-                        old_item.quantity
-                    )
+                + quantity
+            )
+
+        # =================================================
+        # BUILD NEW STOCK MAP
+        # =================================================
+
+        new_quantities = {}
+
+        for item_data in items:
+
+            product = item_data["product"]
+
+            quantity = Decimal(
+                str(
+                    item_data["quantity"] or 0
                 )
             )
 
+            new_quantities[product.id] = (
+                new_quantities.get(
+                    product.id,
+                    Decimal("0")
+                )
+                + quantity
+            )
+
+        # =================================================
+        # DETERMINE STOCK CHANGES
+        # =================================================
+        #
+        # IMPORTANT:
+        #
+        # If old quantity = 9
+        # New quantity = 9
+        #
+        # Delta = 0
+        #
+        # Therefore:
+        # NO inventory reversal
+        # NO inventory addition
+        #
+        # This allows payment/details edits even when stock
+        # is currently reserved.
+        #
+        # =================================================
+
+        all_product_ids = set(
+            old_quantities.keys()
+        ).union(
+            new_quantities.keys()
+        )
+
+        stock_changes = {}
+
+        for product_id in all_product_ids:
+
+            old_quantity = old_quantities.get(
+                product_id,
+                Decimal("0")
+            )
+
+            new_quantity = new_quantities.get(
+                product_id,
+                Decimal("0")
+            )
+
+            delta = (
+                new_quantity
+                - old_quantity
+            )
+
+            if delta != 0:
+
+                stock_changes[product_id] = delta
+
+        # =================================================
+        # VALIDATE STOCK REDUCTIONS ONLY
+        # =================================================
+        #
+        # We only need to validate products where the
+        # edited purchase is REDUCING stock.
+        #
+        # Payment-only edits have delta = 0 and therefore
+        # completely skip this validation.
+        #
+        # =================================================
+
         for (
             product_id,
-            original_quantity
-        ) in original_quantities.items():
+            delta
+        ) in stock_changes.items():
+
+            if delta >= 0:
+                continue
 
             product = db.session.get(
                 Product,
@@ -1664,8 +1742,8 @@ def edit_purchase(purchase_id):
             if not product:
 
                 flash(
-                    "A product from the original "
-                    "purchase could not be found.",
+                    "A product affected by this purchase "
+                    "could not be found.",
                     "danger"
                 )
 
@@ -1686,9 +1764,8 @@ def edit_purchase(purchase_id):
             ):
 
                 flash(
-                    "A product from the original "
-                    "purchase does not belong to "
-                    "your company.",
+                    "A product affected by this purchase "
+                    "does not belong to your company.",
                     "danger"
                 )
 
@@ -1698,6 +1775,8 @@ def edit_purchase(purchase_id):
                     suppliers,
                     purchase
                 )
+
+            reduction = abs(delta)
 
             current_quantity = Decimal(
                 str(
@@ -1716,20 +1795,17 @@ def edit_purchase(purchase_id):
                 - reserved_quantity
             )
 
-            if (
-                original_quantity
-                > available_quantity
-            ):
+            if reduction > available_quantity:
 
                 flash(
-                    f"Cannot edit purchase "
-                    f"{purchase.purchase_number}. "
-                    f"{product.name} has "
-                    f"{current_quantity} units physically "
-                    f"in stock, but "
+                    f"Cannot reduce "
+                    f"{product.name} stock by "
+                    f"{reduction} units because "
+                    f"{current_quantity} units are physically "
+                    f"in stock and "
                     f"{reserved_quantity} units are reserved. "
                     f"Only {available_quantity} units are "
-                    f"available to reverse.",
+                    f"available to reduce.",
                     "danger"
                 )
 
@@ -1746,62 +1822,132 @@ def edit_purchase(purchase_id):
 
         try:
 
-            # -------------------------------------------------
-            # REVERSE OLD STOCK
-            # -------------------------------------------------
+            # =================================================
+            # APPLY ONLY STOCK DIFFERENCES
+            # =================================================
+            #
+            # This is the major fix.
+            #
+            # We DO NOT reverse the entire old purchase.
+            #
+            # We only apply:
+            #
+            # new quantity - old quantity
+            #
+            # =================================================
 
-            for old_item in old_items:
+            for (
+                product_id,
+                delta
+            ) in stock_changes.items():
 
-                product = old_item.product
+                product = db.session.get(
+                    Product,
+                    product_id
+                )
 
-                quantity = Decimal(
-                    str(
-                        old_item.quantity
+                if not product:
+
+                    raise ValueError(
+                        "Product affected by purchase "
+                        "edit could not be found."
                     )
-                )
 
-                product.quantity -= (
-                    quantity
-                )
+                # -------------------------------------------------
+                # STOCK REDUCTION
+                # -------------------------------------------------
 
-                reversal = (
-                    InventoryTransaction(
-                        company_id=
-                            current_user.company_id,
+                if delta < 0:
 
-                        product_id=
-                            product.id,
+                    reduction = abs(delta)
 
-                        transaction_type=
-                            "Purchase Edit Reversal",
+                    product.quantity -= reduction
 
-                        quantity=
-                            -quantity,
+                    inventory_transaction = (
+                        InventoryTransaction(
+                            company_id=
+                                current_user.company_id,
 
-                        reference_type=
-                            "Purchase",
+                            product_id=
+                                product.id,
 
-                        reference_id=
-                            purchase.id,
+                            transaction_type=
+                                "Purchase Edit Reduction",
 
-                        notes=(
-                            f"Original quantity reversed "
-                            f"while editing purchase "
-                            f"{purchase.purchase_number}"
-                        ),
+                            quantity=
+                                -reduction,
 
-                        created_by=
-                            current_user.id
+                            reference_type=
+                                "Purchase",
+
+                            reference_id=
+                                purchase.id,
+
+                            notes=(
+                                f"Stock reduced by "
+                                f"{reduction} units while "
+                                f"editing purchase "
+                                f"{purchase.purchase_number}"
+                            ),
+
+                            created_by=
+                                current_user.id
+                        )
                     )
-                )
 
-                db.session.add(
-                    reversal
-                )
+                    db.session.add(
+                        inventory_transaction
+                    )
 
-            # -------------------------------------------------
+                # -------------------------------------------------
+                # STOCK INCREASE
+                # -------------------------------------------------
+
+                elif delta > 0:
+
+                    addition = delta
+
+                    product.quantity += addition
+
+                    inventory_transaction = (
+                        InventoryTransaction(
+                            company_id=
+                                current_user.company_id,
+
+                            product_id=
+                                product.id,
+
+                            transaction_type=
+                                "Purchase Edit Addition",
+
+                            quantity=
+                                addition,
+
+                            reference_type=
+                                "Purchase",
+
+                            reference_id=
+                                purchase.id,
+
+                            notes=(
+                                f"Additional stock of "
+                                f"{addition} units added "
+                                f"while editing purchase "
+                                f"{purchase.purchase_number}"
+                            ),
+
+                            created_by=
+                                current_user.id
+                        )
+                    )
+
+                    db.session.add(
+                        inventory_transaction
+                    )
+
+            # =================================================
             # UPDATE PURCHASE
-            # -------------------------------------------------
+            # =================================================
 
             purchase.supplier_id = (
                 form.supplier_id.data
@@ -1844,9 +1990,15 @@ def edit_purchase(purchase_id):
                 form.notes.data
             )
 
-            # -------------------------------------------------
+            # =================================================
             # DELETE OLD PURCHASE ITEMS
-            # -------------------------------------------------
+            # =================================================
+            #
+            # This is safe because PurchaseItem records are
+            # being replaced, while actual inventory has
+            # already been adjusted only by the net difference.
+            #
+            # =================================================
 
             for old_item in old_items:
 
@@ -1856,9 +2008,9 @@ def edit_purchase(purchase_id):
 
             db.session.flush()
 
-            # -------------------------------------------------
-            # ADD NEW ITEMS
-            # -------------------------------------------------
+            # =================================================
+            # ADD NEW PURCHASE ITEMS
+            # =================================================
 
             for item_data in items:
 
@@ -1907,52 +2059,9 @@ def edit_purchase(purchase_id):
                     purchase_item
                 )
 
-                # -------------------------------------------------
-                # ADD REPLACEMENT STOCK
-                # -------------------------------------------------
-
-                product.quantity += (
-                    quantity
-                )
-
-                inventory_transaction = (
-                    InventoryTransaction(
-                        company_id=
-                            current_user.company_id,
-
-                        product_id=
-                            product.id,
-
-                        transaction_type=
-                            "Purchase Edit",
-
-                        quantity=
-                            quantity,
-
-                        reference_type=
-                            "Purchase",
-
-                        reference_id=
-                            purchase.id,
-
-                        notes=(
-                            f"Replacement stock "
-                            f"from edited purchase "
-                            f"{purchase.purchase_number}"
-                        ),
-
-                        created_by=
-                            current_user.id
-                    )
-                )
-
-                db.session.add(
-                    inventory_transaction
-                )
-
-            # -------------------------------------------------
+            # =================================================
             # UPDATE PAYMENT RECORDS
-            # -------------------------------------------------
+            # =================================================
 
             old_payments = list(
                 purchase.payments
@@ -1971,9 +2080,9 @@ def edit_purchase(purchase_id):
                     payment_data["id"]
                 )
 
-                # ---------------------------------------------
+                # =================================================
                 # EXISTING PAYMENT
-                # ---------------------------------------------
+                # =================================================
 
                 if payment_id:
 
@@ -2029,9 +2138,9 @@ def edit_purchase(purchase_id):
 
                     payment.notes = None
 
-                # ---------------------------------------------
+                # =================================================
                 # NEW PAYMENT
-                # ---------------------------------------------
+                # =================================================
 
                 else:
 
@@ -2070,9 +2179,9 @@ def edit_purchase(purchase_id):
                         payment
                     )
 
-            # -------------------------------------------------
+            # =================================================
             # DELETE REMOVED PAYMENTS
-            # -------------------------------------------------
+            # =================================================
 
             for payment in old_payments:
 
@@ -2085,9 +2194,9 @@ def edit_purchase(purchase_id):
                         payment
                     )
 
-            # -------------------------------------------------
+            # =================================================
             # COMMIT
-            # -------------------------------------------------
+            # =================================================
 
             db.session.commit()
 
@@ -2096,10 +2205,6 @@ def edit_purchase(purchase_id):
             # =================================================
 
             try:
-
-                # -------------------------------------------------
-                # PURCHASE UPDATE NOTIFICATION
-                # -------------------------------------------------
 
                 notify_success(
                     company_id=
@@ -2133,10 +2238,6 @@ def edit_purchase(purchase_id):
                         purchase.id
                 )
 
-                # -------------------------------------------------
-                # FINANCIAL ALERTS
-                # -------------------------------------------------
-
                 run_purchase_financial_alerts(
                     purchase=
                         purchase,
@@ -2154,6 +2255,10 @@ def edit_purchase(purchase_id):
                     notification_error
                 )
 
+            # =================================================
+            # SUCCESS
+            # =================================================
+
             flash(
                 f"Purchase "
                 f"{purchase.purchase_number} "
@@ -2168,6 +2273,10 @@ def edit_purchase(purchase_id):
                         purchase.id
                 )
             )
+
+        # =====================================================
+        # DATABASE ERROR
+        # =====================================================
 
         except Exception as exc:
 
@@ -2188,6 +2297,10 @@ def edit_purchase(purchase_id):
                 suppliers,
                 purchase
             )
+
+    # =====================================================
+    # DEFAULT
+    # =====================================================
 
     return render_purchase_form(
         form,
