@@ -56,6 +56,39 @@
 
 
     <!-- =====================================================
+         VIEW-ONLY INFORMATION
+    ====================================================== -->
+
+    {% if not can_manage_payments %}
+
+        <div class="alert alert-info border-0 shadow-sm d-flex align-items-start gap-3 mb-4">
+
+            <div class="flex-shrink-0">
+
+                <i
+                    class="bi bi-info-circle-fill fs-5"
+                ></i>
+
+            </div>
+
+            <div>
+
+                <div class="fw-semibold mb-1">
+                    Today's Payments Only
+                </div>
+
+                <div class="small">
+                    Only today's payment records are available to you.
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
          SUMMARY CARDS
     ====================================================== -->
 
@@ -75,20 +108,40 @@
                         <div class="stats-card-info">
 
                             <div class="stats-card-label">
-                                Total Payments
+                                {% if can_manage_payments %}
+                                    Total Payments
+                                {% else %}
+                                    Today's Payments
+                                {% endif %}
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(total_amount) }}
+
                             </h3>
+
 
                             <div class="stats-card-meta">
 
-                                Total Net Payment:
+                                {% if can_manage_payments %}
 
-                                <span class="text-primary">
-                                    {{ format_currency(net_payments) }}
-                                </span>
+                                    Total Net Payment:
+
+                                    <span class="text-primary">
+                                        {{ format_currency(net_payments) }}
+                                    </span>
+
+                                {% else %}
+
+                                    Today's Net Payment:
+
+                                    <span class="text-primary">
+                                        {{ format_currency(net_payments) }}
+                                    </span>
+
+                                {% endif %}
 
                             </div>
 
@@ -126,16 +179,24 @@
                                 Today's Payments
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(today_total) }}
+
                             </h3>
+
 
                             <div class="stats-card-meta">
 
                                 Today's Net Payment:
 
                                 <span class="text-success">
-                                    {{ format_currency(today_total - today_expenses) }}
+
+                                    {{ format_currency(
+                                        today_total - today_expenses
+                                    ) }}
+
                                 </span>
 
                             </div>
@@ -174,8 +235,11 @@
                                 Cash
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(cash_total) }}
+
                             </h3>
 
                         </div>
@@ -212,8 +276,11 @@
                                 Bank Transfer
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(bank_transfer_total) }}
+
                             </h3>
 
                         </div>
@@ -250,8 +317,11 @@
                                 POS
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(pos_total) }}
+
                             </h3>
 
                         </div>
@@ -288,8 +358,11 @@
                                 Card
                             </div>
 
+
                             <h3 class="stats-card-value responsive-money">
+
                                 {{ format_currency(card_total) }}
+
                             </h3>
 
                         </div>
@@ -316,241 +389,256 @@
          FILTERS
     ====================================================== -->
 
-    <div class="card border-0 shadow-sm mb-4">
+    {% if can_manage_payments %}
 
-        <div class="card-body">
+        <div class="card border-0 shadow-sm mb-4">
 
-            <form
-                method="GET"
-                action="{{ url_for('payments.payments') }}"
-            >
+            <div class="card-body">
 
-                <div class="row g-3 align-items-end">
+                <form
+                    method="GET"
+                    action="{{ url_for('payments.payments') }}"
+                >
 
-
-                    <!-- SEARCH -->
-
-                    <div class="col-lg-5">
-
-                        <label class="form-label small fw-semibold mb-2">
-                            Search Payments
-                        </label>
+                    <div class="row g-3 align-items-end">
 
 
-                        <div class="search-field">
+                        <!-- SEARCH -->
 
-                            <i class="bi bi-search"></i>
+                        <div class="col-lg-5">
 
-                            <input
-                                type="text"
-                                name="q"
-                                value="{{ search }}"
-                                class="form-control"
-                                placeholder="Invoice, customer, reference..."
+                            <label
+                                class="form-label small fw-semibold mb-2"
                             >
+                                Search Payments
+                            </label>
+
+
+                            <div class="search-field">
+
+                                <i class="bi bi-search"></i>
+
+                                <input
+                                    type="text"
+                                    name="q"
+                                    value="{{ search }}"
+                                    class="form-control"
+                                    placeholder="Invoice, customer, reference..."
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PERIOD -->
+
+                        <div class="col-lg-3">
+
+                            <label
+                                for="period"
+                                class="form-label small fw-semibold mb-2"
+                            >
+                                Payments Period
+                            </label>
+
+
+                            <select
+                                name="period"
+                                id="period"
+                                class="form-select"
+                            >
+
+                                <option
+                                    value="all"
+                                    {% if period == "all" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    All Payments
+                                </option>
+
+
+                                <option
+                                    value="daily"
+                                    {% if period == "daily" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Today
+                                </option>
+
+
+                                <option
+                                    value="weekly"
+                                    {% if period == "weekly" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    This Week
+                                </option>
+
+
+                                <option
+                                    value="monthly"
+                                    {% if period == "monthly" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Monthly
+                                </option>
+
+
+                                <option
+                                    value="yearly"
+                                    {% if period == "yearly" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Yearly
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- MONTH -->
+
+                        <div
+                            class="col-lg-2"
+                            id="month-container"
+                        >
+
+                            <label
+                                for="month"
+                                class="form-label small fw-semibold mb-2"
+                            >
+                                Month
+                            </label>
+
+
+                            <select
+                                name="month"
+                                id="month"
+                                class="form-select"
+                            >
+
+                                <option value="">
+                                    Select month
+                                </option>
+
+
+                                {% set months = [
+
+                                    (1, "January"),
+                                    (2, "February"),
+                                    (3, "March"),
+                                    (4, "April"),
+                                    (5, "May"),
+                                    (6, "June"),
+                                    (7, "July"),
+                                    (8, "August"),
+                                    (9, "September"),
+                                    (10, "October"),
+                                    (11, "November"),
+                                    (12, "December")
+
+                                ] %}
+
+
+                                {% for month_number, month_name in months %}
+
+                                    <option
+                                        value="{{ month_number }}"
+                                        {% if month == month_number %}
+                                            selected
+                                        {% endif %}
+                                    >
+
+                                        {{ month_name }}
+
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- YEAR -->
+
+                        <div
+                            class="col-lg-2"
+                            id="year-container"
+                        >
+
+                            <label
+                                for="year"
+                                class="form-label small fw-semibold mb-2"
+                            >
+                                Year
+                            </label>
+
+
+                            <select
+                                name="year"
+                                id="year"
+                                class="form-select"
+                            >
+
+                                <option value="">
+                                    Select year
+                                </option>
+
+
+                                {% for y in years %}
+
+                                    <option
+                                        value="{{ y }}"
+                                        {% if year == y %}
+                                            selected
+                                        {% endif %}
+                                    >
+
+                                        {{ y }}
+
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- FILTER BUTTON -->
+
+                        <div class="col-lg-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-light border w-100"
+                            >
+
+                                <i class="bi bi-funnel me-2"></i>
+
+                                Filter
+
+                            </button>
 
                         </div>
 
                     </div>
 
+                </form>
 
-                    <!-- PERIOD -->
-
-                    <div class="col-lg-3">
-
-                        <label
-                            for="period"
-                            class="form-label small fw-semibold mb-2"
-                        >
-                            Payments Period
-                        </label>
-
-                        <select
-                            name="period"
-                            id="period"
-                            class="form-select"
-                        >
-
-                            <option
-                                value="all"
-                                {% if period == "all" %}
-                                    selected
-                                {% endif %}
-                            >
-                                All Payments
-                            </option>
-
-
-                            <option
-                                value="daily"
-                                {% if period == "daily" %}
-                                    selected
-                                {% endif %}
-                            >
-                                Today
-                            </option>
-
-
-                            <option
-                                value="weekly"
-                                {% if period == "weekly" %}
-                                    selected
-                                {% endif %}
-                            >
-                                This Week
-                            </option>
-
-
-                            <option
-                                value="monthly"
-                                {% if period == "monthly" %}
-                                    selected
-                                {% endif %}
-                            >
-                                Monthly
-                            </option>
-
-
-                            <option
-                                value="yearly"
-                                {% if period == "yearly" %}
-                                    selected
-                                {% endif %}
-                            >
-                                Yearly
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- MONTH -->
-
-                    <div
-                        class="col-lg-2"
-                        id="month-container"
-                    >
-
-                        <label
-                            for="month"
-                            class="form-label small fw-semibold mb-2"
-                        >
-                            Month
-                        </label>
-
-                        <select
-                            name="month"
-                            id="month"
-                            class="form-select"
-                        >
-
-                            <option value="">
-                                Select month
-                            </option>
-
-
-                            {% set months = [
-                                (1, "January"),
-                                (2, "February"),
-                                (3, "March"),
-                                (4, "April"),
-                                (5, "May"),
-                                (6, "June"),
-                                (7, "July"),
-                                (8, "August"),
-                                (9, "September"),
-                                (10, "October"),
-                                (11, "November"),
-                                (12, "December")
-                            ] %}
-
-
-                            {% for month_number, month_name in months %}
-
-                                <option
-                                    value="{{ month_number }}"
-                                    {% if month == month_number %}
-                                        selected
-                                    {% endif %}
-                                >
-                                    {{ month_name }}
-                                </option>
-
-                            {% endfor %}
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- YEAR -->
-
-                    <div
-                        class="col-lg-2"
-                        id="year-container"
-                    >
-
-                        <label
-                            for="year"
-                            class="form-label small fw-semibold mb-2"
-                        >
-                            Year
-                        </label>
-
-                        <select
-                            name="year"
-                            id="year"
-                            class="form-select"
-                        >
-
-                            <option value="">
-                                Select year
-                            </option>
-
-
-                            {% for y in years %}
-
-                                <option
-                                    value="{{ y }}"
-                                    {% if year == y %}
-                                        selected
-                                    {% endif %}
-                                >
-                                    {{ y }}
-                                </option>
-
-                            {% endfor %}
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- FILTER BUTTON -->
-
-                    <div class="col-lg-2">
-
-                        <button
-                            type="submit"
-                            class="btn btn-light border w-100"
-                        >
-
-                            <i class="bi bi-funnel me-2"></i>
-
-                            Filter
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
-    </div>
+    {% endif %}
 
 
     <!-- =====================================================
@@ -568,6 +656,7 @@
                     <h5 class="fw-semibold mb-1">
                         Payment Records
                     </h5>
+
 
                     <span class="text-primary">
 
@@ -651,7 +740,9 @@
                                             ) }}"
                                             class="fw-semibold text-decoration-none text-dark"
                                         >
+
                                             {{ payment.sale.invoice_number }}
+
                                         </a>
 
                                     </td>
@@ -683,11 +774,19 @@
                                         {% if payment.payment_date %}
 
                                             <div>
-                                                {{ format_company_date(payment.payment_date) }}
+
+                                                {{ format_company_date(
+                                                    payment.payment_date
+                                                ) }}
+
                                             </div>
 
                                             <small class="text-muted">
-                                                {{ format_company_time(payment.payment_date) }}
+
+                                                {{ format_company_time(
+                                                    payment.payment_date
+                                                ) }}
+
                                             </small>
 
                                         {% else %}
@@ -705,7 +804,9 @@
 
                                         {% if payment.method == "Cash" %}
 
-                                            <span class="badge bg-success-subtle text-success">
+                                            <span
+                                                class="badge bg-success-subtle text-success"
+                                            >
 
                                                 <i class="bi bi-cash me-1"></i>
 
@@ -716,7 +817,9 @@
 
                                         {% elif payment.method == "Bank Transfer" %}
 
-                                            <span class="badge bg-warning-subtle text-warning">
+                                            <span
+                                                class="badge bg-warning-subtle text-warning"
+                                            >
 
                                                 <i class="bi bi-bank me-1"></i>
 
@@ -727,7 +830,9 @@
 
                                         {% elif payment.method == "POS" %}
 
-                                            <span class="badge bg-info-subtle text-info">
+                                            <span
+                                                class="badge bg-info-subtle text-info"
+                                            >
 
                                                 <i class="bi bi-credit-card me-1"></i>
 
@@ -738,9 +843,13 @@
 
                                         {% elif payment.method == "Card" %}
 
-                                            <span class="badge bg-secondary-subtle text-muted">
+                                            <span
+                                                class="badge bg-secondary-subtle text-muted"
+                                            >
 
-                                                <i class="bi bi-credit-card-2-front me-1"></i>
+                                                <i
+                                                    class="bi bi-credit-card-2-front me-1"
+                                                ></i>
 
                                                 Card
 
@@ -756,7 +865,9 @@
                                                     color: #6f42c1;
                                                 "
                                             >
+
                                                 {{ payment.method }}
+
                                             </span>
 
                                         {% endif %}
@@ -823,7 +934,11 @@
 
                     <p class="text-muted mb-4">
 
-                        {% if search or period != "all" %}
+                        {% if not can_manage_payments %}
+
+                            There are no payments recorded for today.
+
+                        {% elif search or period != "all" %}
 
                             No payment records match your current filters.
 
@@ -836,7 +951,7 @@
                     </p>
 
 
-                    {% if search or period != "all" %}
+                    {% if can_manage_payments and (search or period != "all") %}
 
                         <a
                             href="{{ url_for('payments.payments') }}"
@@ -878,21 +993,34 @@
      PERIOD FILTER SCRIPT
 ========================================================== -->
 
+{% if can_manage_payments %}
+
 <script>
 
 document.addEventListener("DOMContentLoaded", function () {
 
     const period = document.getElementById("period");
-    const monthContainer = document.getElementById("month-container");
-    const yearContainer = document.getElementById("year-container");
 
-    if (!period || !monthContainer || !yearContainer) {
+    const monthContainer =
+        document.getElementById("month-container");
+
+    const yearContainer =
+        document.getElementById("year-container");
+
+
+    if (
+        !period ||
+        !monthContainer ||
+        !yearContainer
+    ) {
         return;
     }
+
 
     function updatePeriodFields() {
 
         const value = period.value;
+
 
         // -------------------------------------------------
         // MONTH
@@ -913,6 +1041,7 @@ document.addEventListener("DOMContentLoaded", function () {
             value === "yearly"
                 ? ""
                 : "none";
+
     }
 
 
@@ -927,5 +1056,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 </script>
+
+{% endif %}
 
 {% endblock %}
