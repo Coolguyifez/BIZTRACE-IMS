@@ -322,8 +322,9 @@
                         </td>
 
 
-                        <td class="text-muted">{{product.description}}</td>
-
+                        <td class="text-muted text-wrap">
+                            {{ product.description | replace('\n', '<br>') | safe }}
+                        </td>
 
                         <!-- STATUS -->
                         <td>
