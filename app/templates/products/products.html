@@ -186,10 +186,11 @@
                         <th>
                             Category
                         </th>
-
+                        {% if current_user.has_permission("view_purchases") %}
                         <th>
                             Purchase
                         </th>
+                        {% endif %}
 
                         <th>
                             Selling
@@ -283,7 +284,7 @@
 
                         </td>
 
-
+                        {% if current_user.has_permission("view_purchases") %}
                         <!-- PURCHASE PRICE -->
                         <td>
 
@@ -292,6 +293,7 @@
                             </span>
 
                         </td>
+                        {% endif %}
 
 
                         <!-- SELLING PRICE -->
@@ -325,6 +327,7 @@
                         <td class="text-muted text-wrap">
                             {{ product.description | replace('\n', '<br>') | safe }}
                         </td>
+
 
                         <!-- STATUS -->
                         <td>
