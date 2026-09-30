@@ -743,9 +743,8 @@ def login():
         if not company.is_active:
 
             flash(
-                "Your company account has been deactivated. "
-                "Please contact the system administrator.",
-                "danger",
+                "COMPANY_DEACTIVATED",
+                "company_deactivated"
             )
 
             return render_template(
