@@ -1,3 +1,5 @@
+# app/auth/routes.py
+
 from datetime import datetime, timezone
 from hashlib import sha256
 import hmac
@@ -28,9 +30,21 @@ from itsdangerous import (
 )
 
 from app.extensions import db
-from app.models import User, Company
-from app.auth.forms import LoginForm, RegistrationForm
-from app.rbac import initialize_company_rbac
+from app.models import (
+    User,
+    Company,
+    Role,
+    UserRole,
+)
+
+from app.auth.forms import (
+    LoginForm,
+    RegistrationForm,
+)
+
+from app.rbac import (
+    initialize_company_rbac,
+)
 
 
 # ============================================================
@@ -139,6 +153,148 @@ def verify_password_reset_token(token):
         return None
 
     return user
+
+
+# ============================================================
+# ENSURE COMPANY ADMIN RBAC
+# ============================================================
+
+def ensure_company_admin_rbac(
+    user,
+    company,
+):
+    """
+    Make sure a Company Administrator has:
+
+        1. Company Administrator role
+        2. All Company Administrator permissions
+        3. A UserRole record
+
+    This is intentionally called during login as well as
+    registration.
+
+    This repairs existing production users whose UserRole
+    record was missing before RBAC initialization was added.
+
+    Returns:
+        True  -> RBAC is ready
+        False -> RBAC initialization failed
+    """
+
+    try:
+
+        # ----------------------------------------------------
+        # SAFETY CHECKS
+        # ----------------------------------------------------
+
+        if user is None:
+            return False
+
+        if company is None:
+            return False
+
+        if not user.is_company_admin:
+            return True
+
+        if user.company_id != company.id:
+            current_app.logger.error(
+                "RBAC ERROR: User/company mismatch. "
+                "User ID=%s, User company_id=%s, "
+                "Company ID=%s",
+                user.id,
+                user.company_id,
+                company.id,
+            )
+
+            return False
+
+        # ----------------------------------------------------
+        # INITIALIZE / SYNCHRONIZE COMPANY RBAC
+        # ----------------------------------------------------
+
+        roles = initialize_company_rbac(
+            company=company,
+            administrator=user,
+            assigned_by=None,
+        )
+
+        # ----------------------------------------------------
+        # GET COMPANY ADMIN ROLE
+        # ----------------------------------------------------
+
+        company_admin_role = roles.get(
+            "Company Administrator"
+        )
+
+        if company_admin_role is None:
+
+            current_app.logger.error(
+                "RBAC ERROR: Company Administrator role "
+                "was not created/found for company ID=%s.",
+                company.id,
+            )
+
+            return False
+
+        # ----------------------------------------------------
+        # VERIFY USER ROLE
+        # ----------------------------------------------------
+
+        user_role = UserRole.query.filter_by(
+            user_id=user.id,
+            role_id=company_admin_role.id,
+        ).first()
+
+        # ----------------------------------------------------
+        # CREATE USER ROLE IF STILL MISSING
+        # ----------------------------------------------------
+
+        if user_role is None:
+
+            current_app.logger.warning(
+                "RBAC: UserRole missing after initialization. "
+                "Creating directly. User ID=%s, Role ID=%s",
+                user.id,
+                company_admin_role.id,
+            )
+
+            user_role = UserRole(
+                user_id=user.id,
+                role_id=company_admin_role.id,
+                assigned_by=None,
+            )
+
+            db.session.add(
+                user_role
+            )
+
+            db.session.flush()
+
+        # ----------------------------------------------------
+        # LOG SUCCESS
+        # ----------------------------------------------------
+
+        current_app.logger.info(
+            "RBAC READY: Company Admin assigned. "
+            "User ID=%s, Company ID=%s, Role ID=%s",
+            user.id,
+            company.id,
+            company_admin_role.id,
+        )
+
+        return True
+
+    except Exception:
+
+        current_app.logger.exception(
+            "RBAC ERROR: Failed to initialize "
+            "Company Administrator role for "
+            "User ID=%s, Company ID=%s",
+            getattr(user, "id", None),
+            getattr(company, "id", None),
+        )
+
+        return False
 
 
 # ============================================================
@@ -312,8 +468,6 @@ def send_password_reset_email(
             "
         >
 
-            <!-- BRAND -->
-
             <div
                 style="
                     text-align:center;
@@ -343,8 +497,6 @@ def send_password_reset_email(
                 </p>
 
             </div>
-
-            <!-- CONTENT -->
 
             <h2
                 style="
@@ -387,8 +539,6 @@ def send_password_reset_email(
                 Click the button below to create a new password.
             </p>
 
-            <!-- BUTTON -->
-
             <div
                 style="
                     text-align:center;
@@ -414,8 +564,6 @@ def send_password_reset_email(
 
             </div>
 
-            <!-- FALLBACK LINK -->
-
             <p
                 style="
                     color:#6b7280;
@@ -439,8 +587,6 @@ def send_password_reset_email(
             >
                 {reset_url}
             </p>
-
-            <!-- SECURITY -->
 
             <div
                 style="
@@ -467,8 +613,6 @@ def send_password_reset_email(
                 </p>
 
             </div>
-
-            <!-- FOOTER -->
 
             <div
                 style="
@@ -605,9 +749,6 @@ def login():
                 )
             )
 
-        # Do not redirect based on company status here.
-        # The global before_request handler handles access.
-
         return redirect(
             url_for(
                 "dashboard.dashboard"
@@ -678,7 +819,10 @@ def login():
             )
 
             if next_page:
-                return redirect(next_page)
+
+                return redirect(
+                    next_page
+                )
 
             return redirect(
                 url_for(
@@ -726,25 +870,12 @@ def login():
         # ----------------------------------------------------
         # COMPANY DEACTIVATED
         # ----------------------------------------------------
-        #
-        # IMPORTANT:
-        #
-        # We DO NOT login the user.
-        #
-        # We render the login page directly instead of
-        # redirecting to /login again.
-        #
-        # This prevents:
-        #
-        # /login -> /login -> /login
-        #
-        # ----------------------------------------------------
 
         if not company.is_active:
 
             flash(
                 "COMPANY_DEACTIVATED",
-                "company_deactivated"
+                "company_deactivated",
             )
 
             return render_template(
@@ -752,6 +883,72 @@ def login():
                 form=form,
                 company_deactivated=True,
             )
+
+        # ====================================================
+        # IMPORTANT RBAC REPAIR
+        # ====================================================
+        #
+        # This automatically fixes existing Company Admin
+        # accounts whose UserRole row is missing.
+        #
+        # It also ensures that the Company Administrator role
+        # and its permissions exist.
+        #
+        # This is especially important for your Supabase
+        # production database.
+        # ====================================================
+
+        if user.is_company_admin:
+
+            rbac_ready = ensure_company_admin_rbac(
+                user=user,
+                company=company,
+            )
+
+            if not rbac_ready:
+
+                db.session.rollback()
+
+                current_app.logger.error(
+                    "LOGIN BLOCKED: Could not initialize "
+                    "Company Administrator RBAC. "
+                    "User ID=%s, Company ID=%s",
+                    user.id,
+                    company.id,
+                )
+
+                flash(
+                    "Your account permissions could not "
+                    "be initialized. Please contact support.",
+                    "danger",
+                )
+
+                return redirect(
+                    url_for("auth.login")
+                )
+
+            try:
+
+                db.session.commit()
+
+            except Exception:
+
+                db.session.rollback()
+
+                current_app.logger.exception(
+                    "LOGIN ERROR: Failed to save "
+                    "Company Administrator RBAC."
+                )
+
+                flash(
+                    "Your account permissions could not "
+                    "be saved. Please contact support.",
+                    "danger",
+                )
+
+                return redirect(
+                    url_for("auth.login")
+                )
 
         # ----------------------------------------------------
         # LOGIN
@@ -821,6 +1018,10 @@ def register():
 
         try:
 
+            # =================================================
+            # CREATE COMPANY
+            # =================================================
+
             company = Company(
                 name=(
                     form.company_name.data or ""
@@ -851,6 +1052,10 @@ def register():
 
             db.session.flush()
 
+            # =================================================
+            # CREATE COMPANY ADMIN
+            # =================================================
+
             user = User(
                 company_id=company.id,
 
@@ -865,6 +1070,8 @@ def register():
                 role="Company Administrator",
 
                 is_active=True,
+
+                is_company_admin=True,
             )
 
             user.set_password(
@@ -877,16 +1084,97 @@ def register():
 
             db.session.flush()
 
-            # ------------------------------------------------
+            # =================================================
             # INITIALIZE COMPANY RBAC
-            # ------------------------------------------------
+            # =================================================
+            #
+            # Creates:
+            #
+            # Permission
+            # Role
+            # RolePermission
+            # UserRole
+            #
+            # for the new company administrator.
+            # =================================================
 
-            initialize_company_rbac(
+            rbac_ready = ensure_company_admin_rbac(
+                user=user,
                 company=company,
-                administrator=user,
             )
 
+            if not rbac_ready:
+
+                raise RuntimeError(
+                    "Failed to initialize "
+                    "Company Administrator RBAC."
+                )
+
+            # =================================================
+            # VERIFY USER ROLE WAS CREATED
+            # =================================================
+
+            company_admin_role = Role.query.filter_by(
+                company_id=company.id,
+                name="Company Administrator",
+            ).first()
+
+            if company_admin_role is None:
+
+                raise RuntimeError(
+                    "Company Administrator role "
+                    "was not created."
+                )
+
+            user_role = UserRole.query.filter_by(
+                user_id=user.id,
+                role_id=company_admin_role.id,
+            ).first()
+
+            if user_role is None:
+
+                raise RuntimeError(
+                    "Company Administrator UserRole "
+                    "was not created."
+                )
+
+            # =================================================
+            # COMMIT EVERYTHING
+            # =================================================
+
             db.session.commit()
+
+            current_app.logger.info(
+                "=================================================="
+            )
+
+            current_app.logger.info(
+                "COMPANY REGISTRATION SUCCESS"
+            )
+
+            current_app.logger.info(
+                "Company ID: %s",
+                company.id,
+            )
+
+            current_app.logger.info(
+                "User ID: %s",
+                user.id,
+            )
+
+            current_app.logger.info(
+                "Company Admin Role ID: %s",
+                company_admin_role.id,
+            )
+
+            current_app.logger.info(
+                "UserRole ID: %s",
+                user_role.id,
+            )
+
+            current_app.logger.info(
+                "=================================================="
+            )
 
         except Exception:
 
@@ -1572,4 +1860,3 @@ def welcome_guide():
     return render_template(
         "auth/welcome_guide.html"
     )
-
