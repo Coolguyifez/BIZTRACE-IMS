@@ -7,14 +7,26 @@ from flask import (
     render_template,
     request,
 )
+
 from flask_login import current_user, logout_user
 
 from config import Config
-from .extensions import db, migrate, login_manager, csrf, mail
+
+from .extensions import (
+    db,
+    migrate,
+    login_manager,
+    csrf,
+    mail,
+)
 
 import click
 
-from .models import User, Company, SystemSetting
+from .models import (
+    User,
+    Company,
+    SystemSetting,
+)
 
 from .utils.company_settings import (
     format_currency,
@@ -53,8 +65,10 @@ def create_app(config_class=Config):
 
     if database_uri.startswith("sqlite"):
         print("DATABASE: SQLite (Local Development)")
+
     elif database_uri.startswith("postgresql"):
         print("DATABASE: PostgreSQL")
+
     else:
         print(
             "DATABASE:",
@@ -62,6 +76,7 @@ def create_app(config_class=Config):
             if "://" in database_uri
             else "Unknown"
         )
+
     # ============================================================
     # JINJA GLOBALS
     # ============================================================
@@ -84,7 +99,6 @@ def create_app(config_class=Config):
         company_now=company_now,
     )
 
-
     # ============================================================
     # INITIALIZE EXTENSIONS
     # ============================================================
@@ -94,7 +108,6 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
-
 
     # ============================================================
     # REGISTER BLUEPRINTS
@@ -111,6 +124,7 @@ def create_app(config_class=Config):
     from .receivables.routes import receivables_bp
     from .payables.routes import payables_bp
     from .system_admin.routes import system_admin_bp
+
     from app.company_admin import company_admin_bp
     from app.reports import reports_bp
     from .main import main_bp
@@ -138,6 +152,10 @@ def create_app(config_class=Config):
     app.register_blueprint(support_bp)
     app.register_blueprint(search_bp)
 
+    # ============================================================
+    # OFFLINE PAGE
+    # ============================================================
+
     @app.route("/offline")
     def offline():
         return render_template("offline.html")
@@ -159,7 +177,10 @@ def create_app(config_class=Config):
         response.headers["Service-Worker-Allowed"] = "/"
 
         # Always allow the browser to check for a new worker.
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers[
+            "Cache-Control"
+        ] = "no-cache, no-store, must-revalidate"
+
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
 
@@ -188,14 +209,15 @@ def create_app(config_class=Config):
             maintenance_message=message
         )
 
-
     # ============================================================
     # CREATE SYSTEM ADMIN CLI
     # ============================================================
 
     @app.cli.command("create-system-admin")
     def create_system_admin():
-        """Create the first BizFlow System Administrator."""
+        """
+        Create the first BizTrace IMS System Administrator.
+        """
 
         from getpass import getpass
 
@@ -204,14 +226,16 @@ def create_app(config_class=Config):
         ).first()
 
         if existing_admin:
+
             click.echo(
                 "A System Administrator already exists."
             )
+
             return
 
         click.echo("")
         click.echo(
-            "=== BizFlow IMS System Administrator Setup ==="
+            "=== BizTrace IMS System Administrator Setup ==="
         )
         click.echo("")
 
@@ -233,39 +257,69 @@ def create_app(config_class=Config):
             "Confirm password: "
         )
 
+        # --------------------------------------------------------
+        # VALIDATE USERNAME
+        # --------------------------------------------------------
+
         if not username:
+
             click.echo(
                 "Username cannot be empty."
             )
+
             return
 
+        # --------------------------------------------------------
+        # VALIDATE EMAIL
+        # --------------------------------------------------------
+
         if not email:
+
             click.echo(
                 "Email cannot be empty."
             )
+
             return
 
+        # --------------------------------------------------------
+        # VALIDATE PASSWORD
+        # --------------------------------------------------------
+
         if not password:
+
             click.echo(
                 "Password cannot be empty."
             )
+
             return
 
         if password != confirm_password:
+
             click.echo(
                 "Passwords do not match."
             )
+
             return
+
+        # --------------------------------------------------------
+        # CHECK EXISTING EMAIL
+        # --------------------------------------------------------
 
         existing_email = User.query.filter_by(
             email=email
         ).first()
 
         if existing_email:
+
             click.echo(
                 "A user with this email already exists."
             )
+
             return
+
+        # --------------------------------------------------------
+        # CREATE SYSTEM ADMIN
+        # --------------------------------------------------------
 
         admin = User(
             company_id=None,
@@ -278,6 +332,7 @@ def create_app(config_class=Config):
         admin.set_password(password)
 
         db.session.add(admin)
+
         db.session.commit()
 
         click.echo("")
@@ -292,6 +347,111 @@ def create_app(config_class=Config):
         )
         click.echo("")
 
+    # ============================================================
+    # RBAC SYNCHRONIZATION CLI
+    # ============================================================
+    #
+    # This command:
+    #
+    # 1. Creates missing permissions
+    # 2. Creates missing company roles
+    # 3. Adds missing role permissions
+    # 4. Synchronizes existing company roles
+    # 5. Assigns Company Administrator role to company admins
+    #
+    # It is intentionally idempotent, meaning it can safely be
+    # executed multiple times.
+    #
+    # Render can run:
+    #
+    # flask db upgrade
+    # flask rbac-sync
+    #
+    # ============================================================
+
+    @app.cli.command("rbac-sync")
+    def rbac_sync_command():
+        """
+        Seed and synchronize BizTrace IMS RBAC permissions and roles.
+        """
+
+        from .rbac import seed_all_rbac
+
+        click.echo("")
+        click.echo(
+            "=============================================="
+        )
+        click.echo(
+            "      BizTrace IMS RBAC Synchronization"
+        )
+        click.echo(
+            "=============================================="
+        )
+        click.echo("")
+
+        try:
+
+            result = seed_all_rbac()
+
+            click.echo("")
+            click.echo(
+                "RBAC synchronization completed successfully."
+            )
+            click.echo("")
+
+            # ----------------------------------------------------
+            # DISPLAY RESULT
+            # ----------------------------------------------------
+
+            if isinstance(result, dict):
+
+                for key, value in result.items():
+
+                    click.echo(
+                        f"{key}: {value}"
+                    )
+
+            click.echo("")
+
+            click.echo(
+                "=============================================="
+            )
+            click.echo(
+                "              RBAC COMPLETE"
+            )
+            click.echo(
+                "=============================================="
+            )
+            click.echo("")
+
+        except Exception as e:
+
+            click.echo("")
+            click.echo(
+                "=============================================="
+            )
+            click.echo(
+                "          RBAC SYNCHRONIZATION FAILED"
+            )
+            click.echo(
+                "=============================================="
+            )
+
+            click.echo("")
+            click.echo(
+                f"Error: {e}"
+            )
+
+            click.echo("")
+
+            # ----------------------------------------------------
+            # Rollback failed transaction
+            # ----------------------------------------------------
+
+            db.session.rollback()
+
+            # Re-raise so Render marks the build as failed.
+            raise
 
     # ============================================================
     # GLOBAL REQUEST ACCESS CONTROL
@@ -318,7 +478,6 @@ def create_app(config_class=Config):
         if not current_user.is_authenticated:
             return
 
-
         # --------------------------------------------------------
         # 2. SYSTEM ADMINISTRATOR
         # --------------------------------------------------------
@@ -331,7 +490,6 @@ def create_app(config_class=Config):
 
         if current_user.is_system_admin:
             return
-
 
         # --------------------------------------------------------
         # 3. COMPANY ID CHECK
@@ -349,7 +507,6 @@ def create_app(config_class=Config):
             return redirect(
                 url_for("auth.login")
             )
-
 
         # --------------------------------------------------------
         # 4. FIND COMPANY
@@ -373,7 +530,6 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-
         # --------------------------------------------------------
         # 5. COMPANY ACTIVE CHECK
         # --------------------------------------------------------
@@ -392,7 +548,6 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-
         # --------------------------------------------------------
         # 6. USER ACTIVE CHECK
         # --------------------------------------------------------
@@ -409,7 +564,6 @@ def create_app(config_class=Config):
             return redirect(
                 url_for("auth.login")
             )
-
 
         # --------------------------------------------------------
         # 7. MAINTENANCE MODE
@@ -440,12 +594,14 @@ def create_app(config_class=Config):
                 url_for("maintenance")
             )
 
-
     # ============================================================
     # LOAD MODELS
     # ============================================================
 
     from . import models
 
+    # ============================================================
+    # RETURN APPLICATION
+    # ============================================================
 
     return app
