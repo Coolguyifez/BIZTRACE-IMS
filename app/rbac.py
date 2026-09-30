@@ -5,7 +5,7 @@ from .models import (
     Permission,
     Role,
     RolePermission,
-    UserRole
+    UserRole,
 )
 
 
@@ -25,7 +25,6 @@ PERMISSIONS = [
         "group": "Dashboard",
     },
 
-
     # ========================================================
     # PRODUCTS
     # ========================================================
@@ -41,7 +40,6 @@ PERMISSIONS = [
         "description": "Create, edit, and delete products.",
         "group": "Products",
     },
-
 
     # ========================================================
     # CATEGORIES
@@ -59,7 +57,6 @@ PERMISSIONS = [
         "group": "Categories",
     },
 
-
     # ========================================================
     # INVENTORY
     # ========================================================
@@ -76,23 +73,21 @@ PERMISSIONS = [
         "group": "Inventory",
     },
 
-
     # ========================================================
     # SALES
     # ========================================================
 
     {
         "name": "view_sales",
-        "description": "View sales records.",
+        "description": "View & create sales records.",
         "group": "Sales",
     },
 
     {
         "name": "manage_sales",
-        "description": "Create, edit, and manage sales.",
+        "description": "Edit, and manage sales.",
         "group": "Sales",
     },
-
 
     # ========================================================
     # PURCHASES
@@ -110,7 +105,6 @@ PERMISSIONS = [
         "group": "Purchases",
     },
 
-
     # ========================================================
     # CUSTOMERS
     # ========================================================
@@ -126,7 +120,6 @@ PERMISSIONS = [
         "description": "Create, edit, and delete customers.",
         "group": "Customers",
     },
-
 
     # ========================================================
     # SUPPLIERS
@@ -144,7 +137,6 @@ PERMISSIONS = [
         "group": "Suppliers",
     },
 
-
     # ========================================================
     # EXPENSES
     # ========================================================
@@ -160,7 +152,6 @@ PERMISSIONS = [
         "description": "Create, edit, and manage expenses.",
         "group": "Expenses",
     },
-
 
     # ========================================================
     # PAYMENTS
@@ -178,7 +169,6 @@ PERMISSIONS = [
         "group": "Payments",
     },
 
-
     # ========================================================
     # RECEIVABLES
     # ========================================================
@@ -194,7 +184,6 @@ PERMISSIONS = [
         "description": "Manage receivables.",
         "group": "Receivables",
     },
-
 
     # ========================================================
     # CASH DEPOSITS
@@ -212,7 +201,6 @@ PERMISSIONS = [
         "group": "Cash Deposits",
     },
 
-
     # ========================================================
     # PAYABLES
     # ========================================================
@@ -228,7 +216,6 @@ PERMISSIONS = [
         "description": "Manage payables.",
         "group": "Payables",
     },
-
 
     # ========================================================
     # PRODUCTION
@@ -246,7 +233,6 @@ PERMISSIONS = [
         "group": "Production",
     },
 
-
     # ========================================================
     # REPORTS
     # ========================================================
@@ -256,7 +242,6 @@ PERMISSIONS = [
         "description": "View business reports.",
         "group": "Reports",
     },
-
 
     # ========================================================
     # USERS
@@ -273,7 +258,6 @@ PERMISSIONS = [
         "description": "Create, edit, deactivate, and manage company users.",
         "group": "Users",
     },
-
 
     # ========================================================
     # COMPANY
@@ -304,26 +288,23 @@ DEFAULT_ROLES = {
     # ========================================================
 
     "Company Administrator": {
-
-        "description":
-            "Full access to all company operations and administration.",
-
+        "description": (
+            "Full access to all company operations and administration."
+        ),
         "permissions": [
             permission["name"]
             for permission in PERMISSIONS
         ],
     },
 
-
     # ========================================================
     # SALES MANAGER
     # ========================================================
 
     "Sales Manager": {
-
-        "description":
-            "Manage sales operations and customer records.",
-
+        "description": (
+            "Manage sales operations and customer records."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -340,16 +321,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # SALES STAFF
     # ========================================================
 
     "Sales Staff": {
-
-        "description":
-            "Handle day-to-day sales operations.",
-
+        "description": (
+            "Handle day-to-day sales operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -364,16 +343,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # INVENTORY MANAGER
     # ========================================================
 
     "Inventory Manager": {
-
-        "description":
-            "Manage products, categories, and inventory.",
-
+        "description": (
+            "Manage products, categories, and inventory."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -393,16 +370,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # INVENTORY STAFF
     # ========================================================
 
     "Inventory Staff": {
-
-        "description":
-            "Handle inventory operations.",
-
+        "description": (
+            "Handle inventory operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -414,16 +389,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # PURCHASE MANAGER
     # ========================================================
 
     "Purchase Manager": {
-
-        "description":
-            "Manage purchases and supplier operations.",
-
+        "description": (
+            "Manage purchases and supplier operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -440,16 +413,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # PURCHASE STAFF
     # ========================================================
 
     "Purchase Staff": {
-
-        "description":
-            "Handle day-to-day purchasing operations.",
-
+        "description": (
+            "Handle day-to-day purchasing operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -463,21 +434,18 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # ACCOUNTANT
     # ========================================================
 
     "Accountant": {
-
-        "description":
-            "Manage financial records and financial operations.",
-
+        "description": (
+            "Manage financial records and financial operations."
+        ),
         "permissions": [
             "view_dashboard",
 
             "view_sales",
-
             "view_purchases",
 
             "view_expenses",
@@ -486,7 +454,6 @@ DEFAULT_ROLES = {
             "view_payments",
             "manage_payments",
 
-            # Cash deposits
             "view_cash_deposits",
             "manage_cash_deposits",
 
@@ -500,16 +467,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # PRODUCTION MANAGER
     # ========================================================
 
     "Production Manager": {
-
-        "description":
-            "Manage production operations.",
-
+        "description": (
+            "Manage production operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -523,16 +488,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # PRODUCTION STAFF
     # ========================================================
 
     "Production Staff": {
-
-        "description":
-            "Handle production operations.",
-
+        "description": (
+            "Handle production operations."
+        ),
         "permissions": [
             "view_dashboard",
 
@@ -544,16 +507,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-
     # ========================================================
     # CUSTOM ROLE
     # ========================================================
 
     "Custom Role": {
-
-        "description":
-            "Custom company role with configurable permissions.",
-
+        "description": (
+            "Custom company role with configurable permissions."
+        ),
         "permissions": [
             "view_dashboard",
         ],
@@ -567,16 +528,9 @@ DEFAULT_ROLES = {
 
 def seed_permissions():
     """
-    Create all platform-defined permissions.
+    Create and synchronize all platform permissions.
 
-    Existing permissions are NOT duplicated.
-
-    Existing permissions are also updated if their
-    description or permission group has changed.
-
-    Returns a dictionary containing:
-        created
-        updated
+    Permissions are global and are NOT tied to a company.
     """
 
     created = 0
@@ -587,10 +541,6 @@ def seed_permissions():
         permission = Permission.query.filter_by(
             name=data["name"]
         ).first()
-
-        # ----------------------------------------------------
-        # CREATE MISSING PERMISSION
-        # ----------------------------------------------------
 
         if permission is None:
 
@@ -604,31 +554,22 @@ def seed_permissions():
 
             created += 1
 
-            continue
+        else:
 
-        # ----------------------------------------------------
-        # UPDATE EXISTING PERMISSION
-        # ----------------------------------------------------
+            changed = False
 
-        changed = False
+            if permission.description != data["description"]:
+                permission.description = data["description"]
+                changed = True
 
-        if permission.description != data["description"]:
+            if permission.permission_group != data["group"]:
+                permission.permission_group = data["group"]
+                changed = True
 
-            permission.description = data["description"]
+            if changed:
+                updated += 1
 
-            changed = True
-
-        if permission.permission_group != data["group"]:
-
-            permission.permission_group = data["group"]
-
-            changed = True
-
-        if changed:
-
-            updated += 1
-
-    db.session.commit()
+    db.session.flush()
 
     return {
         "created": created,
@@ -637,35 +578,59 @@ def seed_permissions():
 
 
 # ============================================================
-# CREATE ROLE FOR COMPANY
+# GET PERMISSION MAP
+# ============================================================
+
+def get_permission_map():
+    """
+    Return all permissions as:
+
+        {
+            "permission_name": Permission object
+        }
+
+    This avoids repeatedly querying the same permission.
+    """
+
+    return {
+        permission.name: permission
+        for permission in Permission.query.all()
+    }
+
+
+# ============================================================
+# CREATE / SYNCHRONIZE COMPANY ROLE
 # ============================================================
 
 def create_company_role(
     company,
     role_name,
     description,
-    permission_names
+    permission_names,
+    permission_map=None,
 ):
     """
-    Create a role for a company and attach permissions.
+    Create or synchronize a company role.
 
-    Existing roles are reused.
+    Missing RolePermission records are added.
 
-    Missing permissions are automatically added
-    to the existing role.
+    Existing RolePermission records are preserved.
     """
 
+    if permission_map is None:
+        permission_map = get_permission_map()
+
     # --------------------------------------------------------
-    # FIND EXISTING ROLE
+    # FIND ROLE
     # --------------------------------------------------------
 
     role = Role.query.filter_by(
         company_id=company.id,
-        name=role_name
+        name=role_name,
     ).first()
 
     # --------------------------------------------------------
-    # CREATE ROLE IF IT DOES NOT EXIST
+    # CREATE ROLE
     # --------------------------------------------------------
 
     if role is None:
@@ -679,54 +644,47 @@ def create_company_role(
         )
 
         db.session.add(role)
-
         db.session.flush()
 
     else:
 
-        # Update description if it changed.
         if role.description != description:
-
             role.description = description
 
-        # Make sure the role remains active.
         if not role.is_active:
-
             role.is_active = True
 
     # --------------------------------------------------------
     # ATTACH PERMISSIONS
     # --------------------------------------------------------
 
+    added_permissions = 0
+
     for permission_name in permission_names:
 
-        permission = Permission.query.filter_by(
-            name=permission_name
-        ).first()
+        permission = permission_map.get(permission_name)
 
-        # Permission should already exist because
-        # seed_permissions() runs before this function.
         if permission is None:
             continue
 
         existing = RolePermission.query.filter_by(
             role_id=role.id,
-            permission_id=permission.id
+            permission_id=permission.id,
         ).first()
 
-        # Already attached.
-        if existing:
+        if existing is not None:
             continue
 
-        # Add missing permission.
         db.session.add(
             RolePermission(
                 role_id=role.id,
-                permission_id=permission.id
+                permission_id=permission.id,
             )
         )
 
-    return role
+        added_permissions += 1
+
+    return role, added_permissions
 
 
 # ============================================================
@@ -735,210 +693,48 @@ def create_company_role(
 
 def seed_company_roles(company):
     """
-    Create all default roles for a company.
-
-    This function also synchronizes missing permissions
-    for roles that already exist.
+    Create all default roles and attach their permissions.
     """
 
-    # --------------------------------------------------------
-    # MAKE SURE GLOBAL PERMISSIONS EXIST
-    # --------------------------------------------------------
+    permission_result = seed_permissions()
 
-    seed_permissions()
+    permission_map = get_permission_map()
 
     roles = {}
 
-    # --------------------------------------------------------
-    # CREATE / UPDATE ALL DEFAULT ROLES
-    # --------------------------------------------------------
+    created_roles = 0
+    added_permissions = 0
 
     for role_name, role_data in DEFAULT_ROLES.items():
 
-        role = create_company_role(
+        existing_role = Role.query.filter_by(
+            company_id=company.id,
+            name=role_name,
+        ).first()
+
+        if existing_role is None:
+            created_roles += 1
+
+        role, added = create_company_role(
             company=company,
             role_name=role_name,
             description=role_data["description"],
             permission_names=role_data["permissions"],
+            permission_map=permission_map,
         )
 
         roles[role_name] = role
 
-    db.session.commit()
+        added_permissions += added
 
-    return roles
-
-
-# ============================================================
-# SYNCHRONIZE EXISTING COMPANY ROLES
-# ============================================================
-
-def sync_company_roles(company):
-    """
-    Synchronize an existing company's roles with
-    DEFAULT_ROLES.
-
-    This is important when new permissions are added
-    to the application after companies already exist.
-
-    Example:
-
-        view_cash_deposits
-        manage_cash_deposits
-
-    will automatically be added to the appropriate
-    existing roles.
-
-    Existing permissions are NOT removed.
-
-    Returns the number of newly-created
-    RolePermission records.
-    """
-
-    # --------------------------------------------------------
-    # MAKE SURE ALL GLOBAL PERMISSIONS EXIST
-    # --------------------------------------------------------
-
-    seed_permissions()
-
-    added_permissions = 0
-    created_roles = 0
-
-    # --------------------------------------------------------
-    # LOOP THROUGH DEFAULT ROLES
-    # --------------------------------------------------------
-
-    for role_name, role_data in DEFAULT_ROLES.items():
-
-        role = Role.query.filter_by(
-            company_id=company.id,
-            name=role_name
-        ).first()
-
-        # ----------------------------------------------------
-        # CREATE MISSING ROLE
-        # ----------------------------------------------------
-
-        if role is None:
-
-            role = Role(
-                company_id=company.id,
-                name=role_name,
-                description=role_data["description"],
-                is_system_role=False,
-                is_active=True,
-            )
-
-            db.session.add(role)
-
-            db.session.flush()
-
-            created_roles += 1
-
-        else:
-
-            # Update role description if needed.
-            if role.description != role_data["description"]:
-
-                role.description = role_data["description"]
-
-            # Ensure default roles remain active.
-            if not role.is_active:
-
-                role.is_active = True
-
-        # ----------------------------------------------------
-        # ADD MISSING PERMISSIONS
-        # ----------------------------------------------------
-
-        for permission_name in role_data["permissions"]:
-
-            permission = Permission.query.filter_by(
-                name=permission_name
-            ).first()
-
-            if permission is None:
-                continue
-
-            existing = RolePermission.query.filter_by(
-                role_id=role.id,
-                permission_id=permission.id
-            ).first()
-
-            if existing:
-                continue
-
-            db.session.add(
-                RolePermission(
-                    role_id=role.id,
-                    permission_id=permission.id
-                )
-            )
-
-            added_permissions += 1
-
-    # --------------------------------------------------------
-    # COMMIT
-    # --------------------------------------------------------
-
-    db.session.commit()
+    db.session.flush()
 
     return {
-        "created_roles": created_roles,
-        "added_permissions": added_permissions,
-    }
-
-
-# ============================================================
-# SYNCHRONIZE ALL COMPANIES
-# ============================================================
-
-def sync_all_company_roles():
-    """
-    Synchronize RBAC for every company in the database.
-
-    This should be used when new permissions are added
-    to the application after companies already exist.
-
-    Returns a summary dictionary.
-    """
-
-    # --------------------------------------------------------
-    # MAKE SURE GLOBAL PERMISSIONS EXIST FIRST
-    # --------------------------------------------------------
-
-    permission_result = seed_permissions()
-
-    results = []
-
-    # --------------------------------------------------------
-    # LOOP THROUGH ALL COMPANIES
-    # --------------------------------------------------------
-
-    companies = Company.query.order_by(
-        Company.id.asc()
-    ).all()
-
-    for company in companies:
-
-        result = sync_company_roles(company)
-
-        results.append({
-            "company_id": company.id,
-            "company_name": company.name,
-            "created_roles": result["created_roles"],
-            "added_permissions": result["added_permissions"],
-        })
-
-    return {
-        "permissions_created":
-            permission_result["created"],
-
-        "permissions_updated":
-            permission_result["updated"],
-
-        "companies":
-            results,
+        "roles": roles,
+        "permissions_created": permission_result["created"],
+        "permissions_updated": permission_result["updated"],
+        "roles_created": created_roles,
+        "permissions_attached": added_permissions,
     }
 
 
@@ -949,21 +745,20 @@ def sync_all_company_roles():
 def assign_role_to_user(
     user,
     role,
-    assigned_by=None
+    assigned_by=None,
 ):
     """
-    Assign a role to a user without creating duplicates.
+    Assign a role to a user.
 
-    The caller is responsible for committing the transaction.
+    Does not create duplicate UserRole records.
     """
 
     existing = UserRole.query.filter_by(
         user_id=user.id,
-        role_id=role.id
+        role_id=role.id,
     ).first()
 
-    if existing:
-
+    if existing is not None:
         return existing
 
     user_role = UserRole(
@@ -971,7 +766,7 @@ def assign_role_to_user(
         role_id=role.id,
         assigned_by=(
             assigned_by.id
-            if assigned_by
+            if assigned_by is not None
             else None
         ),
     )
@@ -982,39 +777,51 @@ def assign_role_to_user(
 
 
 # ============================================================
+# FIND COMPANY ADMINISTRATORS
+# ============================================================
+
+def get_company_administrators(company):
+    """
+    Find users belonging to the company who are marked
+    as company administrators.
+
+    This function supports the existing BizTrace
+    is_company_admin flag.
+    """
+
+    return User.query.filter(
+        User.company_id == company.id,
+        User.is_company_admin.is_(True),
+    ).all()
+
+
+# ============================================================
 # INITIALIZE COMPANY RBAC
 # ============================================================
 
 def initialize_company_rbac(
     company,
     administrator=None,
-    assigned_by=None
+    assigned_by=None,
 ):
     """
-    Initialize RBAC for a company.
+    Fully initialize RBAC for one company.
 
-    Creates all default roles.
+    Creates:
+        permissions
+        roles
+        role_permissions
 
-    Creates all missing permissions.
-
-    Adds all missing permissions to the
-    appropriate company roles.
-
-    Optionally assigns the Company Administrator
-    role to the supplied administrator.
-
-    The caller is responsible for committing
-    the administrator assignment.
+    And optionally:
+        user_roles
     """
 
-    # --------------------------------------------------------
-    # CREATE / SYNCHRONIZE ROLES
-    # --------------------------------------------------------
+    result = seed_company_roles(company)
 
-    roles = seed_company_roles(company)
+    roles = result["roles"]
 
     # --------------------------------------------------------
-    # ASSIGN COMPANY ADMINISTRATOR
+    # ASSIGN SUPPLIED ADMINISTRATOR
     # --------------------------------------------------------
 
     if administrator is not None:
@@ -1023,7 +830,7 @@ def initialize_company_rbac(
             "Company Administrator"
         )
 
-        if admin_role:
+        if admin_role is not None:
 
             assign_role_to_user(
                 user=administrator,
@@ -1031,6 +838,247 @@ def initialize_company_rbac(
                 assigned_by=assigned_by,
             )
 
-            db.session.commit()
+    # --------------------------------------------------------
+    # ASSIGN EXISTING COMPANY ADMINISTRATORS
+    # --------------------------------------------------------
+    #
+    # This is important when migrating an existing database.
+    #
+    # --------------------------------------------------------
 
-    return roles
+    admin_role = roles.get(
+        "Company Administrator"
+    )
+
+    if admin_role is not None:
+
+        administrators = get_company_administrators(
+            company
+        )
+
+        for user in administrators:
+
+            assign_role_to_user(
+                user=user,
+                role=admin_role,
+                assigned_by=assigned_by,
+            )
+
+    db.session.flush()
+
+    return result
+
+
+# ============================================================
+# SYNCHRONIZE ONE COMPANY
+# ============================================================
+
+def sync_company_roles(company):
+    """
+    Synchronize one existing company.
+
+    This creates missing:
+        roles
+        role_permissions
+
+    It also assigns Company Administrator to users
+    marked as company administrators.
+    """
+
+    result = initialize_company_rbac(
+        company=company,
+    )
+
+    db.session.commit()
+
+    return {
+        "company_id": company.id,
+        "company_name": company.name,
+        "roles_created": result["roles_created"],
+        "permissions_created": result["permissions_created"],
+        "permissions_updated": result["permissions_updated"],
+        "permissions_attached": result["permissions_attached"],
+    }
+
+
+# ============================================================
+# SYNCHRONIZE ALL COMPANIES
+# ============================================================
+
+def sync_all_company_roles():
+    """
+    Synchronize RBAC for every company.
+
+    This is the function you should run when moving
+    an existing BizTrace installation to a new database.
+
+    It will populate:
+
+        permissions
+        roles
+        role_permissions
+        user_roles
+    """
+
+    # --------------------------------------------------------
+    # GLOBAL PERMISSIONS
+    # --------------------------------------------------------
+
+    permission_result = seed_permissions()
+
+    permission_map = get_permission_map()
+
+    # --------------------------------------------------------
+    # GET ALL COMPANIES
+    # --------------------------------------------------------
+
+    companies = Company.query.order_by(
+        Company.id.asc()
+    ).all()
+
+    company_results = []
+
+    total_roles_created = 0
+    total_permissions_attached = 0
+    total_admin_assignments = 0
+
+    # --------------------------------------------------------
+    # PROCESS EVERY COMPANY
+    # --------------------------------------------------------
+
+    for company in companies:
+
+        roles_created = 0
+        permissions_attached = 0
+        admin_assignments = 0
+
+        roles = {}
+
+        # ----------------------------------------------------
+        # CREATE / SYNCHRONIZE ROLES
+        # ----------------------------------------------------
+
+        for role_name, role_data in DEFAULT_ROLES.items():
+
+            existing_role = Role.query.filter_by(
+                company_id=company.id,
+                name=role_name,
+            ).first()
+
+            if existing_role is None:
+                roles_created += 1
+
+            role, added = create_company_role(
+                company=company,
+                role_name=role_name,
+                description=role_data["description"],
+                permission_names=role_data["permissions"],
+                permission_map=permission_map,
+            )
+
+            roles[role_name] = role
+
+            permissions_attached += added
+
+        db.session.flush()
+
+        # ----------------------------------------------------
+        # COMPANY ADMINISTRATORS
+        # ----------------------------------------------------
+
+        admin_role = roles.get(
+            "Company Administrator"
+        )
+
+        if admin_role is not None:
+
+            administrators = get_company_administrators(
+                company
+            )
+
+            for user in administrators:
+
+                existing_user_role = UserRole.query.filter_by(
+                    user_id=user.id,
+                    role_id=admin_role.id,
+                ).first()
+
+                if existing_user_role is None:
+
+                    assign_role_to_user(
+                        user=user,
+                        role=admin_role,
+                    )
+
+                    admin_assignments += 1
+
+        # ----------------------------------------------------
+        # COMPANY RESULT
+        # ----------------------------------------------------
+
+        company_results.append({
+            "company_id": company.id,
+            "company_name": company.name,
+            "roles_created": roles_created,
+            "permissions_attached": permissions_attached,
+            "admin_assignments": admin_assignments,
+        })
+
+        total_roles_created += roles_created
+        total_permissions_attached += permissions_attached
+        total_admin_assignments += admin_assignments
+
+    # --------------------------------------------------------
+    # COMMIT EVERYTHING
+    # --------------------------------------------------------
+
+    db.session.commit()
+
+    return {
+        "permissions_created": permission_result["created"],
+        "permissions_updated": permission_result["updated"],
+        "roles_created": total_roles_created,
+        "permissions_attached": total_permissions_attached,
+        "admin_assignments": total_admin_assignments,
+        "companies": company_results,
+    }
+
+
+# ============================================================
+# COMPLETE RBAC SEED
+# ============================================================
+
+def seed_all_rbac():
+    """
+    Complete RBAC initialization.
+
+    Use this when setting up a fresh database.
+
+    It creates:
+
+        1. Global permissions
+        2. Company roles
+        3. Role permissions
+        4. Company administrator user roles
+    """
+
+    return sync_all_company_roles()
+
+
+# ============================================================
+# CHECK RBAC STATUS
+# ============================================================
+
+def get_rbac_status():
+    """
+    Return a simple RBAC database status.
+    """
+
+    return {
+        "permissions": Permission.query.count(),
+        "roles": Role.query.count(),
+        "role_permissions": RolePermission.query.count(),
+        "user_roles": UserRole.query.count(),
+        "companies": Company.query.count(),
+        "users": User.query.count(),
+    }
