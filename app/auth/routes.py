@@ -177,8 +177,9 @@ def ensure_company_admin_rbac(
 
     The actual RBAC creation is handled by app.rbac.
 
-    This helper validates the result and provides logging
-    for authentication-related RBAC repair.
+    The User.is_company_admin property is read-only,
+    therefore the persisted User.role field is used as
+    the source of truth.
     """
 
     try:
@@ -235,27 +236,17 @@ def ensure_company_admin_rbac(
             return True
 
         # ----------------------------------------------------
-        # REPAIR ADMIN FLAG
+        # ENSURE ROLE FIELD
+        #
+        # is_company_admin is a read-only property.
+        # Do NOT assign to it.
         # ----------------------------------------------------
 
-        if not user.is_company_admin:
+        current_role = str(
+            getattr(user, "role", "") or ""
+        ).strip()
 
-            user.is_company_admin = True
-
-            current_app.logger.info(
-                "RBAC: Repaired is_company_admin=True "
-                "for User ID=%s.",
-                user.id,
-            )
-
-        # ----------------------------------------------------
-        # REPAIR ROLE FIELD
-        # ----------------------------------------------------
-
-        if (
-            str(user.role or "").strip()
-            != COMPANY_ADMIN_ROLE_NAME
-        ):
+        if current_role != COMPANY_ADMIN_ROLE_NAME:
 
             user.role = COMPANY_ADMIN_ROLE_NAME
 
@@ -1073,6 +1064,15 @@ def register():
             # CREATE COMPANY ADMIN
             # =================================================
 
+            # IMPORTANT:
+            # is_company_admin is a read-only property
+            # on User. Do NOT pass:
+            #
+            #     is_company_admin=True
+            #
+            # The Company Administrator status is represented
+            # by the persisted role field and UserRole record.
+
             user = User(
                 company_id=company.id,
 
@@ -1087,8 +1087,6 @@ def register():
                 role=COMPANY_ADMIN_ROLE_NAME,
 
                 is_active=True,
-
-                is_company_admin=True,
             )
 
             user.set_password(
