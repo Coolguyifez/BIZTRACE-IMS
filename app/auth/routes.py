@@ -11,20 +11,20 @@ from flask import (
     url_for,
     flash,
     request,
-    current_app
+    current_app,
 )
 
 from flask_login import (
     login_user,
     logout_user,
     login_required,
-    current_user
+    current_user,
 )
 
 from itsdangerous import (
     URLSafeTimedSerializer,
     BadSignature,
-    SignatureExpired
+    SignatureExpired,
 )
 
 from app.extensions import db
@@ -33,20 +33,28 @@ from app.auth.forms import LoginForm, RegistrationForm
 from app.rbac import initialize_company_rbac
 
 
+# ============================================================
+# BLUEPRINT
+# ============================================================
+
 auth_bp = Blueprint(
     "auth",
     __name__,
-    url_prefix="/auth"
+    url_prefix="/auth",
 )
 
 
-# =========================================================
-# PASSWORD RESET HELPERS
-# =========================================================
+# ============================================================
+# PASSWORD RESET SETTINGS
+# ============================================================
 
 RESET_TOKEN_SALT = "bizflow-password-reset-v1"
 RESET_TOKEN_MAX_AGE = 7200  # 2 hours
 
+
+# ============================================================
+# PASSWORD RESET HELPERS
+# ============================================================
 
 def get_reset_serializer():
 
@@ -57,10 +65,12 @@ def get_reset_serializer():
 
 def get_password_fingerprint(user):
 
+    password_hash = user.password_hash or ""
+
     return hmac.new(
         current_app.config["SECRET_KEY"].encode(),
-        user.password_hash.encode(),
-        sha256
+        password_hash.encode(),
+        sha256,
     ).hexdigest()
 
 
@@ -71,9 +81,9 @@ def generate_password_reset_token(user):
     return serializer.dumps(
         {
             "user_id": user.id,
-            "fingerprint": get_password_fingerprint(user)
+            "fingerprint": get_password_fingerprint(user),
         },
-        salt=RESET_TOKEN_SALT
+        salt=RESET_TOKEN_SALT,
     )
 
 
@@ -86,7 +96,7 @@ def verify_password_reset_token(token):
         data = serializer.loads(
             token,
             salt=RESET_TOKEN_SALT,
-            max_age=RESET_TOKEN_MAX_AGE
+            max_age=RESET_TOKEN_MAX_AGE,
         )
 
     except SignatureExpired:
@@ -94,6 +104,10 @@ def verify_password_reset_token(token):
         return None
 
     except BadSignature:
+
+        return None
+
+    if not isinstance(data, dict):
 
         return None
 
@@ -106,7 +120,7 @@ def verify_password_reset_token(token):
 
     user = db.session.get(
         User,
-        user_id
+        user_id,
     )
 
     if not user:
@@ -119,7 +133,7 @@ def verify_password_reset_token(token):
 
     if not hmac.compare_digest(
         fingerprint,
-        current_fingerprint
+        current_fingerprint,
     ):
 
         return None
@@ -127,14 +141,14 @@ def verify_password_reset_token(token):
     return user
 
 
-# =========================================================
+# ============================================================
 # SEND PASSWORD RESET EMAIL
 # RESEND
-# =========================================================
+# ============================================================
 
 def send_password_reset_email(
     user,
-    reset_url
+    reset_url,
 ):
 
     resend_api_key = current_app.config.get(
@@ -145,9 +159,9 @@ def send_password_reset_email(
         "RESEND_FROM_EMAIL"
     )
 
-    # -----------------------------------------------------
-    # CHECK RESEND CONFIGURATION
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # RESEND API KEY
+    # --------------------------------------------------------
 
     if not resend_api_key:
 
@@ -158,10 +172,14 @@ def send_password_reset_email(
 
         current_app.logger.error(
             "PASSWORD RESET URL: %s",
-            reset_url
+            reset_url,
         )
 
         return False
+
+    # --------------------------------------------------------
+    # SENDER EMAIL
+    # --------------------------------------------------------
 
     if not sender_email:
 
@@ -172,14 +190,14 @@ def send_password_reset_email(
 
         current_app.logger.error(
             "PASSWORD RESET URL: %s",
-            reset_url
+            reset_url,
         )
 
         return False
 
-    # -----------------------------------------------------
-    # GET ACTUAL USER EMAIL
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # RECIPIENT
+    # --------------------------------------------------------
 
     recipient_email = (
         user.email or ""
@@ -190,14 +208,14 @@ def send_password_reset_email(
         current_app.logger.error(
             "PASSWORD RESET EMAIL ERROR: "
             "User ID=%s has no email address.",
-            user.id
+            user.id,
         )
 
         return False
 
-    # -----------------------------------------------------
-    # LOG EMAIL DETAILS
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # LOG
+    # --------------------------------------------------------
 
     current_app.logger.info(
         "=================================================="
@@ -209,37 +227,37 @@ def send_password_reset_email(
 
     current_app.logger.info(
         "User ID: %s",
-        user.id
+        user.id,
     )
 
     current_app.logger.info(
         "Username: %s",
-        user.username
+        user.username,
     )
 
     current_app.logger.info(
         "DATABASE EMAIL / RECIPIENT: %s",
-        recipient_email
+        recipient_email,
     )
 
     current_app.logger.info(
         "RESEND SENDER: %s",
-        sender_email
+        sender_email,
     )
 
     current_app.logger.info(
         "=================================================="
     )
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     # CONFIGURE RESEND
-    # -----------------------------------------------------
+    # --------------------------------------------------------
 
     resend.api_key = resend_api_key
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
     # EMAIL HTML
-    # -----------------------------------------------------
+    # --------------------------------------------------------
 
     html_content = f"""
 <!DOCTYPE html>
@@ -255,9 +273,7 @@ def send_password_reset_email(
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Reset your BizTrace IMS password
-    </title>
+    <title>Reset your BizTrace IMS password</title>
 
 </head>
 
@@ -328,7 +344,6 @@ def send_password_reset_email(
 
             </div>
 
-
             <!-- CONTENT -->
 
             <h2
@@ -372,7 +387,6 @@ def send_password_reset_email(
                 Click the button below to create a new password.
             </p>
 
-
             <!-- BUTTON -->
 
             <div
@@ -400,7 +414,6 @@ def send_password_reset_email(
 
             </div>
 
-
             <!-- FALLBACK LINK -->
 
             <p
@@ -426,7 +439,6 @@ def send_password_reset_email(
             >
                 {reset_url}
             </p>
-
 
             <!-- SECURITY -->
 
@@ -455,7 +467,6 @@ def send_password_reset_email(
                 </p>
 
             </div>
-
 
             <!-- FOOTER -->
 
@@ -490,9 +501,9 @@ def send_password_reset_email(
 </html>
 """
 
-    # -----------------------------------------------------
-    # SEND THROUGH RESEND
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # SEND EMAIL
+    # --------------------------------------------------------
 
     try:
 
@@ -502,14 +513,14 @@ def send_password_reset_email(
 
         current_app.logger.info(
             "PASSWORD RESET: FINAL RECIPIENT = %s",
-            recipient_email
+            recipient_email,
         )
 
         params = {
             "from": sender_email,
             "to": [recipient_email],
             "subject": "Reset your BizTrace IMS password",
-            "html": html_content
+            "html": html_content,
         }
 
         response = resend.Emails.send(
@@ -522,12 +533,12 @@ def send_password_reset_email(
 
         current_app.logger.info(
             "PASSWORD RESET: Recipient = %s",
-            recipient_email
+            recipient_email,
         )
 
         current_app.logger.info(
             "PASSWORD RESET: Resend response = %s",
-            response
+            response,
         )
 
         return True
@@ -542,9 +553,9 @@ def send_password_reset_email(
         return False
 
 
-# =========================================================
+# ============================================================
 # WELCOME
-# =========================================================
+# ============================================================
 
 @auth_bp.route("/welcome")
 def welcome():
@@ -570,15 +581,19 @@ def welcome():
     )
 
 
-# =========================================================
+# ============================================================
 # LOGIN
-# =========================================================
+# ============================================================
 
 @auth_bp.route(
     "/login",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def login():
+
+    # --------------------------------------------------------
+    # ALREADY LOGGED IN
+    # --------------------------------------------------------
 
     if current_user.is_authenticated:
 
@@ -589,6 +604,9 @@ def login():
                     "system_admin.dashboard"
                 )
             )
+
+        # Do not redirect based on company status here.
+        # The global before_request handler handles access.
 
         return redirect(
             url_for(
@@ -601,48 +619,58 @@ def login():
     if form.validate_on_submit():
 
         email = (
-            form.email.data
-            .lower()
-            .strip()
-        )
+            form.email.data or ""
+        ).lower().strip()
+
+        password = form.password.data or ""
 
         user = User.query.filter_by(
             email=email
         ).first()
 
+        # ----------------------------------------------------
+        # INVALID LOGIN
+        # ----------------------------------------------------
+
         if (
             not user
-            or not user.check_password(
-                form.password.data
-            )
+            or not user.check_password(password)
         ):
 
             flash(
                 "Invalid email or password.",
-                "danger"
+                "danger",
             )
 
             return redirect(
                 url_for("auth.login")
             )
+
+        # ----------------------------------------------------
+        # USER DEACTIVATED
+        # ----------------------------------------------------
 
         if not user.is_active:
 
             flash(
                 "Your account has been deactivated. "
                 "Please contact your administrator.",
-                "danger"
+                "danger",
             )
 
             return redirect(
                 url_for("auth.login")
             )
 
+        # ----------------------------------------------------
+        # SYSTEM ADMIN
+        # ----------------------------------------------------
+
         if user.is_system_admin:
 
             login_user(
                 user,
-                remember=form.remember.data
+                remember=form.remember.data,
             )
 
             next_page = request.args.get(
@@ -650,10 +678,7 @@ def login():
             )
 
             if next_page:
-
-                return redirect(
-                    next_page
-                )
+                return redirect(next_page)
 
             return redirect(
                 url_for(
@@ -661,21 +686,29 @@ def login():
                 )
             )
 
+        # ----------------------------------------------------
+        # COMPANY REQUIRED
+        # ----------------------------------------------------
+
         if user.company_id is None:
 
             flash(
                 "Your account is not associated "
                 "with a company.",
-                "danger"
+                "danger",
             )
 
             return redirect(
                 url_for("auth.login")
             )
 
+        # ----------------------------------------------------
+        # GET COMPANY
+        # ----------------------------------------------------
+
         company = db.session.get(
             Company,
-            user.company_id
+            user.company_id,
         )
 
         if company is None:
@@ -683,26 +716,51 @@ def login():
             flash(
                 "Your company account could not "
                 "be found. Please contact support.",
-                "danger"
+                "danger",
             )
 
             return redirect(
                 url_for("auth.login")
             )
+
+        # ----------------------------------------------------
+        # COMPANY DEACTIVATED
+        # ----------------------------------------------------
+        #
+        # IMPORTANT:
+        #
+        # We DO NOT login the user.
+        #
+        # We render the login page directly instead of
+        # redirecting to /login again.
+        #
+        # This prevents:
+        #
+        # /login -> /login -> /login
+        #
+        # ----------------------------------------------------
 
         if not company.is_active:
+
             flash(
-                "COMPANY_DEACTIVATED",
-                "company_deactivated"
+                "Your company account has been deactivated. "
+                "Please contact the system administrator.",
+                "danger",
             )
 
-            return redirect(
-                url_for("auth.login")
+            return render_template(
+                "auth/login.html",
+                form=form,
+                company_deactivated=True,
             )
+
+        # ----------------------------------------------------
+        # LOGIN
+        # ----------------------------------------------------
 
         login_user(
             user,
-            remember=form.remember.data
+            remember=form.remember.data,
         )
 
         next_page = request.args.get(
@@ -721,19 +779,24 @@ def login():
             )
         )
 
+    # ========================================================
+    # GET / INVALID POST
+    # ========================================================
+
     return render_template(
         "auth/login.html",
-        form=form
+        form=form,
+        company_deactivated=False,
     )
 
 
-# =========================================================
+# ============================================================
 # REGISTER
-# =========================================================
+# ============================================================
 
 @auth_bp.route(
     "/register",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def register():
 
@@ -760,13 +823,13 @@ def register():
         try:
 
             company = Company(
-                name=form.company_name.data.strip(),
+                name=(
+                    form.company_name.data or ""
+                ).strip(),
 
                 email=(
-                    form.company_email.data
-                    .lower()
-                    .strip()
-                ),
+                    form.company_email.data or ""
+                ).lower().strip(),
 
                 phone=(
                     form.company_phone.data.strip()
@@ -780,7 +843,7 @@ def register():
                     else None
                 ),
 
-                is_active=True
+                is_active=True,
             )
 
             db.session.add(
@@ -792,17 +855,17 @@ def register():
             user = User(
                 company_id=company.id,
 
-                username=form.username.data.strip(),
+                username=(
+                    form.username.data or ""
+                ).strip(),
 
                 email=(
-                    form.email.data
-                    .lower()
-                    .strip()
-                ),
+                    form.email.data or ""
+                ).lower().strip(),
 
                 role="Company Administrator",
 
-                is_active=True
+                is_active=True,
             )
 
             user.set_password(
@@ -815,9 +878,13 @@ def register():
 
             db.session.flush()
 
+            # ------------------------------------------------
+            # INITIALIZE COMPANY RBAC
+            # ------------------------------------------------
+
             initialize_company_rbac(
                 company=company,
-                administrator=user
+                administrator=user,
             )
 
             db.session.commit()
@@ -833,21 +900,25 @@ def register():
             flash(
                 "We could not create your company "
                 "account. Please try again.",
-                "danger"
+                "danger",
             )
 
             return redirect(
                 url_for("auth.register")
             )
 
-        flash(
-            "Your company account has been "
-            "created successfully.",
-            "success"
-        )
+        # ----------------------------------------------------
+        # LOGIN NEW COMPANY ADMIN
+        # ----------------------------------------------------
 
         login_user(
             user
+        )
+
+        flash(
+            "Your company account has been "
+            "created successfully.",
+            "success",
         )
 
         return redirect(
@@ -858,17 +929,17 @@ def register():
 
     return render_template(
         "auth/register.html",
-        form=form
+        form=form,
     )
 
 
-# =========================================================
+# ============================================================
 # FORGOT PASSWORD
-# =========================================================
+# ============================================================
 
 @auth_bp.route(
     "/forgot-password",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def forgot_password():
 
@@ -893,7 +964,7 @@ def forgot_password():
         email = (
             request.form.get(
                 "email",
-                ""
+                "",
             )
             .lower()
             .strip()
@@ -903,7 +974,7 @@ def forgot_password():
             "PASSWORD RESET: "
             "Forgot-password request received "
             "for email=%s",
-            email
+            email,
         )
 
         user = User.query.filter_by(
@@ -918,12 +989,12 @@ def forgot_password():
 
             current_app.logger.info(
                 "PASSWORD RESET: User ID=%s",
-                user.id
+                user.id,
             )
 
             current_app.logger.info(
                 "PASSWORD RESET: DATABASE EMAIL=%s",
-                user.email
+                user.email,
             )
 
             try:
@@ -935,12 +1006,12 @@ def forgot_password():
                 reset_url = url_for(
                     "auth.reset_password",
                     token=token,
-                    _external=True
+                    _external=True,
                 )
 
                 email_sent = send_password_reset_email(
                     user,
-                    reset_url
+                    reset_url,
                 )
 
                 if email_sent:
@@ -971,15 +1042,14 @@ def forgot_password():
                 "No active account found."
             )
 
-        # -------------------------------------------------
+        # ----------------------------------------------------
         # GENERIC RESPONSE
-        # Prevent email/account enumeration.
-        # -------------------------------------------------
+        # ----------------------------------------------------
 
         flash(
             "If an account exists for that email, "
             "a password reset link has been sent.",
-            "success"
+            "success",
         )
 
         return redirect(
@@ -993,13 +1063,13 @@ def forgot_password():
     )
 
 
-# =========================================================
+# ============================================================
 # RESET PASSWORD
-# =========================================================
+# ============================================================
 
 @auth_bp.route(
     "/reset-password/<token>",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def reset_password(token):
 
@@ -1027,45 +1097,57 @@ def reset_password(token):
 
         return render_template(
             "auth/reset_password.html",
-            invalid_token=True
+            invalid_token=True,
         )
 
     if request.method == "POST":
 
         password = request.form.get(
             "password",
-            ""
+            "",
         )
 
         confirm_password = request.form.get(
             "confirm_password",
-            ""
+            "",
         )
+
+        # ----------------------------------------------------
+        # PASSWORD LENGTH
+        # ----------------------------------------------------
 
         if len(password) < 8:
 
             flash(
                 "Password must be at least 8 "
                 "characters long.",
-                "danger"
+                "danger",
             )
 
             return render_template(
                 "auth/reset_password.html",
-                invalid_token=False
+                invalid_token=False,
             )
+
+        # ----------------------------------------------------
+        # CONFIRM PASSWORD
+        # ----------------------------------------------------
 
         if password != confirm_password:
 
             flash(
                 "The passwords do not match.",
-                "danger"
+                "danger",
             )
 
             return render_template(
                 "auth/reset_password.html",
-                invalid_token=False
+                invalid_token=False,
             )
+
+        # ----------------------------------------------------
+        # UPDATE PASSWORD
+        # ----------------------------------------------------
 
         user.set_password(
             password
@@ -1076,7 +1158,7 @@ def reset_password(token):
         flash(
             "Your password has been reset successfully. "
             "You can now sign in.",
-            "success"
+            "success",
         )
 
         return redirect(
@@ -1085,17 +1167,17 @@ def reset_password(token):
 
     return render_template(
         "auth/reset_password.html",
-        invalid_token=False
+        invalid_token=False,
     )
 
 
-# =========================================================
+# ============================================================
 # PROFILE
-# =========================================================
+# ============================================================
 
 @auth_bp.route(
     "/profile",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def profile():
@@ -1104,19 +1186,19 @@ def profile():
 
         action = request.form.get(
             "action",
-            ""
+            "",
         ).strip()
 
-        # =================================================
-        # UPDATE PROFILE INFORMATION
-        # =================================================
+        # ====================================================
+        # UPDATE PROFILE
+        # ====================================================
 
         if action == "update_profile":
 
             username = (
                 request.form.get(
                     "username",
-                    ""
+                    "",
                 )
                 .strip()
             )
@@ -1124,7 +1206,7 @@ def profile():
             email = (
                 request.form.get(
                     "email",
-                    ""
+                    "",
                 )
                 .lower()
                 .strip()
@@ -1134,7 +1216,7 @@ def profile():
 
                 flash(
                     "Username is required.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1145,7 +1227,7 @@ def profile():
 
                 flash(
                     "Email address is required.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1154,7 +1236,7 @@ def profile():
 
             existing_user = User.query.filter(
                 User.email == email,
-                User.id != current_user.id
+                User.id != current_user.id,
             ).first()
 
             if existing_user:
@@ -1162,7 +1244,7 @@ def profile():
                 flash(
                     "That email address is already "
                     "being used by another account.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1170,39 +1252,38 @@ def profile():
                 )
 
             current_user.username = username
-
             current_user.email = email
 
             db.session.commit()
 
             flash(
                 "Your profile has been updated successfully.",
-                "success"
+                "success",
             )
 
             return redirect(
                 url_for("auth.profile")
             )
 
-        # =================================================
+        # ====================================================
         # CHANGE PASSWORD
-        # =================================================
+        # ====================================================
 
         if action == "change_password":
 
             current_password = request.form.get(
                 "current_password",
-                ""
+                "",
             )
 
             new_password = request.form.get(
                 "new_password",
-                ""
+                "",
             )
 
             confirm_password = request.form.get(
                 "confirm_password",
-                ""
+                "",
             )
 
             if not current_user.check_password(
@@ -1211,7 +1292,7 @@ def profile():
 
                 flash(
                     "Your current password is incorrect.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1223,7 +1304,7 @@ def profile():
                 flash(
                     "Your new password must be at least "
                     "8 characters long.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1234,7 +1315,7 @@ def profile():
 
                 flash(
                     "The new passwords do not match.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1248,7 +1329,7 @@ def profile():
                 flash(
                     "Your new password must be different "
                     "from your current password.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1263,35 +1344,35 @@ def profile():
 
             flash(
                 "Your password has been changed successfully.",
-                "success"
+                "success",
             )
 
             return redirect(
                 url_for("auth.profile")
             )
 
-        # =================================================
+        # ====================================================
         # APPEARANCE
-        # =================================================
+        # ====================================================
 
         if action == "update_appearance":
 
             theme = request.form.get(
                 "theme",
-                "system"
+                "system",
             ).strip().lower()
 
             allowed_themes = {
                 "light",
                 "dark",
-                "system"
+                "system",
             }
 
             if theme not in allowed_themes:
 
                 flash(
                     "Invalid theme selected.",
-                    "danger"
+                    "danger",
                 )
 
                 return redirect(
@@ -1304,16 +1385,16 @@ def profile():
 
             flash(
                 "Appearance settings have been updated.",
-                "success"
+                "success",
             )
 
             return redirect(
                 url_for("auth.profile")
             )
 
-        # =================================================
+        # ====================================================
         # NOTIFICATION PREFERENCES
-        # =================================================
+        # ====================================================
 
         if action == "update_notifications":
 
@@ -1345,16 +1426,16 @@ def profile():
 
             flash(
                 "Notification preferences have been updated.",
-                "success"
+                "success",
             )
 
             return redirect(
                 url_for("auth.profile")
             )
 
-        # =================================================
+        # ====================================================
         # SOUND PREFERENCES
-        # =================================================
+        # ====================================================
 
         if action == "update_sounds":
 
@@ -1398,25 +1479,29 @@ def profile():
 
             flash(
                 "Sound preferences have been updated.",
-                "success"
+                "success",
             )
 
             return redirect(
                 url_for("auth.profile")
             )
 
+        # ====================================================
+        # INVALID ACTION
+        # ====================================================
+
         flash(
             "Invalid profile action.",
-            "danger"
+            "danger",
         )
 
         return redirect(
             url_for("auth.profile")
         )
 
-    # =========================================================
+    # ========================================================
     # GET
-    # =========================================================
+    # ========================================================
 
     company = None
 
@@ -1424,19 +1509,19 @@ def profile():
 
         company = db.session.get(
             Company,
-            current_user.company_id
+            current_user.company_id,
         )
 
     return render_template(
         "auth/profile.html",
         user=current_user,
-        company=company
+        company=company,
     )
 
 
-# =========================================================
+# ============================================================
 # LOGOUT
-# =========================================================
+# ============================================================
 
 @auth_bp.route("/logout")
 @login_required
@@ -1446,7 +1531,7 @@ def logout():
 
     flash(
         "You have been logged out successfully.",
-        "success"
+        "success",
     )
 
     return redirect(
@@ -1454,16 +1539,38 @@ def logout():
     )
 
 
+# ============================================================
+# TERMS & CONDITIONS
+# ============================================================
 
 @auth_bp.route("/terms")
 def terms():
-    return render_template("legal/terms.html")
 
+    return render_template(
+        "legal/terms.html"
+    )
+
+
+# ============================================================
+# PRIVACY POLICY
+# ============================================================
 
 @auth_bp.route("/privacy")
 def privacy():
-    return render_template("legal/privacy.html")
+
+    return render_template(
+        "legal/privacy.html"
+    )
+
+
+# ============================================================
+# WELCOME GUIDE
+# ============================================================
 
 @auth_bp.route("/welcome-guide")
 def welcome_guide():
-    return render_template("auth/welcome_guide.html")
+
+    return render_template(
+        "auth/welcome_guide.html"
+    )
+
