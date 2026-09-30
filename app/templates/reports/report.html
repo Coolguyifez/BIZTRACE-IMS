@@ -234,6 +234,8 @@ Reports
 
         <!-- SALES -->
 
+        {% if current_user.has_permission("view_sales") %}
+
         <div class="col-12 col-sm-6 col-xl-3">
 
             <div class="stats-card h-100">
@@ -275,8 +277,12 @@ Reports
 
         </div>
 
+        {% endif %}
+
 
         <!-- COGS -->
+
+        {% if current_user.has_permission("view_purchases") %}
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -315,6 +321,8 @@ Reports
             </div>
 
         </div>
+
+        {% endif %}
 
 
         <!-- EXPENSES -->
@@ -366,6 +374,8 @@ Reports
 
         <!-- NET PROFIT -->
 
+        {% if current_user.has_permission("manage_purchases") %}
+
         <div class="col-12 col-sm-6 col-xl-3">
 
             <div class="stats-card h-100">
@@ -411,6 +421,9 @@ Reports
 
     </div>
 
+    {% endif %}
+   
+
 
     <!-- =====================================================
          PROFIT ANALYSIS
@@ -419,6 +432,8 @@ Reports
     <div class="row g-3 mb-4">
 
         <!-- GROSS PROFIT -->
+
+       {% if current_user.has_permission("manage_purchases") %}
 
         <div class="col-12 col-md-6">
 
@@ -463,8 +478,12 @@ Reports
 
         </div>
 
+        {% endif %}
+
 
         <!-- TOTAL PURCHASES -->
+
+        {% if current_user.has_permission("manage_purchases") %}
 
         <div class="col-12 col-md-6">
 
@@ -517,6 +536,8 @@ Reports
 
     </div>
 
+    {% endif %}
+
 
     <!-- =====================================================
          RECEIVABLES / PAYABLES
@@ -525,6 +546,8 @@ Reports
     <div class="row g-3 mb-4">
 
         <!-- RECEIVABLES -->
+
+        {% if current_user.has_permission("view_sales") %}
 
         <div class="col-12 col-md-6">
 
@@ -563,9 +586,12 @@ Reports
             </div>
 
         </div>
+        {% endif %}
 
 
         <!-- PAYABLES -->
+
+        {% if current_user.has_permission("view_purchases") %}
 
         <div class="col-12 col-md-6">
 
@@ -606,6 +632,8 @@ Reports
         </div>
 
     </div>
+
+    {% endif %}
 
 
     <!-- =====================================================
@@ -695,6 +723,8 @@ Reports
 
         <!-- PURCHASE PAYMENT STATUS -->
 
+        {% if current_user.has_permission("view_purchases") %}
+
         <div class="col-12 col-xl-6">
 
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -772,6 +802,8 @@ Reports
         </div>
 
     </div>
+
+    {% endif %}
 
 
     <!-- =====================================================
@@ -871,6 +903,8 @@ Reports
 
         <!-- DAILY PURCHASES -->
 
+        {% if current_user.has_permission("view_purchases") %}
+
         <div class="col-12 col-xl-6">
 
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -962,6 +996,8 @@ Reports
 
     </div>
 
+    {% endif %}
+
 
     <!-- =====================================================
          DETAILED REPORTS
@@ -986,6 +1022,8 @@ Reports
             <div class="row g-3">
 
                 <!-- SALES REPORT -->
+
+                {% if current_user.has_permission("view_sales") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1016,8 +1054,12 @@ Reports
 
                 </div>
 
+                {% endif %}
+
 
                 <!-- PAYMENT REPORT -->
+
+                {% if current_user.has_permission("view_payments") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1048,8 +1090,12 @@ Reports
 
                 </div>
 
+                {% endif %}
+
 
                 <!-- RECEIVABLES REPORT -->
+
+                {% if current_user.has_permission("view_receivables") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1079,9 +1125,12 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- PAYABLES REPORT -->
+
+                {% if current_user.has_permission("view_payables") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1112,8 +1161,12 @@ Reports
 
                 </div>
 
+                {% endif %}
+
 
                 <!-- PROFIT & LOSS -->
+
+                {% if current_user.has_permission("manage_purchases") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1143,9 +1196,12 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- PURCHASE REPORT -->
+
+                {% if current_user.has_permission("view_purchases") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1175,6 +1231,7 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- EXPENSE REPORT -->
@@ -1211,6 +1268,8 @@ Reports
 
                 <!-- INVENTORY REPORT -->
 
+                {% if current_user.has_permission("view_inventory") %}
+
                 <div class="col-12 col-md-6 col-xl-3">
 
                     <a
@@ -1239,9 +1298,12 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- STAFF REPORT -->
+
+                {% if current_user.has_permission("view_roles") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1271,9 +1333,12 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- CUSTOMER REPORT -->
+
+                {% if current_user.has_permission("view_sales") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1303,9 +1368,12 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
 
                 <!-- CASH DEPOSIT REPORT -->
+
+                {% if current_user.has_permission("manage_cash_deposits") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
@@ -1335,6 +1403,7 @@ Reports
                     </a>
 
                 </div>
+                {% endif %}
 
             </div>
 
@@ -1503,6 +1572,8 @@ Reports
          RECENT PURCHASES
     ====================================================== -->
 
+    {% if current_user.has_permission("view_purchases") %}
+
     <div class="card border-0 shadow-sm rounded-4 mb-4">
 
         <div class="card-header bg-transparent border-0 p-4 pb-2">
@@ -1532,6 +1603,7 @@ Reports
             </div>
 
         </div>
+        
 
 
         <div class="card-body p-0">
@@ -1653,6 +1725,8 @@ Reports
         </div>
 
     </div>
+
+    {% endif %}
 
 
     <!-- =====================================================
@@ -1791,6 +1865,8 @@ Reports
          REPORT NOTE
     ====================================================== -->
 
+    {% if current_user.has_permission("manage_sales") %}
+
     <div class="alert alert-warning border-0 rounded-4">
 
         <div class="d-flex align-items-start gap-3">
@@ -1814,6 +1890,7 @@ Reports
         </div>
 
     </div>
+    {% endif %}
 
 
     <!-- =====================================================
