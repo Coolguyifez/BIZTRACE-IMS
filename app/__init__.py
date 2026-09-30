@@ -110,6 +110,16 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # ============================================================
+    # LOGIN MANAGER SETTINGS
+    # ============================================================
+
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = (
+        "Please log in to access this page."
+    )
+    login_manager.login_message_category = "info"
+
+    # ============================================================
     # REGISTER BLUEPRINTS
     # ============================================================
 
@@ -133,6 +143,10 @@ def create_app(config_class=Config):
     from app.support import support_bp
     from app.search import search_bp
 
+    # ------------------------------------------------------------
+    # REGISTER
+    # ------------------------------------------------------------
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(products_bp)
@@ -144,6 +158,7 @@ def create_app(config_class=Config):
     app.register_blueprint(receivables_bp)
     app.register_blueprint(payables_bp)
     app.register_blueprint(system_admin_bp)
+
     app.register_blueprint(company_admin_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(main_bp)
@@ -158,7 +173,9 @@ def create_app(config_class=Config):
 
     @app.route("/offline")
     def offline():
-        return render_template("offline.html")
+        return render_template(
+            "offline.html"
+        )
 
     # ============================================================
     # SERVICE WORKER
@@ -197,7 +214,8 @@ def create_app(config_class=Config):
 
         message = (
             settings.maintenance_message
-            if settings and settings.maintenance_message
+            if settings
+            and settings.maintenance_message
             else (
                 "The system is currently undergoing maintenance. "
                 "Please try again later."
@@ -350,24 +368,6 @@ def create_app(config_class=Config):
     # ============================================================
     # RBAC SYNCHRONIZATION CLI
     # ============================================================
-    #
-    # This command:
-    #
-    # 1. Creates missing permissions
-    # 2. Creates missing company roles
-    # 3. Adds missing role permissions
-    # 4. Synchronizes existing company roles
-    # 5. Assigns Company Administrator role to company admins
-    #
-    # It is intentionally idempotent, meaning it can safely be
-    # executed multiple times.
-    #
-    # Render can run:
-    #
-    # flask db upgrade
-    # flask rbac-sync
-    #
-    # ============================================================
 
     @app.cli.command("rbac-sync")
     def rbac_sync_command():
@@ -398,10 +398,6 @@ def create_app(config_class=Config):
                 "RBAC synchronization completed successfully."
             )
             click.echo("")
-
-            # ----------------------------------------------------
-            # DISPLAY RESULT
-            # ----------------------------------------------------
 
             if isinstance(result, dict):
 
@@ -436,21 +432,16 @@ def create_app(config_class=Config):
             click.echo(
                 "=============================================="
             )
-
             click.echo("")
+
             click.echo(
                 f"Error: {e}"
             )
 
             click.echo("")
 
-            # ----------------------------------------------------
-            # Rollback failed transaction
-            # ----------------------------------------------------
-
             db.session.rollback()
 
-            # Re-raise so Render marks the build as failed.
             raise
 
     # ============================================================
@@ -460,40 +451,108 @@ def create_app(config_class=Config):
     @app.before_request
     def enforce_company_access():
 
-        # --------------------------------------------------------
-        # PWA SERVICE WORKER
-        # --------------------------------------------------------
+        # ========================================================
+        # PUBLIC / SPECIAL ROUTES
+        # ========================================================
         #
-        # The service worker must always be served directly.
-        # It must not be redirected to login or maintenance.
+        # These routes MUST be allowed before authentication and
+        # company checks.
+        #
+        # This prevents redirect loops such as:
+        #
+        # /login -> /login -> /login
+        #
+        # and:
+        #
+        # /maintenance -> /maintenance
+        #
+        # ========================================================
+
+        # --------------------------------------------------------
+        # SERVICE WORKER
         # --------------------------------------------------------
 
         if request.path == "/service-worker.js":
-            return
+            return None
 
         # --------------------------------------------------------
-        # 1. PUBLIC USERS
+        # OFFLINE PAGE
         # --------------------------------------------------------
+
+        if request.endpoint == "offline":
+            return None
+
+        # --------------------------------------------------------
+        # MAINTENANCE PAGE
+        # --------------------------------------------------------
+
+        if request.endpoint == "maintenance":
+            return None
+
+        # --------------------------------------------------------
+        # PUBLIC AUTHENTICATION ROUTES
+        # --------------------------------------------------------
+        #
+        # IMPORTANT:
+        #
+        # Do NOT force these routes through company validation.
+        #
+        # A user who is logged out must be able to access:
+        #
+        # - Login
+        # - Registration
+        # - Forgot password
+        # - Reset password
+        # - Terms
+        # - Privacy
+        #
+        # ========================================================
+
+        public_endpoints = {
+            "auth.login",
+            "auth.register",
+            "auth.logout",
+            "auth.forgot_password",
+            "auth.reset_password",
+            "auth.terms",
+            "auth.privacy",
+        }
+
+        if request.endpoint in public_endpoints:
+            return None
+
+        # ========================================================
+        # NOT AUTHENTICATED
+        # ========================================================
+        #
+        # Do not perform company validation for logged-out users.
+        #
+        # Flask-Login's @login_required will handle protected
+        # routes normally.
+        #
+        # ========================================================
 
         if not current_user.is_authenticated:
-            return
+            return None
 
-        # --------------------------------------------------------
-        # 2. SYSTEM ADMINISTRATOR
-        # --------------------------------------------------------
+        # ========================================================
+        # SYSTEM ADMINISTRATOR
+        # ========================================================
         #
-        # SYSTEM ADMINISTRATORS ARE NEVER BLOCKED BY
-        # MAINTENANCE MODE.
+        # System administrators:
         #
-        # This MUST happen before the maintenance check.
-        # --------------------------------------------------------
+        # - Do not require company_id
+        # - Are not blocked by company status
+        # - Are not blocked by maintenance mode
+        #
+        # ========================================================
 
         if current_user.is_system_admin:
-            return
+            return None
 
-        # --------------------------------------------------------
-        # 3. COMPANY ID CHECK
-        # --------------------------------------------------------
+        # ========================================================
+        # COMPANY ID CHECK
+        # ========================================================
 
         if current_user.company_id is None:
 
@@ -508,9 +567,9 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-        # --------------------------------------------------------
-        # 4. FIND COMPANY
-        # --------------------------------------------------------
+        # ========================================================
+        # FIND COMPANY
+        # ========================================================
 
         company = db.session.get(
             Company,
@@ -530,9 +589,9 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-        # --------------------------------------------------------
-        # 5. COMPANY ACTIVE CHECK
-        # --------------------------------------------------------
+        # ========================================================
+        # COMPANY ACTIVE CHECK
+        # ========================================================
 
         if not company.is_active:
 
@@ -548,9 +607,9 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-        # --------------------------------------------------------
-        # 6. USER ACTIVE CHECK
-        # --------------------------------------------------------
+        # ========================================================
+        # USER ACTIVE CHECK
+        # ========================================================
 
         if not current_user.is_active:
 
@@ -565,34 +624,22 @@ def create_app(config_class=Config):
                 url_for("auth.login")
             )
 
-        # --------------------------------------------------------
-        # 7. MAINTENANCE MODE
-        # --------------------------------------------------------
-        #
-        # At this point:
-        #
-        # - User is authenticated
-        # - User is NOT a System Administrator
-        # - User belongs to a company
-        # - Company exists
-        # - Company is active
-        # - User is active
-        #
-        # Therefore maintenance mode only affects
-        # Company Administrators and Staff.
-        # --------------------------------------------------------
+        # ========================================================
+        # MAINTENANCE MODE
+        # ========================================================
 
         settings = SystemSetting.query.first()
 
         if (
             settings
             and settings.maintenance_mode
-            and request.endpoint != "maintenance"
         ):
 
             return redirect(
                 url_for("maintenance")
             )
+
+        return None
 
     # ============================================================
     # LOAD MODELS
