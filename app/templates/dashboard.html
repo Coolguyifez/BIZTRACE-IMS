@@ -575,7 +575,7 @@ Dashboard
 <!-- =====================================================
      SALES & PURCHASES — FOUR PERIODS
 ====================================================== -->
-{% if current_user.has_permission("manage_purchases") %}
+{% if current_user.has_permission("view_users") %}
 <div class="sales-purchase-panel mb-4">
 
     <div class="sales-purchase-header">
@@ -1066,7 +1066,7 @@ Dashboard
 
     <!-- INVENTORY -->
 
-    {% if current_user.has_permission("manage_inventory") %}
+    {% if current_user.has_permission("view_users") %}
 
     <div class="col-12 col-sm-6 col-xl-3">
 
