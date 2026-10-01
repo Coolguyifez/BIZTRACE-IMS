@@ -282,7 +282,7 @@ Reports
 
         <!-- COGS -->
 
-        {% if current_user.has_permission("view_purchases") %}
+        {% if current_user.has_permission("view_users") %}
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -374,7 +374,7 @@ Reports
 
         <!-- NET PROFIT -->
 
-        {% if current_user.has_permission("manage_purchases") %}
+        {% if current_user.has_permission("view_users") %}
 
         <div class="col-12 col-sm-6 col-xl-3">
 
@@ -433,7 +433,7 @@ Reports
 
         <!-- GROSS PROFIT -->
 
-       {% if current_user.has_permission("manage_purchases") %}
+       {% if current_user.has_permission("view_users") %}
 
         <div class="col-12 col-md-6">
 
@@ -1166,7 +1166,7 @@ Reports
 
                 <!-- PROFIT & LOSS -->
 
-                {% if current_user.has_permission("manage_purchases") %}
+                {% if current_user.has_permission("view_users") %}
 
                 <div class="col-12 col-md-6 col-xl-3">
 
