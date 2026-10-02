@@ -140,6 +140,10 @@
                         </th>
 
                         <th>
+                            Note
+                        </th>
+
+                        <th>
                             Status
                         </th>
 
@@ -242,6 +246,11 @@
 
                             {{ format_currency(supplier.opening_balance) }}
 
+                        </td>
+
+
+                        <td class="text-muted text-wrap">
+                            {{supplier.notes | replace('\n', '<br>') | safe}}
                         </td>
 
 
