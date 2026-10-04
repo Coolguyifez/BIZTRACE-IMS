@@ -433,9 +433,9 @@ DEFAULT_ROLES = {
         ],
     },
 
-    "Viewiers": {
+    "Viewer": {
         "description": (
-            "Visitors."
+            "Visitor."
         ),
         "permissions": [
             "view_dashboard",
