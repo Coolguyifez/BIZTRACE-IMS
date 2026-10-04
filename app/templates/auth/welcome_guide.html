@@ -1668,71 +1668,13 @@
                         structure for common business responsibilities.
                         The exact permissions available to a role can be
                         adjusted according to your application's permission
-                        configuration.
+                        configurations. <p class="text-danger">Note: Whatever permission is missing in a default role will be re-registered when system updates.</p>
                     </p>
 
                 </div>
 
 
                 <div class="roles-grid">
-
-                    <!-- SYSTEM ADMIN -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-shield-lock"></i>
-                        </div>
-
-                        <h3>System Admin</h3>
-
-                        <p>
-                            Manages system-level configuration and
-                            administrative functions across the platform.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    System Settings
-                                </span>
-
-                                <span class="permission">
-                                    Companies
-                                </span>
-
-                                <span class="permission">
-                                    Company Admin
-                                </span>
-
-                                <span class="permission">
-                                    Users
-                                </span>
-
-                                <span class="permission">
-                                    Roles
-                                </span>
-
-                                <span class="permission">
-                                    Permissions
-                                </span>
-
-                                <span class="permission">
-                                    Notifications
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
 
                     <!-- COMPANY ADMIN -->
 
@@ -1745,8 +1687,7 @@
                         <h3>Company Admin</h3>
 
                         <p>
-                            Manages the company's settings, users,
-                            permissions and business operations.
+                            Full access to all company operations and administration.
                         </p>
 
                         <div class="role-permissions">
@@ -1758,201 +1699,15 @@
                             <div class="permission-list">
 
                                 <span class="permission">
-                                    Dashboard
+                                    View Dashboard
                                 </span>
 
                                 <span class="permission">
-                                    Products
+                                    View Inventory
                                 </span>
 
                                 <span class="permission">
-                                    Sales
-                                </span>
-
-                                <span class="permission">
-                                    Purchases
-                                </span>
-
-                                <span class="permission">
-                                    Expenses
-                                </span>
-
-                                <span class="permission">
-                                    Customers
-                                </span>
-
-                                <span class="permission">
-                                    Suppliers
-                                </span>
-
-                                <span class="permission">
-                                    Payments
-                                </span>
-
-                                <span class="permission">
-                                    Reports
-                                </span>
-
-                                <span class="permission">
-                                    Users
-                                </span>
-
-                                <span class="permission">
-                                    Roles
-                                </span>
-
-                                <span class="permission">
-                                    Settings
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- QUALITY MANAGER / OPERATIONS MANAGER STYLE -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-clipboard-data"></i>
-                        </div>
-
-                        <h3>Manager</h3>
-
-                        <p>
-                            Oversees business activities and reviews
-                            operational information and reports.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
-                                </span>
-
-                                <span class="permission">
-                                    Products
-                                </span>
-
-                                <span class="permission">
-                                    Sales
-                                </span>
-
-                                <span class="permission">
-                                    Purchases
-                                </span>
-
-                                <span class="permission">
-                                    Expenses
-                                </span>
-
-                                <span class="permission">
-                                    Customers
-                                </span>
-
-                                <span class="permission">
-                                    Suppliers
-                                </span>
-
-                                <span class="permission">
-                                    Reports
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- SALES -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-receipt"></i>
-                        </div>
-
-                        <h3>Sales Staff</h3>
-
-                        <p>
-                            Handles customer sales and related customer
-                            transactions.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
-                                </span>
-
-                                <span class="permission">
-                                    View Products
-                                </span>
-
-                                <span class="permission">
-                                    Create Sales
-                                </span>
-
-                                <span class="permission">
-                                    View Sales
-                                </span>
-
-                                <span class="permission">
-                                    Customers
-                                </span>
-
-                                <span class="permission">
-                                    Payments
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- INVENTORY -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-
-                        <h3>Inventory Staff</h3>
-
-                        <p>
-                            Manages products, stock information and
-                            inventory-related activities.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
+                                    Manage Inventory
                                 </span>
 
                                 <span class="permission">
@@ -1964,153 +1719,220 @@
                                 </span>
 
                                 <span class="permission">
-                                    Stock
-                                </span>
-
-                                <span class="permission">
-                                    Purchases
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ACCOUNTANT -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-calculator"></i>
-                        </div>
-
-                        <h3>Accountant</h3>
-
-                        <p>
-                            Handles financial records, expenses, payments
-                            and financial reporting.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
-                                </span>
-
-                                <span class="permission">
-                                    Sales
-                                </span>
-
-                                <span class="permission">
-                                    Purchases
-                                </span>
-
-                                <span class="permission">
-                                    Expenses
-                                </span>
-
-                                <span class="permission">
-                                    Payments
-                                </span>
-
-                                <span class="permission">
-                                    Reports
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- OPERATOR -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-person-workspace"></i>
-                        </div>
-
-                        <h3>Operator</h3>
-
-                        <p>
-                            Performs assigned day-to-day operational
-                            activities with limited system access.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
-                                </span>
-
-                                <span class="permission">
-                                    View Products
-                                </span>
-
-                                <span class="permission">
-                                    Assigned Operations
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- VIEWER -->
-
-                    <div class="role-card">
-
-                        <div class="role-icon">
-                            <i class="bi bi-eye"></i>
-                        </div>
-
-                        <h3>Viewer</h3>
-
-                        <p>
-                            Provides read-only access to information without
-                            allowing normal transaction management.
-                        </p>
-
-                        <div class="role-permissions">
-
-                            <span class="permission-label">
-                                Typical access
-                            </span>
-
-                            <div class="permission-list">
-
-                                <span class="permission">
-                                    Dashboard
-                                </span>
-
-                                <span class="permission">
-                                    View Products
-                                </span>
-
-                                <span class="permission">
                                     View Sales
                                 </span>
 
                                 <span class="permission">
+                                    Manage Sales
+                                </span>
+
+                                <span class="permission">
                                     View Purchases
+                                </span>
+
+                                <span class="permission">
+                                    Manage Purchases
+                                </span>
+
+                                <span class="permission">
+                                    View Category
+                                </span>
+
+                                <span class="permission">
+                                    Manage Category
+                                </span>
+
+                                <span class="permission">
+                                   View Expenses
+                                </span>
+
+                                <span class="permission">
+                                    Manage Expenses
+                                </span>
+
+                                <span class="permission">
+                                    View Customers
+                                </span>
+
+                                <span class="permission">
+                                    Manage Customers
+                                </span>
+
+                                <span class="permission">
+                                    View Suppliers
+                                </span>
+
+                                <span class="permission">
+                                    Manage Suppliers
+                                </span>
+
+                                <span class="permission">
+                                    View Payments
+                                </span>
+
+                                <span class="permission">
+                                    Manage Payments
+                                </span>
+
+                                <span class="permission">
+                                    View Payables
+                                </span>
+
+                                <span class="permission">
+                                    Manage Payables
+                                </span>
+                                <span class="permission">
+                                    View Receivables
+                                </span>
+
+                                <span class="permission">
+                                    Manage Receivables
+                                </span>
+
+                                <span class="permission">
+                                    View Cash Deposits
+                                </span>
+
+                                <span class="permission">
+                                    Manage Cash Deposits
+                                </span>
+
+                                <span class="permission">
+                                    View Reports
+                                </span>
+
+                                <span class="permission">
+                                    View Users
+                                </span>
+
+                                <span class="permission">
+                                    Manage Users
+                                </span>
+
+                                <span class="permission">
+                                    View Company
+                                </span>
+
+                                <span class="permission">
+                                    Manage Company
+                                </span>
+
+                                 <span class="permission">
+                                    View Production
+                                </span>
+
+                                <span class="permission">
+                                    Manage Production
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- VIEWERS -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Viewers</h3>
+
+                        <p>
+                            Visitors.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Users
+                                </span>
+
+                                <span class="permission">
+                                    View Production
+                                </span>
+
+                                <span class="permission">
+                                    View report
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INVENTORY MANAGER -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Inventory Manager</h3>
+
+                        <p>
+                            Manage products, categories, and inventory.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    Manage Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    Manage Products
+                                </span>
+
+                                <span class="permission">
+                                    View Purchases
+                                </span>
+
+                                <span class="permission">
+                                    View Category
+                                </span>
+
+                                <span class="permission">
+                                    Manage Category
+                                </span>
+
+                                <span class="permission">
+                                    View Suppliers
                                 </span>
 
                                 <span class="permission">
@@ -2123,6 +1945,477 @@
 
                     </div>
 
+
+                    <!-- INVENTORY STAFF -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Inventory Staff</h3>
+
+                        <p>
+                           Handle inventory operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    Manage Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Category
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PRODUCTION MANAGER -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Production Manager</h3>
+
+                        <p>
+                            Manage production operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Reports
+                                </span>
+
+                                <span class="permission">
+                                    View Production
+                                </span>
+
+                                <span class="permission">
+                                    Manage Production
+                                </span>
+                                
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PRODUCTION STAFF -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Production Staff</h3>
+
+                        <p>
+                            Handle production operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+                                
+                                <span class="permission">
+                                    View Prodcution
+                                </span>
+
+                                <span class="permission">
+                                    Manage Production
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PURCHASE MANAGER -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Purchase Manager</h3>
+
+                        <p>
+                            Manage purchases and supplier operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Purchases
+                                </span>
+
+                                <span class="permission">
+                                    Manage Purchases
+                                </span>
+
+                                <span class="permission">
+                                    View Suppliers
+                                </span>
+
+                                <span class="permission">
+                                    Manage Suppliers
+                                </span>
+
+                                <span class="permission">
+                                    View Reports
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PURCHASE STAFF -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Purchase Staff</h3>
+
+                        <p>
+                            Handle day-to-day purchasing operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Purchases
+                                </span>
+
+                                <span class="permission">
+                                    Manage Purchases
+                                </span>
+
+                                <span class="permission">
+                                    View Suppliers
+                                </span>
+
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALES MANAGER -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Sales Manger</h3>
+
+                        <p>
+                            manage sales operations and customer records.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Sales
+                                </span>
+
+                                <span class="permission">
+                                    Manage Sales
+                                </span>
+
+                                <span class="permission">
+                                    View Customers
+                                </span>
+
+                                <span class="permission">
+                                    Manage Customers
+                                </span>
+
+                                <span class="permission">
+                                    View Reports
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALES STAFF-->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Sales Staff</h3>
+
+                        <p>
+                            Handle day-to-day sales operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Inventory
+                                </span>
+
+                                <span class="permission">
+                                    View Products
+                                </span>
+
+                                <span class="permission">
+                                    View Sales
+                                </span>
+
+                                <span class="permission">
+                                    Manage Sales
+                                </span>
+
+                                <span class="permission">
+                                    View Customers
+                                </span>
+
+                                <span class="permission">
+                                    Manage Customers
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!--ACCOUNTANT -->
+
+                    <div class="role-card">
+
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+
+                        <h3>Accountant</h3>
+
+                        <p>
+                            Manage financial records and financial operations.
+                        </p>
+
+                        <div class="role-permissions">
+
+                            <span class="permission-label">
+                                Typical access
+                            </span>
+
+                            <div class="permission-list">
+
+                                <span class="permission">
+                                    View Dashboard
+                                </span>
+
+                                <span class="permission">
+                                    View Sales
+                                </span>
+
+                                
+                                <span class="permission">
+                                   View Expenses
+                                </span>
+
+                                <span class="permission">
+                                    Manage Expenses
+                                </span>
+
+                                
+                                <span class="permission">
+                                    View Payments
+                                </span>
+
+                                <span class="permission">
+                                    Manage Payments
+                                </span>
+
+                                <span class="permission">
+                                    View Payables
+                                </span>
+
+                                <span class="permission">
+                                    Manage Payables
+                                </span>
+                                
+                                <span class="permission">
+                                    View Receivables
+                                </span>
+
+                                <span class="permission">
+                                    Manage Receivables
+                                </span>
+
+                                <span class="permission">
+                                    View Cash Deposits
+                                </span>
+
+                                <span class="permission">
+                                    Manage Cash Deposits
+                                </span>
+
+                                <span class="permission">
+                                    View Reports
+                                </span>
+
+                                <span class="permission">
+                                    View Purchases
+                                </span>
+
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    
                 </div>
 
 
@@ -2554,8 +2847,22 @@
                         </li>
 
                         <li>
+                            Install Store keep Unit (SKU) code e.g BT-001 to all your peoduct for easy identification.
+                        </li>
+
+                        <li>
+                            Specify product category, e.g Electronics and Product Unit e.g Item, 1kg, 100g, piece, etc.
+                        </li>
+
+
+                        <li>
                             Enter relevant product information and pricing.
                         </li>
+
+                        <li>
+                            Enter minimum stock (that is when it reaches low quatity) and opening stock (if you have previous quatities).
+                        </li>
+
 
                         <li>
                             Monitor available stock.
@@ -2574,6 +2881,11 @@
                             Review inventory information regularly to
                             identify discrepancies.
                         </li>
+
+                        <li>
+                            Adjust, view, and retain product stock when needed.
+                        </li>
+
 
                     </ul>
 
@@ -2623,24 +2935,33 @@
                         </li>
 
                         <li>
+                            Select the order (purchase) date and expected date.
+                        </li>
+
+                        <li>
                             Select the purchased products.
                         </li>
 
                         <li>
-                            Enter quantities and applicable prices.
+                            Enter quantities and product section will take care of the pricing.
                         </li>
 
                         <li>
-                            Apply discounts or taxes where applicable.
+                            Apply discounts or taxes (e.g transportation etc.) where applicable.
                         </li>
 
                         <li>
-                            Record payment information.
+                            Record payment information and a note to write the account details of the supplier you paid to.
                         </li>
 
                         <li>
                             Review the purchase before completing it.
                         </li>
+
+                        <li>
+                            you can edit if you have outstanding balances (payables) or missed a quatity.
+                        </li>
+
 
                     </ul>
 
@@ -2693,15 +3014,15 @@
                         </li>
 
                         <li>
-                            Apply discounts or taxes where applicable.
+                            Apply discounts or taxes (POS, bank tranfer charges, etc.) where applicable.
                         </li>
 
                         <li>
-                            Select the payment status.
+                            Select the payment method, either cash, POS, Bank tranfer, online Card, or other forms of payment.
                         </li>
 
                         <li>
-                            Record bank or payment reference information
+                            Record bank paid into, payment reference and  information
                             where applicable.
                         </li>
 
@@ -2810,7 +3131,7 @@
 
                     <h3>
                         <i class="bi bi-credit-card"></i>
-                        Payment tracking
+                        Sales Payment tracking
                     </h3>
 
                     <ul>
@@ -2829,7 +3150,11 @@
                         </li>
 
                         <li>
-                            Record transaction or payment references.
+                            Record payment transaction or bank references.
+                        </li>
+
+                        <li>
+                            Record cash deposit transactions and bank references.
                         </li>
 
                         <li>
@@ -2901,7 +3226,31 @@
                         </li>
 
                         <li>
-                            Export reports where the relevant permission
+                            Review outstanding balances made to suppliers (Payables).
+                        </li>
+
+                        <li>
+                            Review outstanding balances made by customers (Recievables).
+                        </li>
+
+                        <li>
+                            Review profit & loss information.
+                        </li>
+
+                        <li>
+                            Review cash deposits information.
+                        </li>
+
+                        <li>
+                            Review customer activities.
+                        </li>
+
+                        <li>
+                            Review staff activities.
+                        </li>
+
+                        <li>
+                            Export & review reports where the relevant permission
                             is available.
                         </li>
 
@@ -3226,12 +3575,19 @@
                         </li>
 
                         <li>
-                            Submit payment confirmation if requested.
+                            Submit payment confirmation with company name, and email to the appropriate platforms.
                         </li>
 
                         <li>
                             Wait for the subscription status to be updated
-                            before attempting repeated payments.
+                            before attempting repeated payments. 
+                            you can check that at the official platforms and website (<a href="https://biztrace.onrender.com" class="text-decoration-none text-primary">click on this</a>).
+                        </li>
+
+                        <li>
+                            Make sure to renew on time. Failure to renew subscription 
+                            after one month of expiration will amount to extra maintenance fee per day. 
+                            Fees held wil be sent to you through our channels.
                         </li>
 
                     </ol>
@@ -3290,7 +3646,9 @@
                         <li>
                             Subscription-related restrictions should be
                             resolved through the appropriate renewal or
-                            administrative process.
+                            administrative process. Failure to resolve 
+                            subscription after two months of expiration will 
+                            subject to loosing or taking down the company and user's account.
                         </li>
 
                     </ul>
@@ -3337,7 +3695,11 @@
                         </li>
 
                         <li>
-                            Check the page preview before printing.
+                            Use mobile phones or POS when printing sales invoice.
+                        </li>
+
+                        <li>
+                            Make sure you are on light mode and check the page preview before printing.
                         </li>
 
                         <li>
