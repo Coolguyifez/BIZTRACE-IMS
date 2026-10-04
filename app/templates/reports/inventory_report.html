@@ -782,6 +782,8 @@ Inventory Report
 
                 </div>
 
+                {% if current_user.has_permission("view_users") %}
+
                 <div class="col-3">
 
                     <div class="text-muted small">
@@ -793,6 +795,7 @@ Inventory Report
                     </div>
 
                 </div>
+                {% endif %}
 
             </div>
 
