@@ -441,6 +441,7 @@ DEFAULT_ROLES = {
             "view_dashboard",
             "view_users",
             "view_production",
+            "view_reports"
         ],
     },
 }
