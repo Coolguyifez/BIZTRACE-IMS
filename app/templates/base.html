@@ -1415,6 +1415,9 @@
                         </span>
 
                     </a>
+                    {% endif %}
+
+                    {% if current_user.has_permission("manage_company") %}
 
 
                     <a
@@ -1432,8 +1435,10 @@
 
                     {% endif %}
 
+                    
 
-                    {% if current_user.has_permission("view_sales") %}
+
+                    {% if current_user.has_permission("view_dashboard") %}
 
                     <a
                         href="{{ url_for('notifications.index') }}"
