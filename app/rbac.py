@@ -318,7 +318,6 @@ DEFAULT_ROLES = {
             "view_products",
             "view_inventory",
             "view_sales",
-            "manage_sales",
             "view_customers",
             "manage_customers",
         ],
@@ -434,12 +433,14 @@ DEFAULT_ROLES = {
         ],
     },
 
-    "Custom Role": {
+    "Viewiers": {
         "description": (
-            "Custom company role with configurable permissions."
+            "Visitors"
         ),
         "permissions": [
             "view_dashboard",
+            "view_users",
+            "view_production",
         ],
     },
 }
