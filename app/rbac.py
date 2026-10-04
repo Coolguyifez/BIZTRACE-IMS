@@ -316,7 +316,6 @@ DEFAULT_ROLES = {
         "permissions": [
             "view_dashboard",
             "view_products",
-            "view_inventory",
             "view_sales",
             "view_customers",
             "manage_customers",
