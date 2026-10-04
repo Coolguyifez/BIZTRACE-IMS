@@ -1205,6 +1205,19 @@
                 color: #000 !important;
             }
         }
+
+        html,
+        body,
+        .sidebar-inner,
+        .sidebar-link, 
+        .sidebar,
+        .mobile-nav{
+
+            scrollbar-width: none;
+
+            -ms-overflow-style: none;
+
+        }
     </style>
 </head>
 
@@ -1232,10 +1245,9 @@
 
             <a
                 href="{{ url_for('auth.login') }}"
-                class="back-button"
+                class="badge bg-primary btn-lg py-2"
             >
-                <i class="bi bi-box-arrow-in-right"></i>
-                <span>Back to Sign In</span>
+                <span>Sign In</span>
             </a>
 
         </div>
@@ -1464,10 +1476,6 @@
                     </p>
 
                     <ul>
-                        <li>
-                            Configure your
-                            <strong>company name and business information</strong>.
-                        </li>
 
                         <li>
                             Set your
@@ -1507,7 +1515,8 @@
 
                         <li>
                             Configure other business preferences available
-                            in Settings.
+                            in Settings.<br><br> 
+                            <span class="text-danger"> Note: <b>Financial</b> category in Notification preference gives low-stock, gross-loss & net-loss notifications.</span>
                         </li>
                     </ul>
 
@@ -2269,10 +2278,6 @@
                                 </span>
 
                                 <span class="permission">
-                                    Manage Sales
-                                </span>
-
-                                <span class="permission">
                                     View Customers
                                 </span>
 
@@ -2382,10 +2387,10 @@
                             <i class="bi bi-person-gear"></i>
                         </div>
 
-                        <h3>Viewers</h3>
+                        <h3>Viewer</h3>
 
                         <p>
-                            Visitors.
+                            Visitor.
                         </p>
 
                         <div class="role-permissions">
@@ -2587,12 +2592,13 @@
                         <div class="permission-group">
 
                             <h4>
-                                <i class="bi bi-speedometer2"></i>
-                                Dashboard
+                                <i class="bi bi-grid-1x2-fill"></i>
+                                View Dashboard
                             </h4>
 
                             <ul>
-                                <li>View Dashboard</li>
+                                <li>viewing Dashboard</li>
+                                <li>viewing Notification & Support</li>
                             </ul>
 
                         </div>
@@ -2601,16 +2607,164 @@
                         <div class="permission-group">
 
                             <h4>
-                                <i class="bi bi-box-seam"></i>
-                                Products
+                                <i class="bi bi-box-seam-fill"></i>
+                                View Products
                             </h4>
 
                             <ul>
-                                <li>View Products</li>
-                                <li>Create Products</li>
-                                <li>Edit Products</li>
-                                <li>Delete Products</li>
-                                <li>Manage Stock</li>
+                                <li>Viewing Products</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-box-seam-fill"></i>
+                                Manage Products
+                            </h4>
+
+                            <ul>
+                                <li>Editing, Adding, and Deleting Products</li>
+                            </ul>
+                            
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-tags"></i>
+                               View Categories
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Product categories</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-tags"></i>
+                               Manage Categories
+                            </h4>
+
+                            <ul>
+                                <li>Adding, Editing, & Deleting Product Categories</li>
+                            </ul>
+
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-boxes"></i>
+                               View Inventory
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Inventory</li>
+                                <li>Viewing Product Inventory</li>
+                                <li>viewing Inventory history</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-boxes"></i>
+                               Manage Inventory
+                            </h4>
+
+                            <ul>
+                                <li>Adjusting & Reserving Product Stock (quantity)</li>
+                                <li>Viewing Inventory Report in reports</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-bag-check"></i>
+                               View Purchases
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Purchases</li>
+                                <li>Viewing Purchase payment status in report</li>
+                                <li>viewing Daily purchases in report</li>
+                                <li>viewing Recent Purchases in report</li>
+                            </ul>
+
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-bag-check"></i>
+                               Manage Purchases
+                            </h4>
+
+                            <ul>
+                                <li>Editing, adding, & deleting Purchases</li>
+                                <li>Viewing Total Purchase card in report</li>
+                                <li>viewing Purchase Report in report</li>
+                                <li>viewing monthly purchases card in dashboard</li>
+                                
+                            </ul>
+
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-bank"></i>
+                               View Cash Deposit
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Cash Deposit</li>
+                                
+                            </ul>
+
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-bank"></i>
+                               Manage Cash Deposit
+                            </h4>
+
+                            <ul>
+                                <li>Adding & Deleting Cash Deposit</li>
+                                <li>Viewing Cash Deposit Report in reports</li>
+                                
+                            </ul>
+                            
+
+                        </div>
+
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-cart-check"></i>
+                                View Sales
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Sales</li>
+                                <li>Adding New Sale</li>
                             </ul>
 
                         </div>
@@ -2620,48 +2774,42 @@
 
                             <h4>
                                 <i class="bi bi-cart-check"></i>
-                                Purchases
+                                Manage Sales
                             </h4>
 
                             <ul>
-                                <li>View Purchases</li>
-                                <li>Create Purchases</li>
-                                <li>Edit Purchases</li>
-                                <li>Delete Purchases</li>
+                                <li>Editing & Deleting Sales</li>
+                                <li>viewing Sales Report in report</li>
+                                <li>viewing Customer Report in report</li>
+                                <li>Adding Customer's credit limit and initilal outstanding (open) balances</li>
                             </ul>
 
                         </div>
 
-
-                        <div class="permission-group">
-
-                            <h4>
-                                <i class="bi bi-receipt"></i>
-                                Sales
-                            </h4>
-
-                            <ul>
-                                <li>View Sales</li>
-                                <li>Create Sales</li>
-                                <li>Edit Sales</li>
-                                <li>Delete Sales</li>
-                            </ul>
-
-                        </div>
 
 
                         <div class="permission-group">
 
                             <h4>
                                 <i class="bi bi-wallet2"></i>
-                                Expenses
+                                View Expenses
                             </h4>
 
                             <ul>
-                                <li>View Expenses</li>
-                                <li>Create Expenses</li>
-                                <li>Edit Expenses</li>
-                                <li>Delete Expenses</li>
+                                <li>Viewing Expenses</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-wallet2"></i>
+                                Manage Expenses
+                            </h4>
+
+                            <ul>
+                                <li>Adding, Editing, Deleting Expenses</li>
                             </ul>
 
                         </div>
@@ -2671,14 +2819,24 @@
 
                             <h4>
                                 <i class="bi bi-people"></i>
-                                Customers
+                                View Customers
                             </h4>
 
                             <ul>
-                                <li>View Customers</li>
-                                <li>Create Customers</li>
-                                <li>Edit Customers</li>
-                                <li>Delete Customers</li>
+                                <li>Viewing Customers</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-people"></i>
+                                Manage Customers
+                            </h4>
+
+                            <ul>
+                                <li>Adding, Editing, & Deleting Customers</li>
                             </ul>
 
                         </div>
@@ -2688,31 +2846,56 @@
 
                             <h4>
                                 <i class="bi bi-truck"></i>
-                                Suppliers
+                                View Suppliers
                             </h4>
 
                             <ul>
-                                <li>View Suppliers</li>
-                                <li>Create Suppliers</li>
-                                <li>Edit Suppliers</li>
-                                <li>Delete Suppliers</li>
+                                <li>Viewing Suppliers</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-truck"></i>
+                                Manage Suppliers
+                            </h4>
+
+                            <ul>
+                                <li>Adding, Editing & Deleting Suppliers</li>
                             </ul>
 
                         </div>
 
 
+
                         <div class="permission-group">
 
                             <h4>
-                                <i class="bi bi-credit-card"></i>
-                                Payments
+                                <i class="bi bi-credit-card-fill"></i>
+                                View Payments
                             </h4>
 
                             <ul>
-                                <li>View Payments</li>
-                                <li>Create Payments</li>
-                                <li>Edit Payments</li>
-                                <li>Delete Payments</li>
+                                <li>viewing payments</li>
+                                <li>Viewng today's Payments</li>
+                                <li>Viewing Recent Payments in dashboard</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-credit-card-fill"></i>
+                                Manage Payments
+                            </h4>
+
+                            <ul>
+                                <li>Viewng All Payments Periods</li>
+                                <li>Viewing Payment Report in report</li>
+                                <li>Viewing Payment Received card in dashboard</li>
                             </ul>
 
                         </div>
@@ -2722,12 +2905,69 @@
 
                             <h4>
                                 <i class="bi bi-bar-chart"></i>
-                                Reports
+                                View Reports
                             </h4>
 
                             <ul>
-                                <li>View Reports</li>
-                                <li>Export Reports</li>
+                                <li>Viewing Reports</li>
+                                <li>Printing all Reports</li>
+                            </ul>
+
+                        </div>
+
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-arrow-down-left-circle"></i>
+                                View Receivables
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Receivables</li>
+                                <li>Viewing Receivables card in Reports</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-arrow-down-left-circle"></i>
+                                Manage Receivables
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Receivables Report in reports</li>
+                                <li>Viewing Receivables card in dashboard</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-arrow-up-right-circle"></i>
+                                View Payables
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Payables</li>
+                                <li>Viewing Payables card in reports</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-arrow-up-right-circle"></i>
+                                Manage Payables
+                            </h4>
+
+                            <ul>
+                                <li>Viewing Payables card in dashboard</li>
+                                <li>Viewing Payables Report in reports</li>
                             </ul>
 
                         </div>
@@ -2737,14 +2977,33 @@
 
                             <h4>
                                 <i class="bi bi-person-gear"></i>
-                                Users
+                                View Users
                             </h4>
 
                             <ul>
-                                <li>View Users</li>
-                                <li>Create Users</li>
-                                <li>Edit Users</li>
-                                <li>Disable Users</li>
+                                <li>Viewing Users</li>
+                                <li>Viewing Sales & Purchases chart in dashboard </li>
+                                <li>Viewing Inventory Value card in dashboard</li>
+                                <li>Viewing Cost of Goods Sold card in reports</li>
+                                <li>Viewing Net Profit card in reports</li>
+                                <li>Viewing Gross Profit card in reports</li>
+                                <li>Viewing Profit & Loss Report in reports</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-person-gear"></i>
+                                Manage Users
+                            </h4>
+
+                            <ul>
+                                <li>Adding, Editing, Activating, & Deactivating Users</li>
+                                <li>Viewing, Adding, Editing, & Deactivating Roles</li>
+                                
+                                
                             </ul>
 
                         </div>
@@ -2753,32 +3012,41 @@
                         <div class="permission-group">
 
                             <h4>
-                                <i class="bi bi-shield-check"></i>
-                                Roles
+                                <i class="bi bi-building"></i>
+                                Manage & View Company
                             </h4>
 
                             <ul>
-                                <li>View Roles</li>
-                                <li>Create Roles</li>
-                                <li>Edit Roles</li>
-                                <li>Delete Roles</li>
-                                <li>Manage Permissions</li>
+                                <li>Viewing & Editing Company Settings </li>
+                                
                             </ul>
 
                         </div>
+
 
 
                         <div class="permission-group">
 
                             <h4>
                                 <i class="bi bi-gear"></i>
-                                Settings
+                                View Production
                             </h4>
 
                             <ul>
-                                <li>View Settings</li>
-                                <li>Manage Company Settings</li>
-                                <li>Manage Notifications</li>
+                                <li>Coming soon</li>
+                            </ul>
+
+                        </div>
+
+                        <div class="permission-group">
+
+                            <h4>
+                                <i class="bi bi-gear"></i>
+                                Manage Production
+                            </h4>
+
+                            <ul>
+                                <li>Coming Soon</li>
                             </ul>
 
                         </div>
