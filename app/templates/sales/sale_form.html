@@ -184,36 +184,72 @@ New Sale
                                 Product
                             </label>
 
-                            <select
-                                id="productSelector"
-                                class="form-select"
-                            >
+                            <!--
+                                IMPORTANT:
+                                This is still the same SELECT element.
 
-                                <option value="">
-                                    Select a product...
-                                </option>
+                                It now supports:
+                                - Product name search
+                                - SKU search
+                                - Barcode search
+                                - Scanner input
+                                - Camera scanning
+                            -->
 
-                                {% for product in products %}
+                            <div class="product-selector-wrapper">
 
-                                <option
-                                    value="{{ product.id }}"
-                                    data-name="{{ product.name }}"
-                                    data-sku="{{ product.sku }}"
-                                    data-price="{{ product.selling_price }}"
-                                    data-stock="{{ product.available_quantity }}"
-                                    data-unit="{{ product.unit }}"
-                                >
+                                <div class="product-select-with-scan">
 
-                                    {{ product.name }}
-                                    — {{ product.sku }}
-                                    — {{ format_currency(product.selling_price) }}
-                                    — Available: {{ product.available_quantity }} {{ product.unit }}
+                                    <select
+                                        id="productSelector"
+                                        class="form-select"
+                                    >
 
-                                </option>
+                                        <option value="">
+                                            Select a product...
+                                        </option>
 
-                                {% endfor %}
+                                        {% for product in products %}
 
-                            </select>
+                                        <option
+                                            value="{{ product.id }}"
+                                            data-name="{{ product.name }}"
+                                            data-sku="{{ product.sku }}"
+                                            data-barcode="{{ product.barcode or '' }}"
+                                            data-price="{{ product.selling_price }}"
+                                            data-stock="{{ product.available_quantity }}"
+                                            data-unit="{{ product.unit }}"
+                                        >
+
+                                            {{ product.name }}
+                                            — {{ product.sku }}
+                                            {% if product.barcode %}
+                                                — {{ product.barcode }}
+                                            {% endif %}
+                                            — {{ format_currency(product.selling_price) }}
+                                            — Available: {{ product.available_quantity }} {{ product.unit }}
+
+                                        </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                    <button
+                                        type="button"
+                                        id="openScannerBtn"
+                                        class="btn btn-outline-primary product-scan-btn"
+                                        title="Scan barcode or QR code"
+                                    >
+                                        <i class="bi bi-camera"></i>
+                                        <span class="d-none d-lg-inline">
+                                            Scan
+                                        </span>
+                                    </button>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -571,6 +607,127 @@ New Sale
 </div>
 
 
+<!-- ============================================================
+     BARCODE / QR CAMERA MODAL
+============================================================ -->
+
+<div
+    class="modal fade"
+    id="scannerModal"
+    tabindex="-1"
+    aria-labelledby="scannerModalLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content border-0 shadow-lg">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h5
+                        class="modal-title fw-semibold"
+                        id="scannerModalLabel"
+                    >
+                        Scan Product
+                    </h5>
+
+                    <div class="small text-muted">
+                        Point your camera at the product barcode or QR code.
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+
+            </div>
+
+
+            <div class="modal-body p-3">
+
+                <div
+                    id="productScanner"
+                    class="product-scanner"
+                ></div>
+
+
+                <div
+                    id="scannerStatus"
+                    class="scanner-status text-center small text-muted mt-3"
+                >
+                    Starting camera...
+                </div>
+
+
+                <div
+                    id="scannerResult"
+                    class="scanner-result d-none mt-3"
+                >
+
+                    <div class="fw-semibold">
+                        Product found
+                    </div>
+
+                    <div
+                        id="scannerProductName"
+                        class="small text-muted"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-light border rounded-pill px-4"
+                    data-bs-dismiss="modal"
+                >
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================
+     SEARCHABLE SELECT LIBRARY
+============================================================ -->
+
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"
+>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"
+></script>
+
+
+<!-- ============================================================
+     CAMERA SCANNER LIBRARY
+============================================================ -->
+
+<script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript"
+></script>
+
+
 <style>
 
 /* ============================================================
@@ -672,6 +829,185 @@ New Sale
 
 
 /* ============================================================
+   PRODUCT SELECTOR
+============================================================ */
+
+.product-selector-wrapper {
+
+    width: 100%;
+
+}
+
+.product-select-with-scan {
+
+    display: flex;
+
+    align-items: stretch;
+
+    gap: 8px;
+
+}
+
+.product-select-with-scan .choices {
+
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    margin-bottom: 0;
+
+}
+
+.product-scan-btn {
+
+    flex: 0 0 auto;
+
+    min-width: 48px;
+
+    border-radius: 0.375rem;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+}
+
+
+/* ============================================================
+   CHOICES SELECT
+============================================================ */
+
+.product-selector-wrapper .choices {
+
+    margin-bottom: 0;
+
+}
+
+.product-selector-wrapper .choices__inner {
+
+    min-height: 38px;
+
+    border-radius: 0.375rem;
+
+    padding: 5px 10px;
+
+    background: var(--bs-body-bg);
+
+    border: 1px solid var(--bs-border-color);
+
+    color: var(--bs-body-color);
+
+    font-size: 1rem;
+
+}
+
+.product-selector-wrapper .choices.is-focused .choices__inner,
+.product-selector-wrapper .choices.is-open .choices__inner {
+
+    border-color: #86b7fe;
+
+    box-shadow:
+        0 0 0 0.25rem
+        rgba(13, 110, 253, 0.15);
+
+}
+
+.product-selector-wrapper .choices__list--dropdown,
+.product-selector-wrapper .choices__list[aria-expanded] {
+
+    z-index: 1055;
+
+    background: var(--bs-body-bg);
+
+    border-color: var(--bs-border-color);
+
+    color: var(--bs-body-color);
+
+}
+
+.product-selector-wrapper .choices__input {
+
+    background: var(--bs-body-bg);
+
+    color: var(--bs-body-color);
+
+    border-bottom-color: var(--bs-border-color);
+
+}
+
+.product-selector-wrapper .choices__item--choice {
+
+    color: var(--bs-body-color);
+
+}
+
+.product-selector-wrapper .choices__item--choice.is-highlighted {
+
+    background: rgba(13, 110, 253, 0.10);
+
+}
+
+.product-selector-wrapper .choices__placeholder {
+
+    opacity: 0.7;
+
+}
+
+
+/* ============================================================
+   CAMERA SCANNER
+============================================================ */
+
+.product-scanner {
+
+    width: 100%;
+
+    min-height: 280px;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    background: #000;
+
+}
+
+.product-scanner video {
+
+    width: 100% !important;
+
+    height: auto !important;
+
+    max-height: 420px;
+
+    object-fit: cover;
+
+}
+
+.scanner-status {
+
+    min-height: 20px;
+
+}
+
+.scanner-result {
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    background: rgba(13, 110, 253, 0.06);
+
+    border: 1px solid rgba(13, 110, 253, 0.12);
+
+}
+
+
+/* ============================================================
    MOBILE
 ============================================================ */
 
@@ -680,6 +1016,22 @@ New Sale
     #cartTable {
 
         min-width: 700px;
+
+    }
+
+    .product-select-with-scan {
+
+        gap: 6px;
+
+    }
+
+    .product-scan-btn {
+
+        min-width: 46px;
+
+        padding-left: 12px;
+
+        padding-right: 12px;
 
     }
 
@@ -720,6 +1072,7 @@ document.addEventListener("DOMContentLoaded", function () {
         timezone:
             {{ get_company_timezone_name()|tojson }}
     };
+
 
     /* =========================================================
        PRODUCT ELEMENTS
@@ -807,6 +1160,7 @@ document.addEventListener("DOMContentLoaded", function () {
             id: {{ item.product_id }},
             name: {{ item.product.name|tojson }},
             sku: {{ item.product.sku|tojson }},
+            barcode: {{ (item.product.barcode or "")|tojson }},
             price: {{ item.unit_price|float }},
             stock: {{
                 (
@@ -921,13 +1275,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getSaleTotal() {
 
-        /*
-         * Do not parse the formatted currency text.
-         *
-         * Instead calculate the actual numeric total
-         * from the cart, discount and tax.
-         */
-
         let subtotal = 0;
 
 
@@ -1010,6 +1357,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="cart-product-sku text-muted">
                         SKU: <code>${item.sku}</code>
                     </div>
+
+                    ${
+                        item.barcode
+                            ? `
+                                <div class="cart-product-sku text-muted">
+                                    Barcode: <code>${item.barcode}</code>
+                                </div>
+                              `
+                            : ""
+                    }
 
                     <input
                         type="hidden"
@@ -1777,141 +2134,759 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       ADD PRODUCT
+       PRODUCT SELECTOR
+       SEARCHABLE SELECT
+
+       The original <select> remains the actual product field.
+       Choices.js only enhances its dropdown.
+    ========================================================= */
+
+    let productChoices = null;
+
+
+    if (
+        productSelector &&
+        typeof Choices !== "undefined"
+    ) {
+
+        productChoices =
+            new Choices(
+                productSelector,
+                {
+
+                    searchEnabled: true,
+
+                    searchChoices: true,
+
+                    searchFields: [
+                        "label",
+                        "value"
+                    ],
+
+                    shouldSort: false,
+
+                    itemSelectText: "",
+
+                    searchPlaceholderValue:
+                        "Search product, SKU or barcode...",
+
+                    noResultsText:
+                        "No product found",
+
+                    noChoicesText:
+                        "No products available",
+
+                    allowHTML: false,
+
+                    removeItemButton: false,
+
+                    placeholder: true,
+
+                    placeholderValue:
+                        "Select a product..."
+
+                }
+            );
+
+    }
+
+
+    /* =========================================================
+       NORMALIZE SCANNER VALUE
+    ========================================================= */
+
+    function normalizeScanValue(value) {
+
+        return String(value || "")
+            .trim()
+            .toLowerCase();
+
+    }
+
+
+    /* =========================================================
+       FIND PRODUCT BY ID / NAME / SKU / BARCODE
+    ========================================================= */
+
+    function findProduct(value) {
+
+        const searchValue =
+            normalizeScanValue(value);
+
+
+        if (!searchValue) {
+
+            return null;
+
+        }
+
+
+        const options =
+            Array.from(
+                productSelector.options
+            );
+
+
+        for (
+            const option of options
+        ) {
+
+            if (!option.value) {
+
+                continue;
+
+            }
+
+
+            const id =
+                normalizeScanValue(
+                    option.value
+                );
+
+            const name =
+                normalizeScanValue(
+                    option.dataset.name
+                );
+
+            const sku =
+                normalizeScanValue(
+                    option.dataset.sku
+                );
+
+            const barcode =
+                normalizeScanValue(
+                    option.dataset.barcode
+                );
+
+
+            if (
+                searchValue === id ||
+                searchValue === sku ||
+                searchValue === barcode ||
+                searchValue === name
+            ) {
+
+                return option;
+
+            }
+
+        }
+
+
+        return null;
+
+    }
+
+
+    /* =========================================================
+       SELECT PRODUCT
+    ========================================================= */
+
+    function selectProduct(option) {
+
+        if (!option) {
+
+            return false;
+
+        }
+
+
+        if (productChoices) {
+
+            productChoices.setChoiceByValue(
+                option.value
+            );
+
+        } else {
+
+            productSelector.value =
+                option.value;
+
+        }
+
+
+        return true;
+
+    }
+
+
+    /* =========================================================
+       ADD SELECTED PRODUCT
+    ========================================================= */
+
+    function addSelectedProduct() {
+
+        const selected =
+            productSelector.options[
+                productSelector.selectedIndex
+            ];
+
+
+        if (
+            !selected ||
+            !selected.value
+        ) {
+
+            alert(
+                "Please select a product."
+            );
+
+            return false;
+
+        }
+
+
+        const id =
+            Number(selected.value);
+
+        const name =
+            selected.dataset.name;
+
+        const sku =
+            selected.dataset.sku;
+
+        const barcode =
+            selected.dataset.barcode || "";
+
+        const price =
+            Number(selected.dataset.price);
+
+        const stock =
+            Number(selected.dataset.stock);
+
+        const unit =
+            selected.dataset.unit ||
+            "piece";
+
+        const quantity =
+            Number(productQuantity.value);
+
+
+        if (
+            !quantity ||
+            quantity <= 0
+        ) {
+
+            alert(
+                "Enter a valid quantity."
+            );
+
+            return false;
+
+        }
+
+
+        if (quantity > stock) {
+
+            alert(
+                `Only ${stock} ${unit}(s) are available in stock.`
+            );
+
+            return false;
+
+        }
+
+
+        const existing =
+            cart.find(function (item) {
+
+                return item.id === id;
+
+            });
+
+
+        if (existing) {
+
+            const newQuantity =
+                Number(existing.quantity) +
+                quantity;
+
+
+            if (newQuantity > stock) {
+
+                alert(
+                    `You cannot exceed the available stock of ${stock} ${unit}(s).`
+                );
+
+                return false;
+
+            }
+
+
+            existing.quantity =
+                newQuantity;
+
+        } else {
+
+            cart.push({
+
+                id: id,
+
+                name: name,
+
+                sku: sku,
+
+                barcode: barcode,
+
+                price: price,
+
+                stock: stock,
+
+                unit: unit,
+
+                quantity: quantity
+
+            });
+
+        }
+
+
+        if (productChoices) {
+
+            productChoices.removeActiveItems();
+
+            productChoices.setChoiceByValue("");
+
+        } else {
+
+            productSelector.value =
+                "";
+
+        }
+
+
+        productQuantity.value =
+            1;
+
+
+        renderCart();
+
+        return true;
+
+    }
+
+
+    /* =========================================================
+       ADD PRODUCT BUTTON
     ========================================================= */
 
     addProductBtn.addEventListener(
         "click",
         function () {
 
-            const selected =
-                productSelector.options[
-                    productSelector.selectedIndex
-                ];
+            addSelectedProduct();
+
+        }
+    );
 
 
-            if (
-                !selected ||
-                !selected.value
-            ) {
+    /* =========================================================
+       BARCODE / SKU SCANNER INPUT
 
-                alert(
-                    "Please select a product."
-                );
+       USB/Bluetooth barcode scanners normally behave like
+       keyboards. If the scanner sends:
 
-                return;
+           1234567890123 + ENTER
 
-            }
+       this will automatically find the product.
+    ========================================================= */
 
-
-            const id =
-                Number(selected.value);
-
-            const name =
-                selected.dataset.name;
-
-            const sku =
-                selected.dataset.sku;
-
-            const price =
-                Number(selected.dataset.price);
-
-            const stock =
-                Number(selected.dataset.stock);
-
-            const unit =
-                selected.dataset.unit ||
-                "piece";
-
-            const quantity =
-                Number(productQuantity.value);
-
+    productSelector.addEventListener(
+        "keydown",
+        function (event) {
 
             if (
-                !quantity ||
-                quantity <= 0
+                event.key !==
+                "Enter"
             ) {
 
-                alert(
-                    "Enter a valid quantity."
-                );
-
                 return;
 
             }
 
 
-            if (quantity > stock) {
+            const value =
+                this.value;
 
-                alert(
-                    `Only ${stock} ${unit}(s) are available in stock.`
-                );
 
-                return;
+            const option =
+                findProduct(value);
+
+
+            if (option) {
+
+                event.preventDefault();
+
+                selectProduct(option);
+
+                setTimeout(function () {
+
+                    addSelectedProduct();
+
+                }, 50);
 
             }
 
+        }
+    );
 
-            const existing =
-                cart.find(function (item) {
 
-                    return item.id === id;
+    /* =========================================================
+       CAMERA SCANNER
+    ========================================================= */
+
+    const openScannerBtn =
+        document.getElementById(
+            "openScannerBtn"
+        );
+
+    const scannerModalElement =
+        document.getElementById(
+            "scannerModal"
+        );
+
+    const scannerStatus =
+        document.getElementById(
+            "scannerStatus"
+        );
+
+    const scannerResult =
+        document.getElementById(
+            "scannerResult"
+        );
+
+    const scannerProductName =
+        document.getElementById(
+            "scannerProductName"
+        );
+
+
+    let html5QrCode =
+        null;
+
+    let scannerRunning =
+        false;
+
+    let scannerHandled =
+        false;
+
+
+    function stopProductScanner() {
+
+        if (
+            html5QrCode &&
+            scannerRunning
+        ) {
+
+            html5QrCode
+                .stop()
+                .then(function () {
+
+                    scannerRunning =
+                        false;
+
+                })
+                .catch(function () {
+
+                    scannerRunning =
+                        false;
 
                 });
 
+        }
 
-            if (existing) {
-
-                const newQuantity =
-                    Number(existing.quantity) +
-                    quantity;
+    }
 
 
-                if (newQuantity > stock) {
+    function closeScannerCleanup() {
 
-                    alert(
-                        `You cannot exceed the available stock of ${stock} ${unit}(s).`
+        stopProductScanner();
+
+        scannerHandled =
+            false;
+
+        scannerResult.classList.add(
+            "d-none"
+        );
+
+    }
+
+
+    function handleScannedProduct(decodedText) {
+
+        if (scannerHandled) {
+
+            return;
+
+        }
+
+
+        const option =
+            findProduct(decodedText);
+
+
+        if (!option) {
+
+            scannerStatus.textContent =
+                "Code scanned, but no matching product was found.";
+
+            scannerStatus.classList.remove(
+                "text-success"
+            );
+
+            scannerStatus.classList.add(
+                "text-danger"
+            );
+
+            return;
+
+        }
+
+
+        scannerHandled =
+            true;
+
+
+        selectProduct(option);
+
+
+        scannerProductName.textContent =
+            option.dataset.name +
+            (
+                option.dataset.sku
+                    ? " • SKU: " +
+                      option.dataset.sku
+                    : ""
+            );
+
+
+        scannerResult.classList.remove(
+            "d-none"
+        );
+
+
+        scannerStatus.textContent =
+            "Product found. Adding product...";
+
+        scannerStatus.classList.remove(
+            "text-danger"
+        );
+
+        scannerStatus.classList.add(
+            "text-success"
+        );
+
+
+        stopProductScanner();
+
+
+        setTimeout(function () {
+
+            addSelectedProduct();
+
+
+            const modal =
+                bootstrap.Modal.getInstance(
+                    scannerModalElement
+                );
+
+
+            if (modal) {
+
+                modal.hide();
+
+            }
+
+        }, 500);
+
+    }
+
+
+    function startProductScanner() {
+
+        scannerHandled =
+            false;
+
+
+        scannerStatus.textContent =
+            "Starting camera...";
+
+
+        scannerStatus.classList.remove(
+            "text-danger",
+            "text-success"
+        );
+
+
+        scannerResult.classList.add(
+            "d-none"
+        );
+
+
+        if (
+            typeof Html5Qrcode ===
+            "undefined"
+        ) {
+
+            scannerStatus.textContent =
+                "Camera scanner could not be loaded.";
+
+            scannerStatus.classList.add(
+                "text-danger"
+            );
+
+            return;
+
+        }
+
+
+        html5QrCode =
+            new Html5Qrcode(
+                "productScanner"
+            );
+
+
+        const config = {
+
+            fps: 10,
+
+            qrbox: {
+                width: 250,
+                height: 150
+            },
+
+            aspectRatio: 1.777778,
+
+            formatsToSupport: [
+
+                Html5QrcodeSupportedFormats.QR_CODE,
+
+                Html5QrcodeSupportedFormats.CODE_128,
+
+                Html5QrcodeSupportedFormats.CODE_39,
+
+                Html5QrcodeSupportedFormats.CODE_93,
+
+                Html5QrcodeSupportedFormats.EAN_13,
+
+                Html5QrcodeSupportedFormats.EAN_8,
+
+                Html5QrcodeSupportedFormats.UPC_A,
+
+                Html5QrcodeSupportedFormats.UPC_E,
+
+                Html5QrcodeSupportedFormats.ITF,
+
+                Html5QrcodeSupportedFormats.CODABAR
+
+            ]
+
+        };
+
+
+        html5QrCode
+            .start(
+
+                {
+                    facingMode:
+                        "environment"
+                },
+
+                config,
+
+                function (decodedText) {
+
+                    handleScannedProduct(
+                        decodedText
                     );
 
-                    return;
+                },
+
+                function () {
+
+                    /*
+                     * Ignore normal scanning
+                     * frames where nothing has
+                     * been detected yet.
+                     */
 
                 }
 
+            )
+            .then(function () {
 
-                existing.quantity =
-                    newQuantity;
+                scannerRunning =
+                    true;
 
-            } else {
+                scannerStatus.textContent =
+                    "Camera ready. Point it at the product barcode or QR code.";
 
-                cart.push({
+            })
+            .catch(function (error) {
 
-                    id: id,
+                scannerRunning =
+                    false;
 
-                    name: name,
+                scannerStatus.textContent =
+                    "Unable to access the camera. Please allow camera permission and try again.";
 
-                    sku: sku,
+                scannerStatus.classList.add(
+                    "text-danger"
+                );
 
-                    price: price,
+                console.error(
+                    "Scanner error:",
+                    error
+                );
 
-                    stock: stock,
+            });
 
-                    unit: unit,
+    }
 
-                    quantity: quantity
 
-                });
+    /* =========================================================
+       OPEN CAMERA MODAL
+    ========================================================= */
+
+    if (openScannerBtn) {
+
+        openScannerBtn.addEventListener(
+            "click",
+            function () {
+
+                const modal =
+                    new bootstrap.Modal(
+                        scannerModalElement
+                    );
+
+
+                modal.show();
 
             }
+        );
+
+    }
 
 
-            productSelector.value =
-                "";
+    /* =========================================================
+       CAMERA MODAL EVENTS
+    ========================================================= */
 
-            productQuantity.value =
-                1;
+    scannerModalElement.addEventListener(
+        "shown.bs.modal",
+        function () {
+
+            startProductScanner();
+
+        }
+    );
 
 
-            renderCart();
+    scannerModalElement.addEventListener(
+        "hidden.bs.modal",
+        function () {
+
+            closeScannerCleanup();
 
         }
     );
