@@ -12,118 +12,352 @@ New Sale
 
 <div class="container-fluid py-4">
 
-<!-- =====================================================
-     HEADER
-====================================================== -->
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
-    <div>
+        <div>
 
-        <div class="page-eyebrow">
-            SALES
+            <div class="page-eyebrow">
+                SALES
+            </div>
+
+            <h1 class="page-title mb-1">
+                {% if sale %}
+                    Edit Sale
+                {% else %}
+                    New Sale
+                {% endif %}
+            </h1>
+
+            <p class="page-subtitle mb-0">
+
+                {% if sale %}
+                    Update this customer transaction, products, payments and inventory.
+                {% else %}
+                    Create a new customer transaction and update inventory automatically.
+                {% endif %}
+
+            </p>
+
         </div>
 
-        <h1 class="page-title mb-1">
-            {% if sale %}
-                Edit Sale
-            {% else %}
-                New Sale
-            {% endif %}
-        </h1>
-
-        <p class="page-subtitle mb-0">
-
-            {% if sale %}
-                Update this customer transaction, products, payments and inventory.
-            {% else %}
-                Create a new customer transaction and update inventory automatically.
-            {% endif %}
-
-        </p>
+        <a
+            href="{{ url_for('sales.sales') }}"
+            class="btn btn-light border rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Sales
+        </a>
 
     </div>
 
-    <a
-        href="{{ url_for('sales.sales') }}"
-        class="btn btn-light border rounded-pill px-4"
-    >
-        <i class="bi bi-arrow-left me-2"></i>
-        Back to Sales
-    </a>
 
-</div>
+    <!-- =====================================================
+         SALE FORM
+    ====================================================== -->
 
+    <form method="POST" id="saleForm">
 
-<!-- =====================================================
-     SALE FORM
-====================================================== -->
+        {{ form.hidden_tag() }}
 
-<form method="POST" id="saleForm">
-
-    {{ form.hidden_tag() }}
-
-    <div class="row g-4">
-
-        <!-- =================================================
-             LEFT SIDE
-        ================================================== -->
-
-        <div class="col-xl-8">
+        <div class="row g-4">
 
             <!-- =================================================
-                 CUSTOMER INFORMATION
+                 LEFT SIDE
             ================================================== -->
 
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="col-xl-8">
 
-                <div class="card-body p-4">
+                <!-- CUSTOMER INFORMATION -->
 
-                    <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="card border-0 shadow-sm mb-4">
 
-                        <div class="icon-box">
-                            <i class="bi bi-person"></i>
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+
+                            <div class="icon-box">
+                                <i class="bi bi-person"></i>
+                            </div>
+
+                            <div>
+
+                                <h5 class="fw-semibold mb-1">
+                                    Customer Information
+                                </h5>
+
+                                <p class="text-muted small mb-0">
+                                    Select the customer for this transaction.
+                                </p>
+
+                            </div>
+
                         </div>
 
-                        <div>
+                        <div class="row g-3">
 
-                            <h5 class="fw-semibold mb-1">
-                                Customer Information
-                            </h5>
+                            <div class="col-md-8">
 
-                            <p class="text-muted small mb-0">
-                                Select the customer for this transaction.
-                            </p>
+                                <label class="form-label fw-semibold">
+                                    Customer
+                                </label>
+
+                                {{ form.customer_id(
+                                    class="form-select"
+                                ) }}
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label fw-semibold">
+                                    Sale Date
+                                </label>
+
+                                {{ form.sale_date(
+                                    class="form-control"
+                                ) }}
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                    <div class="row g-3">
+                </div>
 
-                        <div class="col-md-8">
 
-                            <label class="form-label fw-semibold">
-                                Customer
-                            </label>
+                <!-- =================================================
+                     PRODUCTS
+                ================================================== -->
 
-                            {{ form.customer_id(
-                                class="form-select"
-                            ) }}
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+
+                            <div class="d-flex align-items-center gap-3">
+
+                                <div class="icon-box">
+                                    <i class="bi bi-cart3"></i>
+                                </div>
+
+                                <div>
+
+                                    <h5 class="fw-semibold mb-1">
+                                        Products
+                                    </h5>
+
+                                    <p class="text-muted small mb-0">
+                                        Add one or more products to this sale.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <span
+                                class="badge bg-primary-subtle text-primary px-3 py-2"
+                                id="itemCount"
+                            >
+                                0 items
+                            </span>
 
                         </div>
 
-                        <div class="col-md-4">
 
-                            <label class="form-label fw-semibold">
-                                Sale Date
-                            </label>
+                        <!-- =================================================
+                             ADD PRODUCT
+                        ================================================== -->
 
-                            {{ form.sale_date(
-                                class="form-control"
-                            ) }}
+                        <div class="row g-2 align-items-end mb-4">
+
+                            <div class="col-md-7">
+
+                                <label class="form-label fw-semibold">
+                                    Product
+                                </label>
+
+                                <div class="product-selector-wrapper">
+
+                                    <div class="product-select-with-scan">
+
+                                        <select
+                                            id="productSelector"
+                                            class="form-select"
+                                        >
+
+                                            <option value="">
+                                                Select a product...
+                                            </option>
+
+                                            {% for product in products %}
+
+                                            <option
+                                                value="{{ product.id }}"
+                                                data-name="{{ product.name }}"
+                                                data-sku="{{ product.sku }}"
+                                                data-barcode="{{ product.barcode or '' }}"
+                                                data-price="{{ product.selling_price }}"
+                                                data-stock="{{ product.available_quantity }}"
+                                                data-unit="{{ product.unit }}"
+                                            >
+
+                                                {{ product.name }}
+                                                — {{ product.sku }}
+
+                                                {% if product.barcode %}
+                                                    — {{ product.barcode }}
+                                                {% endif %}
+
+                                                — {{ format_currency(product.selling_price) }}
+                                                — Available: {{ product.available_quantity }} {{ product.unit }}
+
+                                            </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            id="openScannerBtn"
+                                            class="btn btn-outline-primary product-scan-btn"
+                                            title="Scan barcode or QR code"
+                                        >
+                                            <i class="bi bi-camera"></i>
+
+                                            <span class="d-none d-lg-inline">
+                                                Scan
+                                            </span>
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <label class="form-label fw-semibold">
+                                    Quantity
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="productQuantity"
+                                    class="form-control"
+                                    value="1"
+                                    min="0.001"
+                                    step="0.001"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-2">
+
+                                <button
+                                    type="button"
+                                    id="addProductBtn"
+                                    class="btn btn-primary rounded-pill w-100"
+                                >
+
+                                    <i class="bi bi-plus-lg"></i>
+                                    Add
+
+                                </button>
+
+                            </div>
 
                         </div>
+
+
+                        <!-- CART -->
+
+                        <div class="table-responsive">
+
+                            <table
+                                class="table align-middle"
+                                id="cartTable"
+                            >
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Product
+                                        </th>
+
+                                        <th style="width: 130px;">
+                                            Quantity
+                                        </th>
+
+                                        <th>
+                                            Unit Price
+                                        </th>
+
+                                        <th>
+                                            Total
+                                        </th>
+
+                                        <th style="width: 50px;">
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="cartBody">
+
+                                    <tr id="emptyCart">
+
+                                        <td
+                                            colspan="5"
+                                            class="text-center py-5 text-muted"
+                                        >
+
+                                            <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+
+                                            No products added yet.
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- NOTES -->
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body p-4">
+
+                        <label class="form-label fw-semibold">
+                            Sale Notes
+                        </label>
+
+                        {{ form.notes(
+                            class="form-control",
+                            rows="3",
+                            placeholder="Optional notes about this sale..."
+                        ) }}
 
                     </div>
 
@@ -133,119 +367,123 @@ New Sale
 
 
             <!-- =================================================
-                 PRODUCTS
+                 RIGHT SIDE
             ================================================== -->
 
-            <div class="card border-0 shadow-sm mb-4">
+            <div class="col-xl-4">
 
-                <div class="card-body p-4">
+                <!-- SALE SUMMARY -->
 
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="card border-0 shadow-sm mb-4">
 
-                        <div class="d-flex align-items-center gap-3">
+                    <div class="card-body p-4">
 
-                            <div class="icon-box">
-                                <i class="bi bi-cart3"></i>
-                            </div>
+                        <h5 class="fw-semibold mb-4">
+                            Sale Summary
+                        </h5>
 
-                            <div>
 
-                                <h5 class="fw-semibold mb-1">
-                                    Products
-                                </h5>
+                        <div class="summary-row">
 
-                                <p class="text-muted small mb-0">
-                                    Add one or more products to this sale.
-                                </p>
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong id="subtotalDisplay">
+                                {{ format_currency(0) }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label class="form-label small fw-semibold">
+                                Discount
+                            </label>
+
+                            {{ form.discount(
+                                class="form-control",
+                                id="discountInput"
+                            ) }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label class="form-label small fw-semibold">
+                                Tax
+                            </label>
+
+                            {{ form.tax(
+                                class="form-control",
+                                id="taxInput"
+                            ) }}
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong id="totalDisplay">
+                                {{ format_currency(0) }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="mt-3 p-3 rounded-3 bg-light">
+
+                            <div class="d-flex justify-content-between">
+
+                                <span class="text-muted">
+                                    Balance
+                                </span>
+
+                                <strong id="balanceDisplay">
+                                    {{ format_currency(0) }}
+                                </strong>
 
                             </div>
 
                         </div>
 
-                        <span
-                            class="badge bg-primary-subtle text-primary px-3 py-2"
-                            id="itemCount"
-                        >
-                            0 items
-                        </span>
-
                     </div>
 
+                </div>
 
-                    <!-- =================================================
-                         ADD PRODUCT
-                    ================================================== -->
 
-                    <div class="row g-2 align-items-end mb-4">
+                <!-- PAYMENT -->
 
-                        <div class="col-md-7">
+                <div class="card border-0 shadow-sm mb-4">
 
-                            <label class="form-label fw-semibold">
-                                Product
-                            </label>
+                    <div class="card-body p-4">
 
-                            <!--
-                                IMPORTANT:
-                                This is still the same SELECT element.
+                        <div class="d-flex justify-content-between align-items-center mb-4">
 
-                                It now supports:
-                                - Product name search
-                                - SKU search
-                                - Barcode search
-                                - Scanner input
-                                - Camera scanning
-                            -->
+                            <div class="d-flex align-items-center gap-3">
 
-                            <div class="product-selector-wrapper">
+                                <div class="icon-box">
+                                    <i class="bi bi-credit-card"></i>
+                                </div>
 
-                                <div class="product-select-with-scan">
+                                <div>
 
-                                    <select
-                                        id="productSelector"
-                                        class="form-select"
-                                    >
+                                    <h5 class="fw-semibold mb-1">
+                                        Payment
+                                    </h5>
 
-                                        <option value="">
-                                            Select a product...
-                                        </option>
-
-                                        {% for product in products %}
-
-                                        <option
-                                            value="{{ product.id }}"
-                                            data-name="{{ product.name }}"
-                                            data-sku="{{ product.sku }}"
-                                            data-barcode="{{ product.barcode or '' }}"
-                                            data-price="{{ product.selling_price }}"
-                                            data-stock="{{ product.available_quantity }}"
-                                            data-unit="{{ product.unit }}"
-                                        >
-
-                                            {{ product.name }}
-                                            — {{ product.sku }}
-                                            {% if product.barcode %}
-                                                — {{ product.barcode }}
-                                            {% endif %}
-                                            — {{ format_currency(product.selling_price) }}
-                                            — Available: {{ product.available_quantity }} {{ product.unit }}
-
-                                        </option>
-
-                                        {% endfor %}
-
-                                    </select>
-
-                                    <button
-                                        type="button"
-                                        id="openScannerBtn"
-                                        class="btn btn-outline-primary product-scan-btn"
-                                        title="Scan barcode or QR code"
-                                    >
-                                        <i class="bi bi-camera"></i>
-                                        <span class="d-none d-lg-inline">
-                                            Scan
-                                        </span>
-                                    </button>
+                                    <p class="text-muted small mb-0">
+                                        Record one or more payments for this sale.
+                                    </p>
 
                                 </div>
 
@@ -254,34 +492,72 @@ New Sale
                         </div>
 
 
-                        <div class="col-md-3">
+                        <button
+                            type="button"
+                            class="btn btn-primary rounded-pill w-100 mb-4"
+                            id="addPaymentBtn"
+                        >
 
-                            <label class="form-label fw-semibold">
-                                Quantity
-                            </label>
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add Payment
 
-                            <input
-                                type="number"
-                                id="productQuantity"
-                                class="form-control"
-                                value="1"
-                                min="0.001"
-                                step="0.001"
-                            >
+                        </button>
+
+
+                        <div id="paymentsContainer"></div>
+
+
+                        <div class="border-top pt-3 mt-4">
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                <span class="text-muted">
+                                    Total Paid
+                                </span>
+
+                                <strong
+                                    id="totalPaidDisplay"
+                                    class="fs-5"
+                                >
+                                    {{ format_currency(0) }}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <span class="text-muted">
+                                    Balance
+                                </span>
+
+                                <strong
+                                    id="paymentBalanceDisplay"
+                                    class="fs-5"
+                                >
+                                    {{ format_currency(0) }}
+                                </strong>
+
+                            </div>
 
                         </div>
 
 
-                        <div class="col-md-2">
+                        <div class="mt-4">
 
                             <button
-                                type="button"
-                                id="addProductBtn"
-                                class="btn btn-primary rounded-pill w-100"
+                                type="submit"
+                                class="btn btn-primary rounded-pill btn-lg w-100"
+                                id="completeSaleBtn"
                             >
 
-                                <i class="bi bi-plus-lg"></i>
-                                Add
+                                <i class="bi bi-check2-circle me-1"></i>
+
+                                {% if sale %}
+                                    Update Sale
+                                {% else %}
+                                    Complete Sale
+                                {% endif %}
 
                             </button>
 
@@ -289,395 +565,191 @@ New Sale
 
                     </div>
 
-
-                    <!-- =================================================
-                         CART
-                    ================================================== -->
-
-                    <div class="table-responsive">
-
-                        <table
-                            class="table align-middle"
-                            id="cartTable"
-                        >
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>
-                                        Product
-                                    </th>
-
-                                    <th style="width: 130px;">
-                                        Quantity
-                                    </th>
-
-                                    <th>
-                                        Unit Price
-                                    </th>
-
-                                    <th>
-                                        Total
-                                    </th>
-
-                                    <th style="width: 50px;">
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="cartBody">
-
-                                <tr id="emptyCart">
-
-                                    <td
-                                        colspan="5"
-                                        class="text-center py-5 text-muted"
-                                    >
-
-                                        <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
-
-                                        No products added yet.
-
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 NOTES
-            ================================================== -->
-
-            <div class="card border-0 shadow-sm">
-
-                <div class="card-body p-4">
-
-                    <label class="form-label fw-semibold">
-                        Sale Notes
-                    </label>
-
-                    {{ form.notes(
-                        class="form-control",
-                        rows="3",
-                        placeholder="Optional notes about this sale..."
-                    ) }}
-
                 </div>
 
             </div>
 
         </div>
 
-
-        <!-- =================================================
-             RIGHT SIDE
-        ================================================== -->
-
-        <div class="col-xl-4">
-
-            <!-- =================================================
-                 SALE SUMMARY
-            ================================================== -->
-
-            <div class="card border-0 shadow-sm mb-4">
-
-                <div class="card-body p-4">
-
-                    <h5 class="fw-semibold mb-4">
-                        Sale Summary
-                    </h5>
-
-
-                    <div class="summary-row">
-
-                        <span>
-                            Subtotal
-                        </span>
-
-                        <strong id="subtotalDisplay">
-                            {{ format_currency(0) }}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label small fw-semibold">
-                            Discount
-                        </label>
-
-                        {{ form.discount(
-                            class="form-control",
-                            id="discountInput"
-                        ) }}
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label small fw-semibold">
-                            Tax
-                        </label>
-
-                        {{ form.tax(
-                            class="form-control",
-                            id="taxInput"
-                        ) }}
-
-                    </div>
-
-
-                    <hr>
-
-
-                    <div class="summary-total">
-
-                        <span>
-                            Total
-                        </span>
-
-                        <strong id="totalDisplay">
-                            {{ format_currency(0) }}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="mt-3 p-3 rounded-3 bg-light">
-
-                        <div class="d-flex justify-content-between">
-
-                            <span class="text-muted">
-                                Balance
-                            </span>
-
-                            <strong id="balanceDisplay">
-                                {{ format_currency(0) }}
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 PAYMENT
-            ================================================== -->
-
-            <div class="card border-0 shadow-sm mb-4">
-
-                <div class="card-body p-4">
-
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-
-                        <div class="d-flex align-items-center gap-3">
-
-                            <div class="icon-box">
-                                <i class="bi bi-credit-card"></i>
-                            </div>
-
-                            <div>
-
-                                <h5 class="fw-semibold mb-1">
-                                    Payment
-                                </h5>
-
-                                <p class="text-muted small mb-0">
-                                    Record one or more payments for this sale.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-primary rounded-pill w-100 mb-4"
-                        id="addPaymentBtn"
-                    >
-
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Add Payment
-
-                    </button>
-
-
-                    <!-- =================================================
-                         PAYMENT ROWS
-                    ================================================== -->
-
-                    <div id="paymentsContainer"></div>
-
-
-                    <!-- =================================================
-                         PAYMENT SUMMARY
-                    ================================================== -->
-
-                    <div class="border-top pt-3 mt-4">
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-
-                            <span class="text-muted">
-                                Total Paid
-                            </span>
-
-                            <strong
-                                id="totalPaidDisplay"
-                                class="fs-5"
-                            >
-                                {{ format_currency(0) }}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="d-flex justify-content-between align-items-center">
-
-                            <span class="text-muted">
-                                Balance
-                            </span>
-
-                            <strong
-                                id="paymentBalanceDisplay"
-                                class="fs-5"
-                            >
-                                {{ format_currency(0) }}
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         COMPLETE SALE
-                    ================================================== -->
-
-                    <div class="mt-4">
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary rounded-pill btn-lg w-100"
-                            id="completeSaleBtn"
-                        >
-
-                            <i class="bi bi-check2-circle me-1"></i>
-
-                            {% if sale %}
-                                Update Sale
-                            {% else %}
-                                Complete Sale
-                            {% endif %}
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</form>
+    </form>
 
 </div>
 
 
 <!-- ============================================================
-     BARCODE / QR CAMERA MODAL
+     CAMERA SCANNER OVERLAY
+     
+     This intentionally does NOT use Bootstrap's modal.
+     It prevents Bootstrap modal/camera conflicts on mobile.
 ============================================================ -->
 
 <div
-    class="modal fade"
-    id="scannerModal"
-    tabindex="-1"
-    aria-labelledby="scannerModalLabel"
+    id="scannerOverlay"
+    class="scanner-overlay"
     aria-hidden="true"
 >
 
-    <div class="modal-dialog modal-dialog-centered">
+    <div
+        id="scannerWindow"
+        class="scanner-window"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scannerTitle"
+    >
 
-        <div class="modal-content border-0 shadow-lg">
+        <!-- DRAG / HEADER -->
 
-            <div class="modal-header">
+        <div
+            id="scannerHeader"
+            class="scanner-header"
+        >
+
+            <div class="scanner-header-left">
+
+                <div class="scanner-header-icon">
+                    <i class="bi bi-camera-video"></i>
+                </div>
 
                 <div>
 
-                    <h5
-                        class="modal-title fw-semibold"
-                        id="scannerModalLabel"
+                    <div
+                        id="scannerTitle"
+                        class="scanner-title"
                     >
                         Scan Product
-                    </h5>
-
-                    <div class="small text-muted">
-                        Point your camera at the product barcode or QR code.
                     </div>
+
+                    <div class="scanner-subtitle">
+                        Scan a barcode or QR code
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="closeScannerBtn"
+                class="scanner-close-btn"
+                aria-label="Close scanner"
+                title="Close scanner"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <!-- CAMERA AREA -->
+
+        <div class="scanner-content">
+
+            <div
+                id="productScanner"
+                class="product-scanner"
+            >
+
+                <div class="scanner-placeholder">
+
+                    <div class="scanner-placeholder-icon">
+                        <i class="bi bi-camera"></i>
+                    </div>
+
+                    <div class="scanner-placeholder-title">
+                        Starting camera...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SCAN FRAME -->
+
+            <div class="scanner-frame-overlay">
+
+                <div class="scanner-frame">
+
+                    <span class="scanner-corner scanner-corner-tl"></span>
+                    <span class="scanner-corner scanner-corner-tr"></span>
+                    <span class="scanner-corner scanner-corner-bl"></span>
+                    <span class="scanner-corner scanner-corner-br"></span>
+
+                    <div class="scanner-line"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CAMERA CONTROLS -->
+
+            <div class="scanner-controls">
+
+                <div class="scanner-camera-select-wrap">
+
+                    <label
+                        for="scannerCameraSelect"
+                        class="scanner-control-label"
+                    >
+                        Camera
+                    </label>
+
+                    <select
+                        id="scannerCameraSelect"
+                        class="form-select scanner-camera-select"
+                    >
+                        <option value="">
+                            Detecting cameras...
+                        </option>
+                    </select>
 
                 </div>
 
                 <button
                     type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                ></button>
+                    id="switchCameraBtn"
+                    class="scanner-switch-btn"
+                    title="Switch camera"
+                >
+                    <i class="bi bi-camera-reverse"></i>
+                    <span>Switch</span>
+                </button>
 
             </div>
 
 
-            <div class="modal-body p-3">
+            <!-- STATUS -->
 
-                <div
-                    id="productScanner"
-                    class="product-scanner"
-                ></div>
+            <div
+                id="scannerStatus"
+                class="scanner-status"
+            >
+                Starting camera...
+            </div>
 
 
-                <div
-                    id="scannerStatus"
-                    class="scanner-status text-center small text-muted mt-3"
-                >
-                    Starting camera...
+            <!-- RESULT -->
+
+            <div
+                id="scannerResult"
+                class="scanner-result d-none"
+            >
+
+                <div class="scanner-result-icon">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
 
+                <div class="scanner-result-text">
 
-                <div
-                    id="scannerResult"
-                    class="scanner-result d-none mt-3"
-                >
-
-                    <div class="fw-semibold">
+                    <div class="scanner-result-title">
                         Product found
                     </div>
 
                     <div
                         id="scannerProductName"
-                        class="small text-muted"
+                        class="scanner-result-product"
                     ></div>
 
                 </div>
@@ -685,17 +757,31 @@ New Sale
             </div>
 
 
-            <div class="modal-footer">
+            <!-- HELP -->
 
-                <button
-                    type="button"
-                    class="btn btn-light border rounded-pill px-4"
-                    data-bs-dismiss="modal"
-                >
-                    Close
-                </button>
+            <div class="scanner-help">
+
+                <i class="bi bi-info-circle me-1"></i>
+
+                Point the camera at the barcode or QR code.
 
             </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="scanner-footer">
+
+            <button
+                type="button"
+                id="scannerFooterCloseBtn"
+                class="btn btn-light border rounded-pill px-4 scanner-footer-close"
+            >
+                <i class="bi bi-x-lg me-1"></i>
+                Close
+            </button>
 
         </div>
 
@@ -731,7 +817,9 @@ New Sale
 <style>
 
 /* ============================================================
-   SUMMARY
+   SALE PAGE
+   These styles are page-specific and do not modify your
+   existing navigation/theme system.
 ============================================================ */
 
 .summary-row,
@@ -764,11 +852,8 @@ New Sale
 .payment-detail-box {
 
     background: rgba(13, 110, 253, 0.04);
-
     border-radius: 12px;
-
     padding: 14px;
-
     border: 1px solid rgba(13, 110, 253, 0.08);
 
 }
@@ -776,9 +861,7 @@ New Sale
 .payment-detail-title {
 
     font-size: 0.85rem;
-
     font-weight: 600;
-
     margin-bottom: 14px;
 
 }
@@ -816,7 +899,6 @@ New Sale
 .cart-product-sku {
 
     font-size: 0.75rem;
-
     color: var(--bs-secondary-color);
 
 }
@@ -841,9 +923,7 @@ New Sale
 .product-select-with-scan {
 
     display: flex;
-
     align-items: stretch;
-
     gap: 8px;
 
 }
@@ -851,9 +931,7 @@ New Sale
 .product-select-with-scan .choices {
 
     flex: 1 1 auto;
-
     min-width: 0;
-
     margin-bottom: 0;
 
 }
@@ -861,17 +939,12 @@ New Sale
 .product-scan-btn {
 
     flex: 0 0 auto;
-
     min-width: 48px;
-
     border-radius: 0.375rem;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     gap: 6px;
 
 }
@@ -890,15 +963,11 @@ New Sale
 .product-selector-wrapper .choices__inner {
 
     min-height: 38px;
-
     border-radius: 0.375rem;
-
     padding: 5px 10px;
 
     background: var(--bs-body-bg);
-
     border: 1px solid var(--bs-border-color);
-
     color: var(--bs-body-color);
 
     font-size: 1rem;
@@ -919,12 +988,10 @@ New Sale
 .product-selector-wrapper .choices__list--dropdown,
 .product-selector-wrapper .choices__list[aria-expanded] {
 
-    z-index: 1055;
+    z-index: 1060;
 
     background: var(--bs-body-bg);
-
     border-color: var(--bs-border-color);
-
     color: var(--bs-body-color);
 
 }
@@ -932,9 +999,7 @@ New Sale
 .product-selector-wrapper .choices__input {
 
     background: var(--bs-body-bg);
-
     color: var(--bs-body-color);
-
     border-bottom-color: var(--bs-border-color);
 
 }
@@ -959,56 +1024,835 @@ New Sale
 
 
 /* ============================================================
-   CAMERA SCANNER
+   SCANNER OVERLAY
 ============================================================ */
 
-.product-scanner {
+.scanner-overlay {
 
-    width: 100%;
+    position: fixed;
 
-    min-height: 280px;
+    inset: 0;
 
-    border-radius: 14px;
+    z-index: 2000;
 
-    overflow: hidden;
+    display: none;
 
-    background: #000;
+    align-items: center;
+    justify-content: center;
 
-}
+    padding: 20px;
 
-.product-scanner video {
+    background:
+        rgba(0, 0, 0, 0.72);
 
-    width: 100% !important;
-
-    height: auto !important;
-
-    max-height: 420px;
-
-    object-fit: cover;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 
 }
 
-.scanner-status {
+.scanner-overlay.is-open {
 
-    min-height: 20px;
-
-}
-
-.scanner-result {
-
-    padding: 12px 14px;
-
-    border-radius: 10px;
-
-    background: rgba(13, 110, 253, 0.06);
-
-    border: 1px solid rgba(13, 110, 253, 0.12);
+    display: flex;
 
 }
 
 
 /* ============================================================
-   MOBILE
+   SCANNER WINDOW
+============================================================ */
+
+.scanner-window {
+
+    position: relative;
+
+    width: min(720px, 100%);
+
+    max-height: calc(100dvh - 40px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border-radius: 22px;
+
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+
+    border: 1px solid var(--bs-border-color);
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.35);
+
+    touch-action: none;
+
+}
+
+
+/* ============================================================
+   SCANNER HEADER
+============================================================ */
+
+.scanner-header {
+
+    flex: 0 0 auto;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 14px 16px;
+
+    border-bottom: 1px solid var(--bs-border-color);
+
+    cursor: grab;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+}
+
+.scanner-header:active {
+
+    cursor: grabbing;
+
+}
+
+.scanner-header-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+
+}
+
+.scanner-header-icon {
+
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: rgba(13, 110, 253, 0.10);
+
+    color: var(--bs-primary);
+
+    font-size: 1.15rem;
+
+}
+
+.scanner-title {
+
+    font-size: 1rem;
+    font-weight: 700;
+
+}
+
+.scanner-subtitle {
+
+    font-size: 0.78rem;
+
+    color: var(--bs-secondary-color);
+
+    margin-top: 2px;
+
+}
+
+.scanner-close-btn {
+
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: var(--bs-tertiary-bg);
+
+    color: var(--bs-body-color);
+
+    cursor: pointer;
+
+    font-size: 1rem;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
+}
+
+.scanner-close-btn:hover {
+
+    background: var(--bs-secondary-bg);
+
+}
+
+.scanner-close-btn:active {
+
+    transform: scale(0.94);
+
+}
+
+
+/* ============================================================
+   SCANNER CONTENT
+============================================================ */
+
+.scanner-content {
+
+    position: relative;
+
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    padding: 14px;
+
+    -webkit-overflow-scrolling: touch;
+
+}
+
+
+/* ============================================================
+   CAMERA VIEW
+============================================================ */
+
+.product-scanner {
+
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 10;
+
+    min-height: 240px;
+
+    max-height: min(58dvh, 480px);
+
+    overflow: hidden;
+
+    border-radius: 16px;
+
+    background: #050505;
+
+    isolation: isolate;
+
+}
+
+.product-scanner video {
+
+    display: block !important;
+
+    width: 100% !important;
+
+    height: 100% !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    /*
+     * Avoid cropping the camera feed differently from the decoder's
+     * viewfinder, which can make the visible scan guide feel offset.
+     */
+    object-fit: contain !important;
+
+    border-radius: 16px;
+
+}
+
+.product-scanner canvas {
+
+    display: none !important;
+
+}
+
+.product-scanner img {
+
+    max-width: none !important;
+
+}
+
+
+/* ============================================================
+   CAMERA PLACEHOLDER
+============================================================ */
+
+.scanner-placeholder {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 2;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255,255,255,0.08),
+            rgba(0,0,0,0.72)
+        );
+
+    pointer-events: none;
+
+}
+
+.scanner-placeholder-icon {
+
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,0.10);
+
+    margin-bottom: 12px;
+
+    font-size: 1.5rem;
+
+}
+
+.scanner-placeholder-title {
+
+    font-size: 0.9rem;
+
+}
+
+
+/* ============================================================
+   FRAME OVERLAY
+============================================================ */
+
+.scanner-frame-overlay {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 5;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    pointer-events: none;
+
+}
+
+.scanner-frame {
+
+    position: relative;
+
+    width: min(84%, 440px);
+
+    aspect-ratio: 2.1 / 1;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 0 9999px rgba(0, 0, 0, 0.30);
+
+}
+
+.scanner-corner {
+
+    position: absolute;
+
+    width: 30px;
+    height: 30px;
+
+    border-color: white;
+    border-style: solid;
+
+    filter:
+        drop-shadow(
+            0 1px 3px rgba(0,0,0,0.8)
+        );
+
+}
+
+.scanner-corner-tl {
+
+    left: 0;
+    top: 0;
+
+    border-width: 3px 0 0 3px;
+
+    border-top-left-radius: 8px;
+
+}
+
+.scanner-corner-tr {
+
+    right: 0;
+    top: 0;
+
+    border-width: 3px 3px 0 0;
+
+    border-top-right-radius: 8px;
+
+}
+
+.scanner-corner-bl {
+
+    left: 0;
+    bottom: 0;
+
+    border-width: 0 0 3px 3px;
+
+    border-bottom-left-radius: 8px;
+
+}
+
+.scanner-corner-br {
+
+    right: 0;
+    bottom: 0;
+
+    border-width: 0 3px 3px 0;
+
+    border-bottom-right-radius: 8px;
+
+}
+
+.scanner-line {
+
+    position: absolute;
+
+    left: 8%;
+    right: 8%;
+
+    top: 50%;
+
+    height: 2px;
+
+    background: rgba(255,255,255,0.95);
+
+    box-shadow:
+        0 0 8px rgba(255,255,255,0.8);
+
+    animation:
+        scannerLine 2s ease-in-out infinite;
+
+}
+
+@keyframes scannerLine {
+
+    0%,
+    100% {
+
+        transform: translateY(-40px);
+
+        opacity: 0.45;
+
+    }
+
+    50% {
+
+        transform: translateY(40px);
+
+        opacity: 1;
+
+    }
+
+}
+
+
+/* ============================================================
+   CAMERA CONTROLS
+============================================================ */
+
+.scanner-controls {
+
+    display: flex;
+
+    align-items: end;
+
+    gap: 10px;
+
+    margin-top: 12px;
+
+}
+
+.scanner-camera-select-wrap {
+
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+}
+
+.scanner-control-label {
+
+    display: block;
+
+    font-size: 0.72rem;
+
+    font-weight: 700;
+
+    margin-bottom: 5px;
+
+    color: var(--bs-secondary-color);
+
+}
+
+.scanner-camera-select {
+
+    width: 100%;
+
+    min-height: 42px;
+
+}
+
+.scanner-switch-btn {
+
+    min-height: 42px;
+
+    flex: 0 0 auto;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 0 14px;
+
+    border: 1px solid var(--bs-border-color);
+
+    border-radius: 10px;
+
+    background: var(--bs-tertiary-bg);
+
+    color: var(--bs-body-color);
+
+}
+
+.scanner-switch-btn:hover {
+
+    background: var(--bs-secondary-bg);
+
+}
+
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+.scanner-status {
+
+    min-height: 24px;
+
+    margin-top: 10px;
+
+    text-align: center;
+
+    font-size: 0.82rem;
+
+    color: var(--bs-secondary-color);
+
+}
+
+
+/* ============================================================
+   RESULT
+============================================================ */
+
+.scanner-result {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 10px;
+
+    padding: 11px 13px;
+
+    border-radius: 12px;
+
+    background: rgba(25, 135, 84, 0.08);
+
+    border: 1px solid rgba(25, 135, 84, 0.16);
+
+}
+
+.scanner-result-icon {
+
+    color: #198754;
+
+    font-size: 1.25rem;
+
+}
+
+.scanner-result-title {
+
+    font-weight: 700;
+
+    font-size: 0.84rem;
+
+}
+
+.scanner-result-product {
+
+    margin-top: 2px;
+
+    font-size: 0.78rem;
+
+    color: var(--bs-secondary-color);
+
+}
+
+
+/* ============================================================
+   HELP
+============================================================ */
+
+.scanner-help {
+
+    margin-top: 10px;
+
+    text-align: center;
+
+    font-size: 0.74rem;
+
+    color: var(--bs-secondary-color);
+
+}
+
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+.scanner-footer {
+
+    flex: 0 0 auto;
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    padding: 12px 14px;
+
+    border-top: 1px solid var(--bs-border-color);
+
+}
+
+.scanner-footer-close {
+
+    min-width: 110px;
+
+}
+
+
+/* ============================================================
+   MOBILE SCANNER
+============================================================ */
+
+@media (max-width: 768px) {
+
+    .scanner-overlay {
+
+        align-items: stretch;
+        justify-content: stretch;
+
+        padding: 0;
+
+    }
+
+    .scanner-window {
+
+        width: 100%;
+
+        max-height: none;
+
+        height: 100dvh;
+
+        min-height: 100dvh;
+
+        border-radius: 0;
+
+        border: 0;
+
+    }
+
+    .scanner-header {
+
+        padding:
+            max(10px, env(safe-area-inset-top))
+            12px
+            12px
+            12px;
+
+        cursor: default;
+
+    }
+
+    .scanner-header-icon {
+
+        width: 38px;
+        height: 38px;
+
+        flex-basis: 38px;
+
+    }
+
+    .scanner-close-btn {
+
+        width: 44px;
+        height: 44px;
+
+        flex-basis: 44px;
+
+    }
+
+    .scanner-content {
+
+        padding: 10px;
+
+    }
+
+    .product-scanner {
+
+        aspect-ratio: auto;
+
+        height: min(58dvh, 500px);
+
+        min-height: 280px;
+
+        max-height: none;
+
+        border-radius: 14px;
+
+    }
+
+    .scanner-frame {
+
+        width: min(84%, 440px);
+
+        aspect-ratio: 2.1 / 1;
+
+    }
+
+    .scanner-controls {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+    .scanner-camera-select-wrap {
+
+        width: 100%;
+
+    }
+
+    .scanner-switch-btn {
+
+        width: 100%;
+
+    }
+
+    .scanner-footer {
+
+        justify-content: center;
+
+        padding:
+            10px
+            12px
+            max(10px, env(safe-area-inset-bottom))
+            12px;
+
+    }
+
+    .scanner-footer-close {
+
+        width: 100%;
+
+    }
+
+}
+
+
+/* ============================================================
+   VERY SMALL PHONES
+============================================================ */
+
+@media (max-width: 380px) {
+
+    .scanner-title {
+
+        font-size: 0.94rem;
+
+    }
+
+    .scanner-subtitle {
+
+        font-size: 0.72rem;
+
+    }
+
+    .product-scanner {
+
+        height: 52dvh;
+
+        min-height: 230px;
+
+    }
+
+    .scanner-frame {
+
+        width: min(84%, 440px);
+
+        aspect-ratio: 2.1 / 1;
+
+    }
+
+}
+
+
+/* ============================================================
+   CART MOBILE
 ============================================================ */
 
 @media (max-width: 768px) {
@@ -1030,8 +1874,37 @@ New Sale
         min-width: 46px;
 
         padding-left: 12px;
-
         padding-right: 12px;
+
+    }
+
+}
+
+
+/* ============================================================
+   REDUCE MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .scanner-line {
+
+        animation: none;
+
+    }
+
+}
+
+
+/* ============================================================
+   PRINT
+============================================================ */
+
+@media print {
+
+    .scanner-overlay {
+
+        display: none !important;
 
     }
 
@@ -1044,13 +1917,12 @@ New Sale
 
 document.addEventListener("DOMContentLoaded", function () {
 
-
     /* =========================================================
        COMPANY SETTINGS
-       These values come from the current logged-in company.
     ========================================================= */
 
     const COMPANY_SETTINGS = {
+
         currencyCode:
             {{ get_currency_code()|tojson }},
 
@@ -1071,6 +1943,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         timezone:
             {{ get_company_timezone_name()|tojson }}
+
     };
 
 
@@ -1157,20 +2030,36 @@ document.addEventListener("DOMContentLoaded", function () {
         {% for item in sale.items %}
 
         {
+
             id: {{ item.product_id }},
-            name: {{ item.product.name|tojson }},
-            sku: {{ item.product.sku|tojson }},
-            barcode: {{ (item.product.barcode or "")|tojson }},
-            price: {{ item.unit_price|float }},
-            stock: {{
-                (
-                    item.product.quantity
-                    + item.quantity
-                    - item.product.reserved_quantity
-                )|float
-            }},
-            quantity: {{ item.quantity|float }},
-            unit: {{ item.product.unit|tojson }}
+
+            name:
+                {{ item.product.name|tojson }},
+
+            sku:
+                {{ item.product.sku|tojson }},
+
+            barcode:
+                {{ (item.product.barcode or "")|tojson }},
+
+            price:
+                {{ item.unit_price|float }},
+
+            stock:
+                {{
+                    (
+                        item.product.quantity
+                        + item.quantity
+                        - item.product.reserved_quantity
+                    )|float
+                }},
+
+            quantity:
+                {{ item.quantity|float }},
+
+            unit:
+                {{ item.product.unit|tojson }}
+
         }
 
         {% if not loop.last %},{% endif %}
@@ -1198,13 +2087,28 @@ document.addEventListener("DOMContentLoaded", function () {
         {% for payment in sale.payments %}
 
         {
-            id: {{ payment.id }},
-            method: {{ payment.method|tojson }},
-            amount: {{ payment.amount|float }},
-            bank_name: {{ (payment.bank_name or "")|tojson }},
-            account_name: {{ (payment.account_name or "")|tojson }},
-            account_number: {{ (payment.account_number or "")|tojson }},
-            reference: {{ (payment.reference or "")|tojson }}
+
+            id:
+                {{ payment.id }},
+
+            method:
+                {{ payment.method|tojson }},
+
+            amount:
+                {{ payment.amount|float }},
+
+            bank_name:
+                {{ (payment.bank_name or "")|tojson }},
+
+            account_name:
+                {{ (payment.account_name or "")|tojson }},
+
+            account_number:
+                {{ (payment.account_number or "")|tojson }},
+
+            reference:
+                {{ (payment.reference or "")|tojson }}
+
         }
 
         {% if not loop.last %},{% endif %}
@@ -1225,14 +2129,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const numericValue =
             Number(value || 0);
 
-
         const decimalPlaces =
             Number.isInteger(
-                Number(COMPANY_SETTINGS.decimalPlaces)
+                Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
             )
-                ? Number(COMPANY_SETTINGS.decimalPlaces)
+                ? Number(
+                    COMPANY_SETTINGS.decimalPlaces
+                )
                 : 2;
-
 
         const formatted =
             numericValue.toLocaleString(
@@ -1246,7 +2152,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
-
         if (
             COMPANY_SETTINGS.currencyPosition ===
             "after"
@@ -1259,7 +2164,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         }
-
 
         return (
             COMPANY_SETTINGS.currencySymbol +
@@ -1277,7 +2181,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let subtotal = 0;
 
-
         cart.forEach(function (item) {
 
             subtotal +=
@@ -1286,14 +2189,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
-
         const discount =
             Number(discountInput.value) || 0;
 
-
         const tax =
             Number(taxInput.value) || 0;
-
 
         return Math.max(
             0,
@@ -1312,7 +2212,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderCart() {
 
         cartBody.innerHTML = "";
-
 
         if (cart.length === 0) {
 
@@ -1355,14 +2254,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
 
                     <div class="cart-product-sku text-muted">
-                        SKU: <code>${item.sku}</code>
+                        SKU:
+                        <code>${item.sku || "—"}</code>
                     </div>
 
                     ${
                         item.barcode
                             ? `
                                 <div class="cart-product-sku text-muted">
-                                    Barcode: <code>${item.barcode}</code>
+                                    Barcode:
+                                    <code>${item.barcode}</code>
                                 </div>
                               `
                             : ""
@@ -1399,10 +2300,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 <td class="fw-semibold text-dark">
+
                     ${money(
                         Number(item.price) *
                         Number(item.quantity)
                     )}
+
                 </td>
 
 
@@ -1451,7 +2354,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let subtotal = 0;
 
-
         cart.forEach(function (item) {
 
             subtotal +=
@@ -1463,7 +2365,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let discount =
             Number(discountInput.value) || 0;
-
 
         let tax =
             Number(taxInput.value) || 0;
@@ -1513,10 +2414,8 @@ document.addEventListener("DOMContentLoaded", function () {
         subtotalDisplay.textContent =
             money(subtotal);
 
-
         totalDisplay.textContent =
             money(total);
-
 
         updatePaymentSummary();
 
@@ -2135,10 +3034,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* =========================================================
        PRODUCT SELECTOR
-       SEARCHABLE SELECT
-
-       The original <select> remains the actual product field.
-       Choices.js only enhances its dropdown.
     ========================================================= */
 
     let productChoices = null;
@@ -2205,7 +3100,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       FIND PRODUCT BY ID / NAME / SKU / BARCODE
+       FIND PRODUCT
     ========================================================= */
 
     function findProduct(value) {
@@ -2481,23 +3376,160 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       BARCODE / SKU SCANNER INPUT
+       PHYSICAL BARCODE SCANNER
+       
+       Most USB/Bluetooth scanners behave like keyboards.
 
-       USB/Bluetooth barcode scanners normally behave like
-       keyboards. If the scanner sends:
+       Example:
 
-           1234567890123 + ENTER
+       BK-100 + ENTER
 
-       this will automatically find the product.
+       or
+
+       3864646475578585 + ENTER
+
+       The scanner input is captured globally because
+       Choices.js replaces/hides the original select.
     ========================================================= */
 
-    productSelector.addEventListener(
+    let physicalScannerBuffer = "";
+
+    let physicalScannerTimer = null;
+
+    let physicalScannerLastKeyTime = 0;
+
+
+    function processPhysicalScannerValue(value) {
+
+        const cleaned =
+            String(value || "").trim();
+
+
+        if (!cleaned) {
+
+            return false;
+
+        }
+
+
+        const option =
+            findProduct(cleaned);
+
+
+        if (!option) {
+
+            return false;
+
+        }
+
+
+        selectProduct(option);
+
+
+        setTimeout(function () {
+
+            addSelectedProduct();
+
+        }, 60);
+
+
+        return true;
+
+    }
+
+
+    document.addEventListener(
         "keydown",
         function (event) {
 
+            /* Do not interfere with normal typing. */
+
+            const target =
+                event.target;
+
+
+            const tag =
+                target &&
+                target.tagName
+                    ? target.tagName.toLowerCase()
+                    : "";
+
+
+            const isTypingField =
+                tag === "input" ||
+                tag === "textarea" ||
+                tag === "select";
+
+
+            /*
+             * Choices search input is special.
+             * If the user manually searches there, we do not
+             * intercept the keyboard.
+             *
+             * Physical scanners are normally extremely fast,
+             * so we identify scanner input using timing.
+             */
+
+            const now =
+                Date.now();
+
+
+            const elapsed =
+                now -
+                physicalScannerLastKeyTime;
+
+
+            physicalScannerLastKeyTime =
+                now;
+
+
             if (
-                event.key !==
-                "Enter"
+                elapsed > 120
+            ) {
+
+                physicalScannerBuffer = "";
+
+            }
+
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                if (
+                    physicalScannerBuffer.length >= 2
+                ) {
+
+                    const value =
+                        physicalScannerBuffer;
+
+
+                    physicalScannerBuffer =
+                        "";
+
+                    const handled =
+                        processPhysicalScannerValue(
+                            value
+                        );
+
+
+                    if (handled) {
+
+                        event.preventDefault();
+
+                        event.stopPropagation();
+
+                    }
+
+                }
+
+                return;
+
+            }
+
+
+            if (
+                event.key.length !== 1
             ) {
 
                 return;
@@ -2505,34 +3537,61 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
-            const value =
-                this.value;
+            /*
+             * If the user is slowly typing manually,
+             * do not treat it as scanner input.
+             */
 
+            if (
+                elapsed > 120 &&
+                isTypingField
+            ) {
 
-            const option =
-                findProduct(value);
+                physicalScannerBuffer = "";
 
-
-            if (option) {
-
-                event.preventDefault();
-
-                selectProduct(option);
-
-                setTimeout(function () {
-
-                    addSelectedProduct();
-
-                }, 50);
+                return;
 
             }
 
-        }
+
+            /*
+             * Barcode/SKU scanners usually send their
+             * characters very quickly.
+             */
+
+            if (
+                elapsed <= 120
+            ) {
+
+                physicalScannerBuffer +=
+                    event.key;
+
+            }
+
+
+            clearTimeout(
+                physicalScannerTimer
+            );
+
+
+            physicalScannerTimer =
+                setTimeout(
+                    function () {
+
+                        physicalScannerBuffer =
+                            "";
+
+                    },
+                    250
+                );
+
+        },
+        true
     );
 
 
     /* =========================================================
-       CAMERA SCANNER
+       SCANNER ELEMENTS
     ========================================================= */
 
     const openScannerBtn =
@@ -2540,9 +3599,29 @@ document.addEventListener("DOMContentLoaded", function () {
             "openScannerBtn"
         );
 
-    const scannerModalElement =
+    const scannerOverlay =
         document.getElementById(
-            "scannerModal"
+            "scannerOverlay"
+        );
+
+    const scannerWindow =
+        document.getElementById(
+            "scannerWindow"
+        );
+
+    const scannerHeader =
+        document.getElementById(
+            "scannerHeader"
+        );
+
+    const closeScannerBtn =
+        document.getElementById(
+            "closeScannerBtn"
+        );
+
+    const scannerFooterCloseBtn =
+        document.getElementById(
+            "scannerFooterCloseBtn"
         );
 
     const scannerStatus =
@@ -2560,59 +3639,557 @@ document.addEventListener("DOMContentLoaded", function () {
             "scannerProductName"
         );
 
+    const scannerCameraSelect =
+        document.getElementById(
+            "scannerCameraSelect"
+        );
 
-    let html5QrCode =
-        null;
-
-    let scannerRunning =
-        false;
-
-    let scannerHandled =
-        false;
+    const switchCameraBtn =
+        document.getElementById(
+            "switchCameraBtn"
+        );
 
 
-    function stopProductScanner() {
+    /* =========================================================
+       SCANNER STATE
+    ========================================================= */
 
-        if (
-            html5QrCode &&
-            scannerRunning
-        ) {
+    let html5QrCode = null;
 
-            html5QrCode
-                .stop()
-                .then(function () {
+    let scannerRunning = false;
 
-                    scannerRunning =
-                        false;
+    let scannerStarting = false;
 
-                })
-                .catch(function () {
+    let scannerHandled = false;
 
-                    scannerRunning =
-                        false;
+    let availableCameras = [];
 
-                });
+    let currentCameraIndex = 0;
+
+    let currentCameraId = null;
+
+
+    /* =========================================================
+       UPDATE SCANNER STATUS
+    ========================================================= */
+
+    function setScannerStatus(
+        message,
+        type = ""
+    ) {
+
+        if (!scannerStatus) {
+
+            return;
+
+        }
+
+
+        scannerStatus.textContent =
+            message;
+
+
+        scannerStatus.classList.remove(
+            "text-danger",
+            "text-success",
+            "text-warning"
+        );
+
+
+        if (type) {
+
+            scannerStatus.classList.add(
+                type
+            );
 
         }
 
     }
 
 
-    function closeScannerCleanup() {
+    /* =========================================================
+       RESET SCANNER RESULT
+    ========================================================= */
 
-        stopProductScanner();
+    function resetScannerResult() {
 
         scannerHandled =
             false;
 
-        scannerResult.classList.add(
-            "d-none"
-        );
+
+        if (scannerResult) {
+
+            scannerResult.classList.add(
+                "d-none"
+            );
+
+        }
+
+
+        if (scannerProductName) {
+
+            scannerProductName.textContent =
+                "";
+
+        }
 
     }
 
 
-    function handleScannedProduct(decodedText) {
+    /* =========================================================
+       CLEAR CAMERA HTML
+    ========================================================= */
+
+    function clearScannerElement() {
+
+        const element =
+            document.getElementById(
+                "productScanner"
+            );
+
+
+        if (!element) {
+
+            return;
+
+        }
+
+
+        element.innerHTML = `
+
+            <div class="scanner-placeholder">
+
+                <div class="scanner-placeholder-icon">
+
+                    <i class="bi bi-camera"></i>
+
+                </div>
+
+                <div class="scanner-placeholder-title">
+                    Starting camera...
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* =========================================================
+       STOP CAMERA
+    ========================================================= */
+
+    async function stopProductScanner() {
+
+        if (!html5QrCode) {
+
+            scannerRunning =
+                false;
+
+            scannerStarting =
+                false;
+
+            return;
+
+        }
+
+
+        try {
+
+            if (
+                scannerRunning
+            ) {
+
+                await html5QrCode.stop();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Scanner stop warning:",
+                error
+            );
+
+        }
+
+
+        scannerRunning =
+            false;
+
+        scannerStarting =
+            false;
+
+
+        try {
+
+            await html5QrCode.clear();
+
+        } catch (error) {
+
+            console.warn(
+                "Scanner clear warning:",
+                error
+            );
+
+        }
+
+
+        html5QrCode =
+            null;
+
+
+        clearScannerElement();
+
+    }
+
+
+    /* =========================================================
+       GET CAMERAS
+    ========================================================= */
+
+    async function loadScannerCameras() {
+
+        if (
+            typeof Html5Qrcode ===
+            "undefined"
+        ) {
+
+            return [];
+
+        }
+
+
+        try {
+
+            const cameras =
+                await Html5Qrcode.getCameras();
+
+
+            availableCameras =
+                Array.isArray(cameras)
+                    ? cameras
+                    : [];
+
+
+            scannerCameraSelect.innerHTML =
+                "";
+
+
+            if (
+                availableCameras.length === 0
+            ) {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    "";
+
+                option.textContent =
+                    "No camera detected";
+
+                scannerCameraSelect.appendChild(
+                    option
+                );
+
+
+                scannerCameraSelect.disabled =
+                    true;
+
+                switchCameraBtn.disabled =
+                    true;
+
+
+                return [];
+
+            }
+
+
+            scannerCameraSelect.disabled =
+                false;
+
+            switchCameraBtn.disabled =
+                availableCameras.length < 2;
+
+
+            availableCameras.forEach(
+                function (camera, index) {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    option.value =
+                        camera.id;
+
+
+                    let label =
+                        camera.label ||
+                        `Camera ${index + 1}`;
+
+
+                    const lowerLabel =
+                        label.toLowerCase();
+
+
+                    if (
+                        lowerLabel.includes("front") ||
+                        lowerLabel.includes("user") ||
+                        lowerLabel.includes("selfie")
+                    ) {
+
+                        label +=
+                            " — Front/Selfie";
+
+                    }
+
+                    else if (
+                        lowerLabel.includes("back") ||
+                        lowerLabel.includes("rear") ||
+                        lowerLabel.includes("environment")
+                    ) {
+
+                        label +=
+                            " — Rear";
+
+                    }
+
+
+                    option.textContent =
+                        label;
+
+
+                    scannerCameraSelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+            /*
+             * Prefer a rear/environment camera when
+             * one is clearly available.
+             *
+             * On laptops this normally falls back to
+             * the built-in webcam.
+             */
+
+            let preferredIndex =
+                0;
+
+
+            for (
+                let i = 0;
+                i < availableCameras.length;
+                i++
+            ) {
+
+                const label =
+                    String(
+                        availableCameras[i].label ||
+                        ""
+                    ).toLowerCase();
+
+
+                if (
+                    label.includes("back") ||
+                    label.includes("rear") ||
+                    label.includes("environment")
+                ) {
+
+                    preferredIndex =
+                        i;
+
+                    break;
+
+                }
+
+            }
+
+
+            currentCameraIndex =
+                preferredIndex;
+
+
+            currentCameraId =
+                availableCameras[
+                    currentCameraIndex
+                ].id;
+
+
+            scannerCameraSelect.value =
+                currentCameraId;
+
+
+            return availableCameras;
+
+        } catch (error) {
+
+            console.error(
+                "Camera enumeration error:",
+                error
+            );
+
+
+            scannerCameraSelect.innerHTML = `
+
+                <option value="">
+                    Camera permission required
+                </option>
+
+            `;
+
+
+            scannerCameraSelect.disabled =
+                true;
+
+
+            switchCameraBtn.disabled =
+                true;
+
+
+            return [];
+
+        }
+
+    }
+
+
+    /* =========================================================
+       SCANNER CONFIG
+    ========================================================= */
+
+    function getScannerConfig() {
+
+        const supportedFormats = [];
+
+
+        if (
+            typeof Html5QrcodeSupportedFormats !==
+            "undefined"
+        ) {
+
+            const formats =
+                Html5QrcodeSupportedFormats;
+
+
+            const formatNames = [
+
+                "QR_CODE",
+
+                "CODE_128",
+
+                "CODE_39",
+
+                "CODE_93",
+
+                "EAN_13",
+
+                "EAN_8",
+
+                "UPC_A",
+
+                "UPC_E",
+
+                "ITF",
+
+                "CODABAR"
+
+            ];
+
+
+            formatNames.forEach(
+                function (name) {
+
+                    if (
+                        formats[name] !==
+                        undefined
+                    ) {
+
+                        supportedFormats.push(
+                            formats[name]
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        const config = {
+
+            fps: 10,
+
+            qrbox: function (
+                viewfinderWidth,
+                viewfinderHeight
+            ) {
+
+                /*
+                 * Keep the real decoding region proportional to the
+                 * visible guide frame. Calculate from BOTH dimensions so
+                 * it cannot overflow short or narrow mobile viewfinders.
+                 */
+                const scanAspectRatio = 2.1;
+                const maxWidth = Math.min(
+                    viewfinderWidth * 0.84,
+                    440,
+                    viewfinderHeight * 0.55 * scanAspectRatio
+                );
+
+                const width = Math.max(
+                    120,
+                    Math.floor(maxWidth)
+                );
+
+                const height = Math.max(
+                    60,
+                    Math.floor(width / scanAspectRatio)
+                );
+
+                return {
+                    width: Math.min(width, viewfinderWidth),
+                    height: Math.min(height, viewfinderHeight)
+                };
+
+            },
+
+            aspectRatio: 1.6
+
+        };
+
+
+        if (
+            supportedFormats.length > 0
+        ) {
+
+            config.formatsToSupport =
+                supportedFormats;
+
+        }
+
+
+        return config;
+
+    }
+
+
+    /* =========================================================
+       HANDLE SCANNED PRODUCT
+    ========================================================= */
+
+    async function handleScannedProduct(
+        decodedText
+    ) {
 
         if (scannerHandled) {
 
@@ -2621,20 +4198,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
+        const cleanedValue =
+            String(
+                decodedText || ""
+            ).trim();
+
+
+        if (!cleanedValue) {
+
+            return;
+
+        }
+
+
         const option =
-            findProduct(decodedText);
+            findProduct(
+                cleanedValue
+            );
 
 
         if (!option) {
 
-            scannerStatus.textContent =
-                "Code scanned, but no matching product was found.";
-
-            scannerStatus.classList.remove(
-                "text-success"
-            );
-
-            scannerStatus.classList.add(
+            setScannerStatus(
+                `Code "${cleanedValue}" was scanned, but no matching product was found.`,
                 "text-danger"
             );
 
@@ -2657,6 +4243,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     ? " • SKU: " +
                       option.dataset.sku
                     : ""
+            ) +
+            (
+                option.dataset.barcode
+                    ? " • Barcode: " +
+                      option.dataset.barcode
+                    : ""
             );
 
 
@@ -2665,61 +4257,74 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-        scannerStatus.textContent =
-            "Product found. Adding product...";
-
-        scannerStatus.classList.remove(
-            "text-danger"
-        );
-
-        scannerStatus.classList.add(
+        setScannerStatus(
+            "Product found. Adding product...",
             "text-success"
         );
 
 
-        stopProductScanner();
+        await stopProductScanner();
 
 
-        setTimeout(function () {
+        /*
+         * Give the select time to update before
+         * adding the product.
+         */
 
-            addSelectedProduct();
+        setTimeout(
+            function () {
+
+                const added =
+                    addSelectedProduct();
 
 
-            const modal =
-                bootstrap.Modal.getInstance(
-                    scannerModalElement
-                );
+                if (added) {
 
+                    closeScanner();
 
-            if (modal) {
+                } else {
 
-                modal.hide();
+                    scannerHandled =
+                        false;
 
-            }
+                    setScannerStatus(
+                        "The product could not be added. Check the quantity and available stock.",
+                        "text-danger"
+                    );
 
-        }, 500);
+                }
+
+            },
+            180
+        );
 
     }
 
 
-    function startProductScanner() {
+    /* =========================================================
+       START CAMERA
+    ========================================================= */
 
-        scannerHandled =
-            false;
+    async function startProductScanner(
+        cameraId = null
+    ) {
+
+        if (scannerStarting) {
+
+            return;
+
+        }
 
 
-        scannerStatus.textContent =
-            "Starting camera...";
+        scannerStarting =
+            true;
 
 
-        scannerStatus.classList.remove(
-            "text-danger",
-            "text-success"
-        );
+        resetScannerResult();
 
 
-        scannerResult.classList.add(
-            "d-none"
+        setScannerStatus(
+            "Starting camera..."
         );
 
 
@@ -2728,68 +4333,109 @@ document.addEventListener("DOMContentLoaded", function () {
             "undefined"
         ) {
 
-            scannerStatus.textContent =
-                "Camera scanner could not be loaded.";
-
-            scannerStatus.classList.add(
+            setScannerStatus(
+                "Camera scanner could not be loaded.",
                 "text-danger"
             );
+
+            scannerStarting =
+                false;
 
             return;
 
         }
 
 
-        html5QrCode =
-            new Html5Qrcode(
-                "productScanner"
-            );
+        await stopProductScanner();
 
 
-        const config = {
-
-            fps: 10,
-
-            qrbox: {
-                width: 250,
-                height: 150
-            },
-
-            aspectRatio: 1.777778,
-
-            formatsToSupport: [
-
-                Html5QrcodeSupportedFormats.QR_CODE,
-
-                Html5QrcodeSupportedFormats.CODE_128,
-
-                Html5QrcodeSupportedFormats.CODE_39,
-
-                Html5QrcodeSupportedFormats.CODE_93,
-
-                Html5QrcodeSupportedFormats.EAN_13,
-
-                Html5QrcodeSupportedFormats.EAN_8,
-
-                Html5QrcodeSupportedFormats.UPC_A,
-
-                Html5QrcodeSupportedFormats.UPC_E,
-
-                Html5QrcodeSupportedFormats.ITF,
-
-                Html5QrcodeSupportedFormats.CODABAR
-
-            ]
-
-        };
+        clearScannerElement();
 
 
-        html5QrCode
-            .start(
+        try {
+
+            if (
+                availableCameras.length === 0
+            ) {
+
+                await loadScannerCameras();
+
+            }
+
+
+            if (
+                availableCameras.length === 0
+            ) {
+
+                setScannerStatus(
+                    "No camera was found. Check your browser camera permission.",
+                    "text-danger"
+                );
+
+                scannerStarting =
+                    false;
+
+                return;
+
+            }
+
+
+            if (!cameraId) {
+
+                cameraId =
+                    currentCameraId ||
+                    availableCameras[
+                        currentCameraIndex
+                    ].id;
+
+            }
+
+
+            currentCameraId =
+                cameraId;
+
+
+            const foundIndex =
+                availableCameras.findIndex(
+                    function (camera) {
+
+                        return (
+                            camera.id ===
+                            cameraId
+                        );
+
+                    }
+                );
+
+
+            if (foundIndex >= 0) {
+
+                currentCameraIndex =
+                    foundIndex;
+
+            }
+
+
+            scannerCameraSelect.value =
+                cameraId;
+
+
+            html5QrCode =
+                new Html5Qrcode(
+                    "productScanner"
+                );
+
+
+            const config =
+                getScannerConfig();
+
+
+            await html5QrCode.start(
 
                 {
-                    facingMode:
-                        "environment"
+                    deviceId: {
+                        exact: cameraId
+                    }
                 },
 
                 config,
@@ -2805,62 +4451,251 @@ document.addEventListener("DOMContentLoaded", function () {
                 function () {
 
                     /*
-                     * Ignore normal scanning
-                     * frames where nothing has
-                     * been detected yet.
+                     * Normal scan frames with no
+                     * detected code are ignored.
                      */
 
                 }
 
-            )
-            .then(function () {
+            );
+
+
+            scannerRunning =
+                true;
+
+
+            scannerStarting =
+                false;
+
+
+            setScannerStatus(
+                "Camera ready. Point it at the product barcode or QR code."
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Camera start error:",
+                error
+            );
+
+
+            scannerRunning =
+                false;
+
+            scannerStarting =
+                false;
+
+
+            /*
+             * If the deviceId method failed,
+             * try the generic environment camera.
+             * This helps older mobile browsers.
+             */
+
+            try {
+
+                await stopProductScanner();
+
+
+                html5QrCode =
+                    new Html5Qrcode(
+                        "productScanner"
+                    );
+
+
+                const config =
+                    getScannerConfig();
+
+
+                await html5QrCode.start(
+
+                    {
+                        facingMode:
+                            "environment"
+                    },
+
+                    config,
+
+                    function (decodedText) {
+
+                        handleScannedProduct(
+                            decodedText
+                        );
+
+                    },
+
+                    function () {}
+
+                );
+
 
                 scannerRunning =
                     true;
 
-                scannerStatus.textContent =
-                    "Camera ready. Point it at the product barcode or QR code.";
 
-            })
-            .catch(function (error) {
+                setScannerStatus(
+                    "Camera ready. Point it at the product barcode or QR code."
+                );
+
+
+            } catch (fallbackError) {
+
+                console.error(
+                    "Fallback camera error:",
+                    fallbackError
+                );
+
 
                 scannerRunning =
                     false;
 
-                scannerStatus.textContent =
-                    "Unable to access the camera. Please allow camera permission and try again.";
 
-                scannerStatus.classList.add(
+                setScannerStatus(
+                    "Unable to access the camera. Allow camera permission and try again.",
                     "text-danger"
                 );
 
-                console.error(
-                    "Scanner error:",
-                    error
-                );
+            }
 
-            });
+        }
 
     }
 
 
     /* =========================================================
-       OPEN CAMERA MODAL
+       OPEN SCANNER
+    ========================================================= */
+
+    async function openScanner() {
+
+        if (
+            !scannerOverlay
+        ) {
+
+            return;
+
+        }
+
+
+        scannerOverlay.classList.add(
+            "is-open"
+        );
+
+
+        scannerOverlay.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+        document.body.classList.add(
+            "scanner-open"
+        );
+
+
+        resetScannerResult();
+
+
+        /*
+         * Load cameras after the overlay is visible.
+         * This prevents camera/video sizing problems.
+         */
+
+        await loadScannerCameras();
+
+
+        if (
+            availableCameras.length > 0
+        ) {
+
+            await startProductScanner(
+                currentCameraId
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       CLOSE SCANNER
+       
+       Important:
+       Camera is stopped first.
+       Then overlay is hidden.
+       This prevents the close button from becoming
+       unresponsive while the camera is still active.
+    ========================================================= */
+
+    async function closeScanner() {
+
+        if (
+            scannerStarting
+        ) {
+
+            scannerStarting =
+                false;
+
+        }
+
+
+        await stopProductScanner();
+
+
+        scannerHandled =
+            false;
+
+
+        resetScannerResult();
+
+
+        scannerOverlay.classList.remove(
+            "is-open"
+        );
+
+
+        scannerOverlay.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+
+        document.body.classList.remove(
+            "scanner-open"
+        );
+
+
+        /*
+         * Reset any temporary position from dragging.
+         */
+
+        scannerWindow.style.transform =
+            "";
+
+        scannerWindow.style.left =
+            "";
+
+        scannerWindow.style.top =
+            "";
+
+    }
+
+
+    /* =========================================================
+       OPEN BUTTON
     ========================================================= */
 
     if (openScannerBtn) {
 
         openScannerBtn.addEventListener(
             "click",
-            function () {
+            function (event) {
 
-                const modal =
-                    new bootstrap.Modal(
-                        scannerModalElement
-                    );
+                event.preventDefault();
 
-
-                modal.show();
+                openScanner();
 
             }
         );
@@ -2869,26 +4704,426 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       CAMERA MODAL EVENTS
+       CLOSE BUTTONS
     ========================================================= */
 
-    scannerModalElement.addEventListener(
-        "shown.bs.modal",
-        function () {
+    if (closeScannerBtn) {
 
-            startProductScanner();
+        closeScannerBtn.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+                closeScanner();
+
+            }
+        );
+
+    }
+
+
+    if (scannerFooterCloseBtn) {
+
+        scannerFooterCloseBtn.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+                closeScanner();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       CLICK BACKDROP TO CLOSE
+    ========================================================= */
+
+    scannerOverlay.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target ===
+                scannerOverlay
+            ) {
+
+                closeScanner();
+
+            }
 
         }
     );
 
 
-    scannerModalElement.addEventListener(
-        "hidden.bs.modal",
-        function () {
+    /* =========================================================
+       ESCAPE TO CLOSE
+    ========================================================= */
 
-            closeScannerCleanup();
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape" &&
+                scannerOverlay.classList.contains(
+                    "is-open"
+                )
+            ) {
+
+                event.preventDefault();
+
+                closeScanner();
+
+            }
 
         }
+    );
+
+
+    /* =========================================================
+       CAMERA SELECT CHANGE
+    ========================================================= */
+
+    scannerCameraSelect.addEventListener(
+        "change",
+        async function () {
+
+            const cameraId =
+                this.value;
+
+
+            if (!cameraId) {
+
+                return;
+
+            }
+
+
+            currentCameraId =
+                cameraId;
+
+
+            resetScannerResult();
+
+
+            setScannerStatus(
+                "Switching camera..."
+            );
+
+
+            await startProductScanner(
+                cameraId
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       SWITCH CAMERA
+    ========================================================= */
+
+    switchCameraBtn.addEventListener(
+        "click",
+        async function () {
+
+            if (
+                availableCameras.length < 2
+            ) {
+
+                setScannerStatus(
+                    "Only one camera is available on this device."
+                );
+
+                return;
+
+            }
+
+
+            currentCameraIndex =
+                (
+                    currentCameraIndex +
+                    1
+                ) %
+                availableCameras.length;
+
+
+            const nextCamera =
+                availableCameras[
+                    currentCameraIndex
+                ];
+
+
+            if (!nextCamera) {
+
+                return;
+
+            }
+
+
+            currentCameraId =
+                nextCamera.id;
+
+
+            scannerCameraSelect.value =
+                nextCamera.id;
+
+
+            setScannerStatus(
+                "Switching camera..."
+            );
+
+
+            await startProductScanner(
+                nextCamera.id
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       CAMERA CLEANUP WHEN PAGE IS LEFT
+    ========================================================= */
+
+    window.addEventListener(
+        "pagehide",
+        function () {
+
+            stopProductScanner();
+
+        }
+    );
+
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+
+            stopProductScanner();
+
+        }
+    );
+
+
+    /* =========================================================
+       DRAGGABLE SCANNER WINDOW
+       
+       Desktop/tablet:
+       Drag the scanner header.
+
+       Mobile:
+       Scanner is full-screen, so dragging is disabled
+       intentionally to avoid interfering with camera
+       touch gestures.
+    ========================================================= */
+
+    let dragActive = false;
+
+    let dragStartX = 0;
+
+    let dragStartY = 0;
+
+    let dragCurrentX = 0;
+
+    let dragCurrentY = 0;
+
+
+    function isMobileScanner() {
+
+        return window.matchMedia(
+            "(max-width: 768px)"
+        ).matches;
+
+    }
+
+
+    function beginScannerDrag(event) {
+
+        if (
+            isMobileScanner()
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.target.closest(
+                "button"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        dragActive =
+            true;
+
+
+        const rect =
+            scannerWindow.getBoundingClientRect();
+
+
+        dragStartX =
+            event.clientX -
+            rect.left;
+
+        dragStartY =
+            event.clientY -
+            rect.top;
+
+
+        scannerWindow.style.transition =
+            "none";
+
+
+        scannerHeader.setPointerCapture?.(
+            event.pointerId
+        );
+
+    }
+
+
+    function moveScannerDrag(event) {
+
+        if (
+            !dragActive ||
+            isMobileScanner()
+        ) {
+
+            return;
+
+        }
+
+
+        const overlayRect =
+            scannerOverlay.getBoundingClientRect();
+
+
+        let left =
+            event.clientX -
+            overlayRect.left -
+            dragStartX;
+
+
+        let top =
+            event.clientY -
+            overlayRect.top -
+            dragStartY;
+
+
+        const windowRect =
+            scannerWindow.getBoundingClientRect();
+
+
+        const maxLeft =
+            Math.max(
+                0,
+                overlayRect.width -
+                windowRect.width
+            );
+
+
+        const maxTop =
+            Math.max(
+                0,
+                overlayRect.height -
+                windowRect.height
+            );
+
+
+        left =
+            Math.max(
+                0,
+                Math.min(
+                    left,
+                    maxLeft
+                )
+            );
+
+
+        top =
+            Math.max(
+                0,
+                Math.min(
+                    top,
+                    maxTop
+                )
+            );
+
+
+        scannerWindow.style.position =
+            "absolute";
+
+
+        scannerWindow.style.left =
+            left + "px";
+
+
+        scannerWindow.style.top =
+            top + "px";
+
+
+        scannerWindow.style.transform =
+            "none";
+
+    }
+
+
+    function endScannerDrag(event) {
+
+        if (!dragActive) {
+
+            return;
+
+        }
+
+
+        dragActive =
+            false;
+
+
+        scannerHeader.releasePointerCapture?.(
+            event.pointerId
+        );
+
+    }
+
+
+    scannerHeader.addEventListener(
+        "pointerdown",
+        beginScannerDrag
+    );
+
+
+    scannerHeader.addEventListener(
+        "pointermove",
+        moveScannerDrag
+    );
+
+
+    scannerHeader.addEventListener(
+        "pointerup",
+        endScannerDrag
+    );
+
+
+    scannerHeader.addEventListener(
+        "pointercancel",
+        endScannerDrag
     );
 
 
@@ -2914,7 +5149,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const index =
-                Number(button.dataset.index);
+                Number(
+                    button.dataset.index
+                );
 
 
             cart.splice(
@@ -3195,6 +5432,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ========================================================= */
 
     updatePaymentSummary();
+
 
 });
 
