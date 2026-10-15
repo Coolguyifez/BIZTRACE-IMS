@@ -61,7 +61,7 @@ Profile
                     <div class="d-flex flex-wrap gap-2">
 
                         <span class="badge bg-primary-subtle text-primary">
-                            {{ user.role }}
+                            {% if user.user_roles and user.user_roles|first and (user.user_roles|first).role %}{{ (user.user_roles|first).role.name }}{% else %}No role assigned{% endif %}
                         </span>
 
                         {% if user.is_active %}
@@ -198,7 +198,7 @@ Profile
                                 <input
                                     type="text"
                                     class="form-control"
-                                    value="{{ user.role }}"
+                                    value="{% if user.user_roles and user.user_roles|first and (user.user_roles|first).role %}{{ (user.user_roles|first).role.name }}{% else %}No role assigned{% endif %}"
                                     readonly
                                 >
 
@@ -756,13 +756,7 @@ Profile
                             </div>
 
                             <div class="fw-semibold">
-                                {% if user.is_system_admin %}
-                                    System Administrator
-                                {% elif user.is_company_admin %}
-                                    Company Administrator
-                                {% else %}
-                                    Company User
-                                {% endif %}
+                                {{user.role}}
                             </div>
                         </div>
 
