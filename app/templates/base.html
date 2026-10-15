@@ -1524,7 +1524,15 @@
 
                         <span class="user-role">
 
-                            {{ current_user.role }}
+                            {% if current_user.user_roles %}
+                                {% for user_role in current_user.user_roles %}
+                                    {% if user_role.role and user_role.role.is_active %}
+                                        {{ user_role.role.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                No role assigned
+                            {% endif %}
 
                         </span>
 
