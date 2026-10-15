@@ -1271,11 +1271,7 @@ New Sale
     max-width: none !important;
     max-height: none !important;
 
-    /*
-     * Avoid cropping the camera feed differently from the decoder's
-     * viewfinder, which can make the visible scan guide feel offset.
-     */
-    object-fit: contain !important;
+    object-fit: fill !important;
 
     border-radius: 16px;
 
@@ -1378,15 +1374,12 @@ New Sale
 .scanner-frame {
 
     position: relative;
-
-    width: min(84%, 440px);
-
-    aspect-ratio: 2.1 / 1;
-
-    border-radius: 12px;
-
-    box-shadow:
-        0 0 0 9999px rgba(0, 0, 0, 0.30);
+    /* Match the camera viewport rather than a fixed barcode-sized box. */
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    border-radius: 14px;
+    box-shadow: none;
 
 }
 
@@ -1755,21 +1748,15 @@ New Sale
 
         aspect-ratio: auto;
 
-        height: min(58dvh, 500px);
+        width: 100%;
 
-        min-height: 280px;
+        height: clamp(210px, 58dvh, 500px);
+
+        min-height: 0;
 
         max-height: none;
 
         border-radius: 14px;
-
-    }
-
-    .scanner-frame {
-
-        width: min(84%, 440px);
-
-        aspect-ratio: 2.1 / 1;
 
     }
 
@@ -1834,17 +1821,9 @@ New Sale
 
     .product-scanner {
 
-        height: 52dvh;
+        height: clamp(190px, 50dvh, 420px);
 
-        min-height: 230px;
-
-    }
-
-    .scanner-frame {
-
-        width: min(84%, 440px);
-
-        aspect-ratio: 2.1 / 1;
+        min-height: 0;
 
     }
 
@@ -3773,6 +3752,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         `;
 
+        // Anchor the focus frame to the live camera viewport on every device.
+        const frameOverlay = document.querySelector(".scanner-frame-overlay");
+        if (frameOverlay) element.appendChild(frameOverlay);
+
     }
 
 
@@ -4129,41 +4112,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             fps: 10,
 
-            qrbox: function (
-                viewfinderWidth,
-                viewfinderHeight
-            ) {
-
-                /*
-                 * Keep the real decoding region proportional to the
-                 * visible guide frame. Calculate from BOTH dimensions so
-                 * it cannot overflow short or narrow mobile viewfinders.
-                 */
-                const scanAspectRatio = 2.1;
-                const maxWidth = Math.min(
-                    viewfinderWidth * 0.84,
-                    440,
-                    viewfinderHeight * 0.55 * scanAspectRatio
-                );
-
-                const width = Math.max(
-                    120,
-                    Math.floor(maxWidth)
-                );
-
-                const height = Math.max(
-                    60,
-                    Math.floor(width / scanAspectRatio)
-                );
-
+            // Decode across the complete camera viewfinder on all screen sizes.
+            qrbox: function (viewfinderWidth, viewfinderHeight) {
                 return {
-                    width: Math.min(width, viewfinderWidth),
-                    height: Math.min(height, viewfinderHeight)
+                    width: Math.max(1, Math.floor(viewfinderWidth)),
+                    height: Math.max(1, Math.floor(viewfinderHeight))
                 };
-
-            },
-
-            aspectRatio: 1.6
+            }
 
         };
 
