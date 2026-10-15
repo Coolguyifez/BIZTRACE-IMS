@@ -926,7 +926,7 @@
                     {% if payment.bank_name %}
 
                     <div class="receipt-payment-detail">
-                        Bank: {{ payment.bank_name }}
+                        <span class="fw-semibold">Bank Paid Into:</span> {{ payment.bank_name }}
                     </div>
 
                     {% endif %}
@@ -935,7 +935,7 @@
                     {% if payment.account_name %}
 
                     <div class="receipt-payment-detail">
-                        Account: {{ payment.account_name }}
+                        <span class="fw-semibold">Account:</span> {{ payment.account_name }}
                     </div>
 
                     {% endif %}
@@ -944,7 +944,7 @@
                     {% if payment.account_number %}
 
                     <div class="receipt-payment-detail">
-                        Account No: {{ payment.account_number }}
+                        <span class="fw-semibold">Account No:</span> {{ payment.account_number }}
                     </div>
 
                     {% endif %}
@@ -953,7 +953,7 @@
                     {% if payment.reference %}
 
                     <div class="receipt-payment-detail">
-                        Ref: {{ payment.reference }}
+                        <span class="fw-semibold">Ref:</span> {{ payment.reference }}
                     </div>
 
                     {% endif %}
@@ -964,7 +964,7 @@
                     {% if payment.bank_name %}
 
                     <div class="receipt-payment-detail">
-                        Bank: {{ payment.bank_name }}
+                       <span class="fw-semibold">Paid Into:</span> {{ payment.bank_name }}
                     </div>
 
                     {% endif %}
@@ -973,7 +973,7 @@
                     {% if payment.reference %}
 
                     <div class="receipt-payment-detail">
-                        Ref: {{ payment.reference }}
+                        <span class="fw-semibold">Ref:</span> {{ payment.reference }}
                     </div>
 
                     {% endif %}
@@ -2455,11 +2455,6 @@
 
     .receipt-secondary {
         font-size: 6pt !important;
-    }
-
-
-    .receipt-sku {
-        display: none !important;
     }
 
 
