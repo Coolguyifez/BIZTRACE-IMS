@@ -123,28 +123,6 @@
                             </h3>
 
 
-                            <div class="stats-card-meta">
-
-                                {% if can_manage_payments %}
-
-                                    Total Net Payment:
-
-                                    <span class="text-primary">
-                                        {{ format_currency(net_payments) }}
-                                    </span>
-
-                                {% else %}
-
-                                    Today's Net Payment:
-
-                                    <span class="text-primary">
-                                        {{ format_currency(net_payments) }}
-                                    </span>
-
-                                {% endif %}
-
-                            </div>
-
                         </div>
 
 
@@ -185,21 +163,6 @@
                                 {{ format_currency(today_total) }}
 
                             </h3>
-
-
-                            <div class="stats-card-meta">
-
-                                Today's Net Payment:
-
-                                <span class="text-success">
-
-                                    {{ format_currency(
-                                        today_total - today_expenses
-                                    ) }}
-
-                                </span>
-
-                            </div>
 
                         </div>
 
