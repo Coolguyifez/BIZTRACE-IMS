@@ -162,6 +162,14 @@ class Config:
     )
 
     RESEND_FROM_EMAIL = os.getenv(
-        "RESEND_FROM_EMAIL",
-        "onboarding@resend.dev"
+        "RESEND_FROM_EMAIL"
     )
+
+    # ============================================================
+    # PAYSTACK
+    # ============================================================
+
+    PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
+    PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY")
+
+    PAYSTACK_BASE_URL = "https://api.paystack.co"
