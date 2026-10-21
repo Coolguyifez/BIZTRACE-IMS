@@ -370,6 +370,18 @@ class User(UserMixin, db.Model):
         nullable=False
     )
 
+    email_verified = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+
+    email_verified_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+
     password_hash = db.Column(
         db.String(255),
         nullable=False
@@ -558,10 +570,145 @@ class User(UserMixin, db.Model):
             for permission in permission_names
         )
 
-
-
     def __repr__(self):
         return f"<User {self.username}>"
+
+
+# =========================================================
+# EMAIL VERIFICATION CODE
+# =========================================================
+
+class EmailVerificationCode(db.Model):
+    __tablename__ = "email_verification_codes"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    code_hash = db.Column(
+        db.String(128),
+        nullable=False
+    )
+
+    expires_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False
+    )
+
+    attempts = db.Column(
+        db.Integer,
+        default=0,
+        nullable=False
+    )
+
+    used = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "email_verification_codes",
+            lazy=True,
+            cascade="all, delete-orphan"
+        )
+    )
+
+    def __repr__(self):
+        return (
+            f"<EmailVerificationCode "
+            f"user_id={self.user_id}>"
+        )
+
+class PendingCompanyRegistration(db.Model):
+    __tablename__ = "pending_company_registrations"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # Company information
+    company_name = db.Column(
+        db.String(150),
+        nullable=False
+    )
+
+    company_email = db.Column(
+        db.String(150),
+        nullable=True
+    )
+
+    company_phone = db.Column(
+        db.String(50),
+        nullable=True
+    )
+
+    company_address = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # Company Administrator information
+    username = db.Column(
+        db.String(80),
+        nullable=False
+    )
+
+    email = db.Column(
+        db.String(150),
+        nullable=False,
+        index=True
+    )
+
+    # Already hashed. Never store the plaintext password.
+    password_hash = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    # Verification
+    code_hash = db.Column(
+        db.String(128),
+        nullable=False
+    )
+
+    attempts = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    expires_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False
+    )
+
+    code_created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
 
 
 # =========================================================
@@ -2218,6 +2365,444 @@ class CompanySetting(db.Model):
             f"company_id={self.company_id}>"
         )
 
+# =========================================================
+# SUBSCRIPTION
+# =========================================================
+
+class Subscription(db.Model):
+    __tablename__ = "subscriptions"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # =====================================================
+    # COMPANY
+    # =====================================================
+
+    company_id = db.Column(
+        db.Integer,
+        db.ForeignKey("companies.id"),
+        nullable=False,
+        index=True
+    )
+
+    # =====================================================
+    # PLAN
+    # =====================================================
+
+    plan = db.Column(
+        db.String(20),
+        nullable=False,
+        index=True
+    )
+
+    # Possible values:
+    #
+    # trial
+    # monthly
+    # annual
+    # manual
+
+    amount = db.Column(
+        db.Numeric(14, 2),
+        nullable=False,
+        default=0
+    )
+
+    currency = db.Column(
+        db.String(10),
+        nullable=False,
+        default="NGN"
+    )
+
+    # =====================================================
+    # SUBSCRIPTION STATUS
+    # =====================================================
+
+    status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="pending",
+        index=True
+    )
+
+    # Possible values:
+    #
+    # pending
+    # trial
+    # active
+    # expired
+    # maintenance
+    # failed
+    # cancelled
+    # manually_active
+
+    # =====================================================
+    # PAYMENT STATUS
+    # =====================================================
+
+    payment_status = db.Column(
+        db.String(50),
+        nullable=False,
+        default="pending",
+        index=True
+    )
+
+    # Possible values:
+    #
+    # pending
+    # paid
+    # failed
+    # cancelled
+    # refunded
+    # not_required
+
+    # =====================================================
+    # INTERNAL TRANSACTION INFORMATION
+    # =====================================================
+
+    transaction_reference = db.Column(
+        db.String(150),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    order_id = db.Column(
+        db.String(150),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    # =====================================================
+    # PAYSTACK TRANSACTION INFORMATION
+    # =====================================================
+
+    paystack_reference = db.Column(
+        db.String(150),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    paystack_transaction_id = db.Column(
+        db.String(150),
+        nullable=True,
+        index=True
+    )
+
+    paystack_access_code = db.Column(
+        db.String(150),
+        nullable=True
+    )
+
+    # =====================================================
+    # PAYMENT INFORMATION
+    # =====================================================
+
+    payment_method = db.Column(
+        db.String(50),
+        nullable=True
+    )
+
+    gateway_response = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # =====================================================
+    # SUBSCRIPTION PERIOD
+    # =====================================================
+
+    start_date = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True,
+        index=True
+    )
+
+    end_date = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True,
+        index=True
+    )
+
+    # =====================================================
+    # TRIAL PERIOD
+    # =====================================================
+
+    trial_started_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    trial_expires_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    # =====================================================
+    # PAYMENT DATES
+    # =====================================================
+
+    paid_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    verified_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    # =====================================================
+    # ACTIVATION SOURCE
+    # =====================================================
+
+    activation_source = db.Column(
+        db.String(30),
+        nullable=True
+    )
+
+    # Possible values:
+    #
+    # trial
+    # paystack
+    # system_admin
+    # manual
+
+    # =====================================================
+    # SYSTEM ADMIN MANUAL OVERRIDE
+    # =====================================================
+
+    manually_activated = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        index=True
+    )
+
+    manually_activated_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    manually_activated_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    # =====================================================
+    # MAINTENANCE FEE
+    # =====================================================
+
+    maintenance_fee = db.Column(
+        db.Numeric(14, 2),
+        nullable=False,
+        default=0
+    )
+
+    maintenance_days = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    # =====================================================
+    # TIMESTAMPS
+    # =====================================================
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    # =====================================================
+    # RELATIONSHIPS
+    # =====================================================
+
+    company = db.relationship(
+        "Company",
+        backref=db.backref(
+            "subscriptions",
+            lazy=True,
+            cascade="all, delete-orphan"
+        )
+    )
+
+    activated_by_user = db.relationship(
+        "User",
+        foreign_keys=[manually_activated_by]
+    )
+
+    # =====================================================
+    # CURRENTLY ACTIVE
+    # =====================================================
+
+    @property
+    def is_currently_active(self):
+        """
+        Returns True when the subscription is currently valid.
+
+        System Administrator manual activation can bypass
+        normal subscription expiry.
+        """
+
+        if self.manually_activated:
+            return True
+
+        if self.status not in (
+            "active",
+            "trial"
+        ):
+            return False
+
+        if not self.end_date:
+            return False
+
+        now = datetime.now(timezone.utc)
+
+        return self.end_date > now
+
+    # =====================================================
+    # EXPIRED
+    # =====================================================
+
+    @property
+    def is_expired(self):
+        """
+        Returns True when the subscription has passed
+        its end date.
+        """
+
+        if self.manually_activated:
+            return False
+
+        if not self.end_date:
+            return False
+
+        return self.end_date <= datetime.now(timezone.utc)
+
+    # =====================================================
+    # DAYS REMAINING
+    # =====================================================
+
+    @property
+    def days_remaining(self):
+        """
+        Number of whole days remaining on the subscription.
+        """
+
+        if self.manually_activated:
+            return None
+
+        if not self.end_date:
+            return 0
+
+        remaining = (
+            self.end_date -
+            datetime.now(timezone.utc)
+        ).total_seconds()
+
+        if remaining <= 0:
+            return 0
+
+        return int(
+            remaining // 86400
+        )
+
+    # =====================================================
+    # TRIAL CHECK
+    # =====================================================
+
+    @property
+    def is_trial(self):
+        return self.plan == "trial"
+
+    # =====================================================
+    # PAID SUBSCRIPTION CHECK
+    # =====================================================
+
+    @property
+    def is_paid_subscription(self):
+        return self.plan in (
+            "monthly",
+            "annual"
+        )
+
+    # =====================================================
+    # PAYMENT COMPLETED
+    # =====================================================
+
+    @property
+    def is_payment_completed(self):
+        return self.payment_status == "paid"
+
+    # =====================================================
+    # DISPLAY PLAN
+    # =====================================================
+
+    @property
+    def plan_name(self):
+
+        names = {
+            "trial": "7-Day Free Trial",
+            "monthly": "Monthly",
+            "annual": "Annual",
+            "manual": "Manual Activation"
+        }
+
+        return names.get(
+            self.plan,
+            self.plan.title()
+        )
+
+    # =====================================================
+    # DISPLAY STATUS
+    # =====================================================
+
+    @property
+    def status_name(self):
+
+        names = {
+            "pending": "Payment Pending",
+            "trial": "Trial",
+            "active": "Active",
+            "expired": "Expired",
+            "maintenance": "Maintenance",
+            "failed": "Payment Failed",
+            "cancelled": "Cancelled",
+            "manually_active": "Manually Activated"
+        }
+
+        return names.get(
+            self.status,
+            self.status.title()
+        )
+
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
+
+    def __repr__(self):
+        return (
+            f"<Subscription "
+            f"id={self.id} "
+            f"company_id={self.company_id} "
+            f"plan={self.plan} "
+            f"status={self.status}>"
+        )
 
 class NotificationAssignment(db.Model):
     __tablename__ = "notification_assignments"
