@@ -2757,7 +2757,7 @@ class Subscription(db.Model):
     def plan_name(self):
 
         names = {
-            "trial": "7-Day Free Trial",
+            "trial": "7-Days Free Trial",
             "monthly": "Monthly",
             "annual": "Annual",
             "manual": "Manual Activation"
