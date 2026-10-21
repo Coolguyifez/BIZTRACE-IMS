@@ -44,7 +44,7 @@ from . import subscription_bp
 # SUBSCRIPTION CONSTANTS
 # ============================================================
 
-MONTHLY_AMOUNT = Decimal("1000.00")
+MONTHLY_AMOUNT = Decimal("30000.00")
 
 ANNUAL_AMOUNT = Decimal("288000.00")
 
