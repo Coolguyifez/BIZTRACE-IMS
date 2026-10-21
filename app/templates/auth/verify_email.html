@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Verify Email | BizTrace IMS</title>
+
+
+    <!-- =========================================================
+         BOOTSTRAP
+    ========================================================== -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
+         THEME DETECTION
+         Runs BEFORE page rendering to prevent white flash.
+    ========================================================== -->
+
+    <script>
+
+        (function () {
+
+            try {
+
+                const savedTheme =
+                    localStorage.getItem("biztrace-theme");
+
+                let theme =
+                    savedTheme || "system";
+
+
+                /*
+                 * If there is no saved theme, try the
+                 * theme provided by Flask.
+                 */
+
+                const serverTheme =
+                    "{{ theme|default('') }}".trim();
+
+
+                if (
+                    !savedTheme &&
+                    serverTheme &&
+                    ["light", "dark", "system"].includes(serverTheme)
+                ) {
+
+                    theme = serverTheme;
+
+                }
+
+
+                /*
+                 * Apply explicit theme.
+                 */
+
+                if (theme === "dark") {
+
+                    document.documentElement
+                        .setAttribute(
+                            "data-theme",
+                            "dark"
+                        );
+
+                }
+
+                else if (theme === "light") {
+
+                    document.documentElement
+                        .setAttribute(
+                            "data-theme",
+                            "light"
+                        );
+
+                }
+
+                else {
+
+                    /*
+                     * System mode.
+                     */
+
+                    const prefersDark =
+                        window.matchMedia &&
+                        window.matchMedia(
+                            "(prefers-color-scheme: dark)"
+                        ).matches;
+
+
+                    document.documentElement
+                        .setAttribute(
+                            "data-theme",
+                            prefersDark
+                                ? "dark"
+                                : "light"
+                        );
+
+                }
+
+            }
+
+            catch (error) {
+
+                document.documentElement
+                    .setAttribute(
+                        "data-theme",
+                        "light"
+                    );
+
+            }
+
+        })();
+
+    </script>
+
+
+    <style>
+
+        /* =========================================================
+           LIGHT THEME
+        ========================================================== */
+
+        :root {
+
+            --primary: #0a84ff;
+
+            --background: #f5f7fb;
+
+            --card: #ffffff;
+
+            --text: #111827;
+
+            --muted: #6b7280;
+
+            --border: #e5e7eb;
+
+            --input-background: #ffffff;
+
+            --input-border: #d1d5db;
+
+            --input-text: #111827;
+
+            --email-background: #f8fafc;
+
+            --email-text: #374151;
+
+            --placeholder: #9ca3af;
+
+            --card-shadow:
+                0 20px 60px rgba(
+                    15,
+                    23,
+                    42,
+                    0.10
+                );
+
+            --blue-soft:
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.10
+                );
+
+            --blue-focus:
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.14
+                );
+        }
+
+
+        /* =========================================================
+           DARK THEME
+        ========================================================== */
+
+        html[data-theme="dark"] {
+
+            --primary: #0a84ff;
+
+            --background: #080b10;
+
+            --card: #151a21;
+
+            --text: #f5f7fa;
+
+            --muted: #9ca3af;
+
+            --border: #2a323d;
+
+            --input-background: #0e1319;
+
+            --input-border: #3a4552;
+
+            --input-text: #f5f7fa;
+
+            --email-background: #0e1319;
+
+            --email-text: #d1d5db;
+
+            --placeholder: #6b7280;
+
+            --card-shadow:
+                0 25px 80px rgba(
+                    0,
+                    0,
+                    0,
+                    0.55
+                );
+
+            --blue-soft:
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.15
+                );
+
+            --blue-focus:
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.20
+                );
+        }
+
+
+        /* =========================================================
+           GLOBAL
+        ========================================================== */
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        html {
+
+            min-height: 100%;
+
+            background: var(--background);
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 24px;
+
+            color: var(--text);
+
+            background:
+                radial-gradient(
+                    circle at 0% 0%,
+                    rgba(
+                        10,
+                        132,
+                        255,
+                        0.10
+                    ),
+                    transparent 35%
+                ),
+                var(--background);
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+
+            transition:
+                background-color 0.25s ease,
+                color 0.25s ease;
+
+        }
+
+
+        /* =========================================================
+           DARK BODY BACKGROUND
+        ========================================================== */
+
+        html[data-theme="dark"] body {
+
+            background:
+                radial-gradient(
+                    circle at 0% 0%,
+                    rgba(
+                        10,
+                        132,
+                        255,
+                        0.14
+                    ),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 100% 100%,
+                    rgba(
+                        10,
+                        132,
+                        255,
+                        0.06
+                    ),
+                    transparent 35%
+                ),
+                #080b10;
+
+        }
+
+
+        /* =========================================================
+           MAIN WRAPPER
+        ========================================================== */
+
+        .verification-wrapper {
+
+            width: 100%;
+
+            max-width: 470px;
+
+        }
+
+
+        /* =========================================================
+           CARD
+        ========================================================== */
+
+        .verification-card {
+
+            width: 100%;
+
+            background: var(--card);
+
+            border: 1px solid var(--border);
+
+            border-radius: 24px;
+
+            padding: 42px 34px;
+
+            box-shadow: var(--card-shadow);
+
+            transition:
+                background-color 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+
+        }
+
+
+        /* =========================================================
+           BRAND
+        ========================================================== */
+
+        .brand {
+
+            text-align: center;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .brand-icon {
+
+            width: 64px;
+
+            height: 64px;
+
+            margin: 0 auto 16px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 18px;
+
+            background: var(--blue-soft);
+
+            color: var(--primary);
+
+            font-size: 30px;
+
+            transition:
+                background-color 0.25s ease,
+                color 0.25s ease;
+
+        }
+
+
+        .brand h1 {
+
+            margin: 0;
+
+            color: var(--text);
+
+            font-size: 27px;
+
+            font-weight: 700;
+
+            letter-spacing: -0.6px;
+
+        }
+
+
+        .brand p {
+
+            margin: 7px 0 0;
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+        }
+
+
+        /* =========================================================
+           TITLE
+        ========================================================== */
+
+        .verification-title {
+
+            margin: 0 0 8px;
+
+            text-align: center;
+
+            color: var(--text);
+
+            font-size: 23px;
+
+            font-weight: 700;
+
+            letter-spacing: -0.3px;
+
+        }
+
+
+        .verification-description {
+
+            margin: 0 0 24px;
+
+            text-align: center;
+
+            color: var(--muted);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+
+        }
+
+
+        /* =========================================================
+           EMAIL DISPLAY
+        ========================================================== */
+
+        .email-display {
+
+            margin-bottom: 24px;
+
+            padding: 13px 15px;
+
+            background: var(--email-background);
+
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+
+            text-align: center;
+
+            color: var(--email-text);
+
+            font-size: 14px;
+
+            word-break: break-word;
+
+            transition:
+                background-color 0.25s ease,
+                border-color 0.25s ease,
+                color 0.25s ease;
+
+        }
+
+
+        .email-display i {
+
+            color: var(--primary);
+
+        }
+
+
+        /* =========================================================
+           CODE INPUT
+        ========================================================== */
+
+        .code-input {
+
+            width: 100%;
+
+            height: 62px;
+
+            padding: 0 16px;
+
+            background: var(--input-background);
+
+            border: 1px solid var(--input-border);
+
+            border-radius: 14px;
+
+            color: var(--input-text);
+
+            text-align: center;
+
+            font-size: 28px;
+
+            font-weight: 700;
+
+            letter-spacing: 10px;
+
+            outline: none;
+
+            caret-color: var(--primary);
+
+            transition:
+                background-color 0.25s ease,
+                border-color 0.20s ease,
+                color 0.20s ease,
+                box-shadow 0.20s ease;
+
+        }
+
+
+        .code-input::placeholder {
+
+            color: var(--placeholder);
+
+            opacity: 0.55;
+
+        }
+
+
+        .code-input:focus {
+
+            border-color: var(--primary);
+
+            box-shadow:
+                0 0 0 4px var(--blue-focus);
+
+        }
+
+
+        /* =========================================================
+           VERIFY BUTTON
+        ========================================================== */
+
+        .verify-btn {
+
+            width: 100%;
+
+            height: 52px;
+
+            border: 0;
+
+            border-radius: 13px;
+
+            background: var(--primary);
+
+            color: #ffffff;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.20s ease,
+                box-shadow 0.20s ease,
+                opacity 0.20s ease;
+
+        }
+
+
+        .verify-btn:hover {
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 8px 22px
+                rgba(
+                    10,
+                    132,
+                    255,
+                    0.30
+                );
+
+        }
+
+
+        .verify-btn:active {
+
+            transform: translateY(0);
+
+        }
+
+
+        .verify-btn:focus-visible {
+
+            outline: none;
+
+            box-shadow:
+                0 0 0 4px
+                var(--blue-focus);
+
+        }
+
+
+        /* =========================================================
+           RESEND
+        ========================================================== */
+
+        .resend-section {
+
+            margin-top: 24px;
+
+            text-align: center;
+
+        }
+
+
+        .resend-section p {
+
+            margin: 0 0 9px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+        }
+
+
+        .resend-btn {
+
+            padding: 0;
+
+            border: 0;
+
+            background: transparent;
+
+            color: var(--primary);
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                opacity 0.20s ease,
+                color 0.20s ease;
+
+        }
+
+
+        .resend-btn:hover:not(:disabled) {
+
+            opacity: 0.78;
+
+        }
+
+
+        .resend-btn:disabled {
+
+            color: var(--muted);
+
+            opacity: 0.55;
+
+            cursor: not-allowed;
+
+        }
+
+
+        /* =========================================================
+           BACK TO LOGIN
+        ========================================================== */
+
+        .back-login {
+
+            margin-top: 24px;
+
+            text-align: center;
+
+        }
+
+
+        .back-login a {
+
+            color: var(--muted);
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            transition: color 0.20s ease;
+
+        }
+
+
+        .back-login a:hover {
+
+            color: var(--primary);
+
+        }
+
+
+        /* =========================================================
+           ALERTS
+        ========================================================== */
+
+        .alert {
+
+            margin-bottom: 16px;
+
+            border-radius: 12px;
+
+            border: 1px solid transparent;
+
+            font-size: 13px;
+
+        }
+
+
+        /* LIGHT ALERTS */
+
+        .alert-success {
+
+            background: #ecfdf3;
+
+            border-color: #bbf7d0;
+
+            color: #166534;
+
+        }
+
+
+        .alert-danger {
+
+            background: #fef2f2;
+
+            border-color: #fecaca;
+
+            color: #991b1b;
+
+        }
+
+
+        .alert-warning {
+
+            background: #fffbeb;
+
+            border-color: #fde68a;
+
+            color: #92400e;
+
+        }
+
+
+        .alert-info {
+
+            background: #eff6ff;
+
+            border-color: #bfdbfe;
+
+            color: #1e40af;
+
+        }
+
+
+        /* DARK ALERTS */
+
+        html[data-theme="dark"] .alert-success {
+
+            background: rgba(
+                34,
+                197,
+                94,
+                0.12
+            );
+
+            border-color: rgba(
+                34,
+                197,
+                94,
+                0.25
+            );
+
+            color: #86efac;
+
+        }
+
+
+        html[data-theme="dark"] .alert-danger {
+
+            background: rgba(
+                239,
+                68,
+                68,
+                0.12
+            );
+
+            border-color: rgba(
+                239,
+                68,
+                68,
+                0.25
+            );
+
+            color: #fca5a5;
+
+        }
+
+
+        html[data-theme="dark"] .alert-warning {
+
+            background: rgba(
+                245,
+                158,
+                11,
+                0.12
+            );
+
+            border-color: rgba(
+                245,
+                158,
+                11,
+                0.25
+            );
+
+            color: #fcd34d;
+
+        }
+
+
+        html[data-theme="dark"] .alert-info {
+
+            background: rgba(
+                10,
+                132,
+                255,
+                0.12
+            );
+
+            border-color: rgba(
+                10,
+                132,
+                255,
+                0.25
+            );
+
+            color: #93c5fd;
+
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================== */
+
+        @media (max-width: 576px) {
+
+            body {
+
+                padding: 15px;
+
+            }
+
+
+            .verification-card {
+
+                padding: 32px 22px;
+
+                border-radius: 20px;
+
+            }
+
+
+            .brand-icon {
+
+                width: 58px;
+
+                height: 58px;
+
+                font-size: 27px;
+
+            }
+
+
+            .brand h1 {
+
+                font-size: 25px;
+
+            }
+
+
+            .verification-title {
+
+                font-size: 21px;
+
+            }
+
+
+            .code-input {
+
+                height: 58px;
+
+                font-size: 24px;
+
+                letter-spacing: 7px;
+
+            }
+
+        }
+
+
+        /* =========================================================
+           REDUCED MOTION
+        ========================================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            * {
+
+                transition: none !important;
+
+                animation: none !important;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="verification-wrapper">
+
+
+    <div class="verification-card">
+
+
+        <!-- =====================================================
+             BRAND
+        ====================================================== -->
+
+        <div class="brand">
+
+            <div class="brand-icon">
+
+                <i class="bi bi-envelope-check"></i>
+
+            </div>
+
+
+            <h1>
+                BizTrace IMS
+            </h1>
+
+
+            <p>
+                Inventory Management System
+            </p>
+
+        </div>
+
+
+        <!-- =====================================================
+             TITLE
+        ====================================================== -->
+
+        <h2 class="verification-title">
+
+            Verify your email
+
+        </h2>
+
+
+        <p class="verification-description">
+
+            We've sent a 6-digit verification code
+            to your email address. Enter the code
+            below to verify that you own this email.
+
+        </p>
+
+
+        <!-- =====================================================
+             EMAIL
+        ====================================================== -->
+
+        <div class="email-display">
+
+            <i class="bi bi-envelope me-1"></i>
+
+            {{ email }}
+
+        </div>
+
+
+        <!-- =====================================================
+             FLASH MESSAGES
+        ====================================================== -->
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    {% if category != "company_deactivated" %}
+
+                        <div
+                            class="alert alert-{{ category }}"
+                        >
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =====================================================
+             VERIFY FORM
+        ====================================================== -->
+
+        <form
+            method="POST"
+            action="{{
+                url_for(
+                    'auth.verify_email',
+                    token=token
+                )
+            }}"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+
+            <div class="mb-3">
+
+                <input
+                    type="text"
+                    name="code"
+                    id="verificationCode"
+                    class="code-input"
+                    maxlength="6"
+                    minlength="6"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    placeholder="000000"
+                    required
+                    autofocus
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="verify-btn"
+            >
+
+                <i class="bi bi-shield-check me-1"></i>
+
+                Verify Email
+
+            </button>
+
+        </form>
+
+
+        <!-- =====================================================
+             RESEND
+        ====================================================== -->
+
+        <div class="resend-section">
+
+            <p>
+                Didn't receive the code?
+            </p>
+
+
+            <form
+                method="POST"
+                action="{{
+                    url_for(
+                        'auth.resend_verification',
+                        token=token
+                    )
+                }}"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <button
+                    type="submit"
+                    class="resend-btn"
+                    id="resendButton"
+
+                    {% if cooldown and cooldown > 0 %}
+                        disabled
+                    {% endif %}
+                >
+
+                    <span id="resendText">
+
+                        {% if cooldown and cooldown > 0 %}
+
+                            Resend code in
+                            {{ cooldown }}s
+
+                        {% else %}
+
+                            Resend verification code
+
+                        {% endif %}
+
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- =====================================================
+             BACK TO LOGIN
+        ====================================================== -->
+
+        <div class="back-login">
+
+            <a
+                href="{{ url_for('auth.login') }}"
+            >
+
+                <i class="bi bi-arrow-left me-1"></i>
+
+                Back to sign in
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* =========================================================
+       VERIFICATION CODE
+    ========================================================== */
+
+    const codeInput =
+        document.getElementById(
+            "verificationCode"
+        );
+
+
+    if (codeInput) {
+
+        codeInput.addEventListener(
+            "input",
+            function () {
+
+                this.value =
+                    this.value
+                        .replace(/\D/g, "")
+                        .slice(0, 6);
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       RESEND COUNTDOWN
+    ========================================================== */
+
+    const resendButton =
+        document.getElementById(
+            "resendButton"
+        );
+
+
+    const resendText =
+        document.getElementById(
+            "resendText"
+        );
+
+
+    let cooldown =
+        Number(
+            "{{ cooldown|default(0) }}"
+        );
+
+
+    function updateResendButton() {
+
+        if (
+            !resendButton ||
+            !resendText
+        ) {
+
+            return;
+
+        }
+
+
+        if (cooldown > 0) {
+
+            resendButton.disabled = true;
+
+
+            resendText.textContent =
+                "Resend code in "
+                + cooldown
+                + "s";
+
+
+            cooldown--;
+
+
+            setTimeout(
+                updateResendButton,
+                1000
+            );
+
+        }
+
+        else {
+
+            resendButton.disabled = false;
+
+
+            resendText.textContent =
+                "Resend verification code";
+
+        }
+
+    }
+
+
+    if (cooldown > 0) {
+
+        updateResendButton();
+
+    }
+
+
+    /* =========================================================
+       SYSTEM THEME CHANGES
+       If theme is "system", update automatically when the
+       Windows/browser appearance changes.
+    ========================================================== */
+
+    const systemTheme =
+        window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        );
+
+
+    systemTheme.addEventListener(
+        "change",
+        function (event) {
+
+            const savedTheme =
+                localStorage.getItem(
+                    "biztrace-theme"
+                );
+
+
+            /*
+             * Only follow system changes when the
+             * user has selected System mode.
+             */
+
+            if (
+                !savedTheme ||
+                savedTheme === "system"
+            ) {
+
+                document.documentElement
+                    .setAttribute(
+                        "data-theme",
+                        event.matches
+                            ? "dark"
+                            : "light"
+                    );
+
+            }
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>

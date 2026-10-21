@@ -1942,9 +1942,15 @@
                         {% set ns.deactivated = true %}
 
 
-                        <!-- COMPANY DEACTIVATED -->
+                        <!-- =================================================
+                            COMPANY DEACTIVATED
+                        ================================================== -->
 
                         <div class="deactivated-panel">
+
+                            <!-- =================================================
+                                LOCK ICON
+                            ================================================== -->
 
                             <div class="deactivated-icon">
 
@@ -1953,10 +1959,18 @@
                             </div>
 
 
+                            <!-- =================================================
+                                TITLE
+                            ================================================== -->
+
                             <h3>
                                 Company Account Deactivated
                             </h3>
 
+
+                            <!-- =================================================
+                                DESCRIPTION
+                            ================================================== -->
 
                             <p>
                                 Your company account is currently
@@ -1965,53 +1979,113 @@
                             </p>
 
 
+                            <!-- =================================================
+                                SUBSCRIPTION & PAYMENT
+                            ================================================== -->
+
                             <div class="payment-box">
 
                                 <div class="payment-box-title">
+
+                                    <i class="bi bi-credit-card me-2"></i>
 
                                     Subscription & Payment
 
                                 </div>
 
 
-                                <div class="payment-row">
+                                <!-- =================================================
+                                    MONTHLY PLAN
+                                ================================================== -->
 
-                                    <span>
-                                        Monthly
-                                    </span>
+                                <div class="payment-plan">
 
-                                    <strong>
-                                        ₦30,000 / month
-                                    </strong>
+                                    <div class="payment-plan-info">
+
+                                        <div class="payment-plan-name">
+
+                                            Monthly
+
+                                        </div>
+
+                                        <div class="payment-plan-description">
+
+                                            Full access to BizTrace IMS
+                                            for one month.
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="payment-plan-price">
+
+                                        <strong>
+                                            ₦30,000
+                                        </strong>
+
+                                        <span>
+                                            / month
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                        MONTHLY PAYMENT FORM
+                                    ================================================== -->
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('subscription.initialize_payment') }}"
+                                        class="mt-3"
+                                    >
+
+                                        <!-- =================================================
+                                            CSRF TOKEN
+                                        ================================================== -->
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+
+                                        <!-- =================================================
+                                            PLAN
+                                        ================================================== -->
+
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value="monthly"
+                                        >
+
+
+                                        <!-- =================================================
+                                            PAY BUTTON
+                                        ================================================== -->
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary w-100"
+                                        >
+
+                                            <i class="bi bi-lock-fill me-2"></i>
+
+                                            Pay ₦30,000 Monthly
+
+                                        </button>
+
+                                    </form>
 
                                 </div>
 
 
-                                <div class="payment-row">
-
-                                    <span>
-                                        Annually
-                                    </span>
-
-                                    <strong>
-                                        ₦288,000 / year
-                                    </strong>
-
-                                </div>
-
-
-                                <div class="payment-row">
-
-                                    <span>
-                                        Annual savings
-                                    </span>
-
-                                    <strong class="text-success">
-                                        ₦72,000 / 20%
-                                    </strong>
-
-                                </div>
-
+                                <!-- =================================================
+                                    DIVIDER
+                                ================================================== -->
 
                                 <hr
                                     style="
@@ -2021,46 +2095,113 @@
                                 >
 
 
-                                <div class="payment-row">
+                                <!-- =================================================
+                                    ANNUAL PLAN
+                                ================================================== -->
 
-                                    <span>
-                                        Bank
-                                    </span>
+                                <div class="payment-plan">
 
-                                    <strong>
-                                        First Bank
-                                    </strong>
+                                    <div class="payment-plan-info">
 
-                                </div>
+                                        <div class="payment-plan-name">
 
+                                            Annual
 
-                                <div class="payment-row">
+                                        </div>
 
-                                    <span>
-                                        Account Number
-                                    </span>
+                                        <div class="payment-plan-description">
 
-                                    <strong>
-                                        3099295142
-                                    </strong>
+                                            Full access to BizTrace IMS
+                                            for one year.
 
-                                </div>
+                                        </div>
+
+                                    </div>
 
 
-                                <div class="payment-row">
+                                    <div class="payment-plan-price">
 
-                                    <span>
-                                        Account Name
-                                    </span>
+                                        <strong>
+                                            ₦288,000
+                                        </strong>
 
-                                    <strong>
-                                        Ikukaiwe Emmanuel
-                                    </strong>
+                                        <span>
+                                            / year
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                        ANNUAL SAVING
+                                    ================================================== -->
+
+                                    <div class="annual-saving mt-2">
+
+                                        <i class="bi bi-check-circle-fill me-1"></i>
+
+                                        Save ₦72,000 (20%)
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                        ANNUAL PAYMENT FORM
+                                    ================================================== -->
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('subscription.initialize_payment') }}"
+                                        class="mt-3"
+                                    >
+
+                                        <!-- =================================================
+                                            CSRF TOKEN
+                                        ================================================== -->
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+
+                                        <!-- =================================================
+                                            PLAN
+                                        ================================================== -->
+
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value="annual"
+                                        >
+
+
+                                        <!-- =================================================
+                                            PAY BUTTON
+                                        ================================================== -->
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary w-100"
+                                        >
+
+                                            <i class="bi bi-lock-fill me-2"></i>
+
+                                            Pay ₦288,000 Annually
+
+                                        </button>
+
+                                    </form>
 
                                 </div>
 
                             </div>
 
+
+                            <!-- =================================================
+                                PAYMENT INFORMATION
+                            ================================================== -->
 
                             <div class="deactivated-note">
 
@@ -2068,23 +2209,46 @@
 
                                 <span>
 
-                                    If you have already made payment,
-                                    please send your payment receipt
-                                    or proof of payment to our platforms 
-                                    with your registered company name and email for verification
-                                    and account reactivation as fast as possible.
-                                    A  maintenance fee charge per day 
-                                    Will be added after one month of not subscribing. 
-                                    Also, please note that your company will be deactivated for just
-                                    Two months; if no active subscription has been made between those two months,
-                                    your system and all associated data will be permanently taken down.  
-                                    Thank you!!!
+                                    Your subscription payment is processed securely
+                                    through Paystack. After successful payment,
+                                    BizTrace IMS will verify the transaction and
+                                    automatically reactivate your company account.
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- =================================================
+                                MAINTENANCE / ACCOUNT RETENTION NOTICE
+                            ================================================== -->
+
+                            <div class="deactivated-note">
+
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                                <span>
+
+                                    A maintenance fee may apply after one month
+                                    without an active subscription.
+
+                                    Please note that your company account and
+                                    associated records are retained for a limited
+                                    period after deactivation. If no active
+                                    subscription is made within the permitted
+                                    two-month period, the company account and
+                                    associated data may be permanently taken down.
+
                                 </span>
 
                             </div>
 
                         </div>
 
+
+                        <!-- =================================================
+                            BACK TO LOGIN
+                        ================================================== -->
 
                         <a
                             href="{{ url_for('auth.login') }}"
@@ -2107,7 +2271,9 @@
                     {% else %}
 
 
-                        <!-- NORMAL FLASH MESSAGE -->
+                        <!-- =================================================
+                            NORMAL FLASH MESSAGE
+                        ================================================== -->
 
                         <div
                             class="
@@ -2122,11 +2288,10 @@
 
                         </div>
 
+
                     {% endif %}
 
                 {% endfor %}
-
-
 
                 <!-- =================================================
                      NORMAL LOGIN FORM
@@ -2599,6 +2764,10 @@
                         </li>
 
                         <li>
+                            Low-stock notifications
+                        </li>
+
+                        <li>
                             Assign notifications under (Sales, Purchases, Expenses, Inventory, Cash deposits, Financial) to Company users
                         </li>
 
@@ -2611,7 +2780,7 @@
                         </li>
 
                         <li>
-                            Enable browser notifications on the Notification page
+                            Enable browser Notification on Notification page
                         </li>
 
                         <li>
