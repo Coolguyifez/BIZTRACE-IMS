@@ -1,0 +1,923 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Subscription #{{ subscription.id }} | System Admin
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+
+                <i class="bi bi-credit-card me-2"></i>
+
+                Subscription Record #{{ subscription.id }}
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Complete subscription and payment information.
+
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('system_admin.subscriptions') }}"
+            class="btn btn-outline-secondary"
+        >
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back to Subscriptions
+
+        </a>
+
+    </div>
+
+
+    <!-- ============================================================
+         COMPANY INFORMATION
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+                <i class="bi bi-building me-2"></i>
+                Company Information
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Company Name
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ company.name if company else "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Company Email
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ company.email if company else "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Company ID
+                    </div>
+
+                    <div class="fw-semibold">
+                        {{ company.id if company else "—" }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Company Status
+                    </div>
+
+                    {% if company and company.is_active %}
+
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-danger">
+                            Inactive
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUBSCRIPTION INFORMATION
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-calendar-check me-2"></i>
+
+                Subscription Information
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- PLAN -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Plan
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {{ subscription.plan_name }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Status
+                    </div>
+
+                    {% if subscription.status == "active" %}
+
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+
+                    {% elif subscription.status == "trial" %}
+
+                        <span class="badge bg-info">
+                            Trial
+                        </span>
+
+                    {% elif subscription.status == "pending" %}
+
+                        <span class="badge bg-warning text-dark">
+                            Payment Pending
+                        </span>
+
+                    {% elif subscription.status == "expired" %}
+
+                        <span class="badge bg-danger">
+                            Expired
+                        </span>
+
+                    {% elif subscription.status == "maintenance" %}
+
+                        <span class="badge bg-warning text-dark">
+                            Maintenance
+                        </span>
+
+                    {% elif subscription.status == "failed" %}
+
+                        <span class="badge bg-danger">
+                            Payment Failed
+                        </span>
+
+                    {% elif subscription.status == "manually_active" %}
+
+                        <span class="badge bg-success">
+                            Manually Activated
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-secondary">
+                            {{ subscription.status_name }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- PAYMENT STATUS -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Payment Status
+                    </div>
+
+                    {% if subscription.payment_status == "paid" %}
+
+                        <span class="badge bg-success">
+                            Paid
+                        </span>
+
+                    {% elif subscription.payment_status == "pending" %}
+
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+
+                    {% elif subscription.payment_status == "failed" %}
+
+                        <span class="badge bg-danger">
+                            Failed
+                        </span>
+
+                    {% elif subscription.payment_status == "not_required" %}
+
+                        <span class="badge bg-secondary">
+                            Not Required
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge bg-secondary">
+                            {{ subscription.payment_status|title }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- START -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Start Date
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.start_date %}
+
+                            {{ subscription.start_date.strftime("%d/%m/%Y %H:%M") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- END -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        End Date
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.end_date %}
+
+                            {{ subscription.end_date.strftime("%d/%m/%Y %H:%M") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIVATION -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Activation Source
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {{ subscription.activation_source|replace("_", " ")|title
+                        if subscription.activation_source
+                        else "—" }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         PAYMENT BREAKDOWN
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-cash-stack me-2"></i>
+
+                Payment Breakdown
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- BASE -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Subscription Amount
+                    </div>
+
+                    <div class="fs-5 fw-bold">
+
+                        ₦{{ "{:,.2f}".format(base_amount|float) }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- MAINTENANCE -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Maintenance Fee
+                    </div>
+
+                    <div class="fs-5 fw-bold text-warning">
+
+                        ₦{{ "{:,.2f}".format(maintenance_fee|float) }}
+
+                    </div>
+
+                    {% if subscription.maintenance_days %}
+
+                        <div class="small text-muted">
+
+                            {{ subscription.maintenance_days }}
+                            maintenance day(s)
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- EXPECTED TOTAL -->
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Expected Total
+                    </div>
+
+                    <div class="fs-5 fw-bold text-primary">
+
+                        ₦{{ "{:,.2f}".format(expected_total|float) }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTUAL AMOUNT -->
+
+                <div class="col-md-12">
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="text-muted small">
+                                Amount Recorded for Payment
+                            </div>
+
+                            <div class="fs-4 fw-bold">
+
+                                ₦{{ "{:,.2f}".format(subscription.amount|float) }}
+
+                            </div>
+
+                        </div>
+
+
+                        {% if subscription.payment_status == "paid" %}
+
+                            <span class="badge bg-success fs-6">
+
+                                <i class="bi bi-check-circle me-1"></i>
+
+                                Payment Successful
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         PAYSTACK INFORMATION
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-shield-check me-2"></i>
+
+                Paystack Payment Information
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- REFERENCE -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Paystack Reference
+                    </div>
+
+                    <div class="fw-semibold text-break">
+
+                        {{ subscription.paystack_reference or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- TRANSACTION ID -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Paystack Transaction ID
+                    </div>
+
+                    <div class="fw-semibold text-break">
+
+                        {{ subscription.paystack_transaction_id or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCESS CODE -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Paystack Access Code
+                    </div>
+
+                    <div class="fw-semibold text-break">
+
+                        {{ subscription.paystack_access_code or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PAYMENT METHOD -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Payment Method / Channel
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {{ subscription.payment_method|replace("_", " ")|title
+                        if subscription.payment_method
+                        else "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- TRANSACTION REFERENCE -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Internal Transaction Reference
+                    </div>
+
+                    <div class="fw-semibold text-break">
+
+                        {{ subscription.transaction_reference or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ORDER ID -->
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Order ID
+                    </div>
+
+                    <div class="fw-semibold text-break">
+
+                        {{ subscription.order_id or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- GATEWAY -->
+
+                <div class="col-md-12">
+
+                    <div class="text-muted small">
+                        Gateway Response
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {{ subscription.gateway_response or "—" }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         PAYMENT DATES
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-clock-history me-2"></i>
+
+                Payment Dates
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Created
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.created_at %}
+
+                            {{ subscription.created_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Paid At
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.paid_at %}
+
+                            {{ subscription.paid_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Verified At
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.verified_at %}
+
+                            {{ subscription.verified_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         MANUAL ACTIVATION
+    ============================================================ -->
+
+    {% if subscription.manually_activated %}
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-person-check me-2"></i>
+
+                Manual Activation
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Manually Activated
+                    </div>
+
+                    <div class="fw-semibold text-success">
+
+                        Yes
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Activated By User ID
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {{ subscription.manually_activated_by or "—" }}
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Activated At
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.manually_activated_at %}
+
+                            {{ subscription.manually_activated_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ============================================================
+         TRIAL INFORMATION
+    ============================================================ -->
+
+    {% if subscription.plan == "trial" %}
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+
+                <i class="bi bi-gift me-2"></i>
+
+                Trial Information
+
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Trial Started
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.trial_started_at %}
+
+                            {{ subscription.trial_started_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <div class="text-muted small">
+                        Trial Expires
+                    </div>
+
+                    <div class="fw-semibold">
+
+                        {% if subscription.trial_expires_at %}
+
+                            {{ subscription.trial_expires_at.strftime("%d/%m/%Y %H:%M:%S") }}
+
+                        {% else %}
+
+                            —
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ============================================================
+         BACK BUTTON
+    ============================================================ -->
+
+    <div class="mb-4">
+
+        <a
+            href="{{ url_for('system_admin.subscriptions') }}"
+            class="btn btn-outline-secondary"
+        >
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back to Subscription Records
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

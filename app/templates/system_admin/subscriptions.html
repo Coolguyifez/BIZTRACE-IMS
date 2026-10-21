@@ -1,0 +1,745 @@
+{% extends "system_admin/app_base.html" %}
+
+{% block title %}
+Subscription Records | System Admin
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- ============================================================
+         PAGE HEADER
+    ============================================================ -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                <i class="bi bi-credit-card me-2"></i>
+                Subscription Records
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage and monitor BizTrace IMS company subscriptions
+                and payments.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUMMARY CARDS
+    ============================================================ -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Total Subscriptions
+                    </div>
+
+                    <div class="fs-3 fw-bold">
+                        {{ total_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Active
+                    </div>
+
+                    <div class="fs-3 fw-bold text-success">
+                        {{ active_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Trial
+                    </div>
+
+                    <div class="fs-3 fw-bold text-primary">
+                        {{ trial_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Pending
+                    </div>
+
+                    <div class="fs-3 fw-bold text-warning">
+                        {{ pending_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Expired
+                    </div>
+
+                    <div class="fs-3 fw-bold text-danger">
+                        {{ expired_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Maintenance
+                    </div>
+
+                    <div class="fs-3 fw-bold text-warning">
+                        {{ maintenance_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-md-4 col-xl-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body">
+
+                    <div class="text-muted small">
+                        Failed
+                    </div>
+
+                    <div class="fs-3 fw-bold text-danger">
+                        {{ failed_count }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SEARCH / FILTER
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <form
+                method="GET"
+                action="{{ url_for('system_admin.subscriptions') }}"
+            >
+
+                <div class="row g-3">
+
+                    <!-- SEARCH -->
+
+                    <div class="col-lg-5">
+
+                        <label class="form-label">
+                            Search
+                        </label>
+
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            class="form-control"
+                            placeholder="Company, email, transaction or Paystack reference..."
+                        >
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="col-md-3 col-lg-2">
+
+                        <label class="form-label">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if status == "all" %}selected{% endif %}
+                            >
+                                All Status
+                            </option>
+
+                            <option
+                                value="trial"
+                                {% if status == "trial" %}selected{% endif %}
+                            >
+                                Trial
+                            </option>
+
+                            <option
+                                value="active"
+                                {% if status == "active" %}selected{% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="pending"
+                                {% if status == "pending" %}selected{% endif %}
+                            >
+                                Pending
+                            </option>
+
+                            <option
+                                value="expired"
+                                {% if status == "expired" %}selected{% endif %}
+                            >
+                                Expired
+                            </option>
+
+                            <option
+                                value="maintenance"
+                                {% if status == "maintenance" %}selected{% endif %}
+                            >
+                                Maintenance
+                            </option>
+
+                            <option
+                                value="failed"
+                                {% if status == "failed" %}selected{% endif %}
+                            >
+                                Failed
+                            </option>
+
+                            <option
+                                value="cancelled"
+                                {% if status == "cancelled" %}selected{% endif %}
+                            >
+                                Cancelled
+                            </option>
+
+                            <option
+                                value="manually_active"
+                                {% if status == "manually_active" %}selected{% endif %}
+                            >
+                                Manually Active
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PLAN -->
+
+                    <div class="col-md-3 col-lg-2">
+
+                        <label class="form-label">
+                            Plan
+                        </label>
+
+                        <select
+                            name="plan"
+                            class="form-select"
+                        >
+
+                            <option
+                                value="all"
+                                {% if plan == "all" %}selected{% endif %}
+                            >
+                                All Plans
+                            </option>
+
+                            <option
+                                value="trial"
+                                {% if plan == "trial" %}selected{% endif %}
+                            >
+                                Trial
+                            </option>
+
+                            <option
+                                value="monthly"
+                                {% if plan == "monthly" %}selected{% endif %}
+                            >
+                                Monthly
+                            </option>
+
+                            <option
+                                value="annual"
+                                {% if plan == "annual" %}selected{% endif %}
+                            >
+                                Annual
+                            </option>
+
+                            <option
+                                value="manual"
+                                {% if plan == "manual" %}selected{% endif %}
+                            >
+                                Manual
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+
+                    <div class="col-md-3 col-lg-3 d-flex align-items-end gap-2">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+
+                            <i class="bi bi-search me-1"></i>
+
+                            Search
+
+                        </button>
+
+
+                        <a
+                            href="{{ url_for('system_admin.subscriptions') }}"
+                            class="btn btn-outline-secondary"
+                        >
+
+                            <i class="bi bi-arrow-counterclockwise"></i>
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUBSCRIPTION TABLE
+    ============================================================ -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-transparent">
+
+            <strong>
+                Subscription Records
+            </strong>
+
+            <span class="text-muted ms-2">
+                {{ subscriptions|length }} record(s)
+            </span>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Company
+                            </th>
+
+                            <th>
+                                Plan
+                            </th>
+
+                            <th>
+                                Amount
+                            </th>
+
+                            <th>
+                                Maintenance
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Payment
+                            </th>
+
+                            <th>
+                                End Date
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for subscription in subscriptions %}
+
+                        <tr>
+
+                            <!-- COMPANY -->
+
+                            <td>
+
+                                <div class="fw-semibold">
+
+                                    {{ subscription.company.name }}
+
+                                </div>
+
+                                <div class="small text-muted">
+
+                                    {{ subscription.company.email }}
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- PLAN -->
+
+                            <td>
+
+                                {% if subscription.plan == "monthly" %}
+
+                                    <span class="badge bg-primary">
+                                        Monthly
+                                    </span>
+
+                                {% elif subscription.plan == "annual" %}
+
+                                    <span class="badge bg-primary">
+                                        Annual
+                                    </span>
+
+                                {% elif subscription.plan == "trial" %}
+
+                                    <span class="badge bg-info">
+                                        Trial
+                                    </span>
+
+                                {% elif subscription.plan == "manual" %}
+
+                                    <span class="badge bg-secondary">
+                                        Manual
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        {{ subscription.plan|title }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- AMOUNT -->
+
+                            <td>
+
+                                {% if subscription.amount %}
+
+                                    ₦{{ "{:,.2f}".format(subscription.amount|float) }}
+
+                                {% else %}
+
+                                    ₦0.00
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- MAINTENANCE -->
+
+                            <td>
+
+                                {% if subscription.maintenance_fee and subscription.maintenance_fee > 0 %}
+
+                                    <div class="fw-semibold text-warning">
+
+                                        ₦{{ "{:,.2f}".format(subscription.maintenance_fee|float) }}
+
+                                    </div>
+
+                                    <div class="small text-muted">
+
+                                        {{ subscription.maintenance_days }}
+                                        day(s)
+
+                                    </div>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        ₦0.00
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- STATUS -->
+
+                            <td>
+
+                                {% if subscription.status == "active" %}
+
+                                    <span class="badge bg-success">
+                                        Active
+                                    </span>
+
+                                {% elif subscription.status == "trial" %}
+
+                                    <span class="badge bg-info">
+                                        Trial
+                                    </span>
+
+                                {% elif subscription.status == "pending" %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+
+                                {% elif subscription.status == "expired" %}
+
+                                    <span class="badge bg-danger">
+                                        Expired
+                                    </span>
+
+                                {% elif subscription.status == "maintenance" %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Maintenance
+                                    </span>
+
+                                {% elif subscription.status == "failed" %}
+
+                                    <span class="badge bg-danger">
+                                        Failed
+                                    </span>
+
+                                {% elif subscription.status == "manually_active" %}
+
+                                    <span class="badge bg-success">
+                                        Manually Active
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        {{ subscription.status_name }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- PAYMENT -->
+
+                            <td>
+
+                                {% if subscription.payment_status == "paid" %}
+
+                                    <span class="badge bg-success">
+                                        Paid
+                                    </span>
+
+                                {% elif subscription.payment_status == "pending" %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+
+                                {% elif subscription.payment_status == "failed" %}
+
+                                    <span class="badge bg-danger">
+                                        Failed
+                                    </span>
+
+                                {% elif subscription.payment_status == "not_required" %}
+
+                                    <span class="badge bg-secondary">
+                                        Not Required
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-secondary">
+                                        {{ subscription.payment_status|title }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- END DATE -->
+
+                            <td>
+
+                                {% if subscription.end_date %}
+
+                                    {{ subscription.end_date.strftime("%d/%m/%Y") }}
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- ACTION -->
+
+                            <td>
+
+                                <a
+                                    href="{{ url_for(
+                                        'system_admin.subscription_view',
+                                        subscription_id=subscription.id
+                                    ) }}"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+
+                                    <i class="bi bi-eye me-1"></i>
+
+                                    View
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="8"
+                                class="text-center py-5"
+                            >
+
+                                <div class="text-muted">
+
+                                    <i
+                                        class="bi bi-credit-card fs-2 d-block mb-2"
+                                    ></i>
+
+                                    No subscription records found.
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
