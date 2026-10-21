@@ -134,7 +134,7 @@ def create_app(config_class=Config):
     from .receivables.routes import receivables_bp
     from .payables.routes import payables_bp
     from .system_admin.routes import system_admin_bp
-
+    from .subscription import subscription_bp
     from app.company_admin import company_admin_bp
     from app.reports import reports_bp
     from .main import main_bp
@@ -158,7 +158,7 @@ def create_app(config_class=Config):
     app.register_blueprint(receivables_bp)
     app.register_blueprint(payables_bp)
     app.register_blueprint(system_admin_bp)
-
+    app.register_blueprint(subscription_bp)
     app.register_blueprint(company_admin_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(main_bp)
@@ -487,6 +487,18 @@ def create_app(config_class=Config):
         # --------------------------------------------------------
 
         if request.endpoint == "maintenance":
+            return None
+
+        # ========================================================
+        # SUBSCRIPTION / PAYMENT ROUTES
+        # ========================================================
+
+        if (
+            request.endpoint
+            and request.endpoint.startswith(
+                "subscription."
+            )
+        ):
             return None
 
         # --------------------------------------------------------
