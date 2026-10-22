@@ -439,6 +439,10 @@ Subscription Records | System Admin
                             </th>
 
                             <th>
+                                Paystack
+                            </th>
+
+                            <th>
                                 Status
                             </th>
 
@@ -567,6 +571,10 @@ Subscription Records | System Admin
 
                                 {% endif %}
 
+                            </td>
+
+                            <td>
+                                ₦{{ "{:,.2f}".format((subscription.amount|float) * 1.015) }}
                             </td>
 
 
