@@ -1426,11 +1426,6 @@ font-size:15px;
 line-height:1.8;
 ">
 
-📖 For a Summary version of how to use
-BizTrace IMS, please open the login page on a larger
-screen such as a PC, Desktop or Tablet or put mobile
-phone on Landscape and review the Welcome Guide.
-
 </p>
 
 <div style="
@@ -1465,7 +1460,7 @@ line-height:1.8;
 ">
 
 If anything is unclear or you experience any problem,
-please call us, chat with us on WhatsApp, send us an
+please call us, chat with us on WhatsApp, or send us an
 email, or visit the Support page.
 
 </p>
@@ -1495,8 +1490,7 @@ color:#374151;
 font-size:14px;
 ">
 
-📧 <strong>biztraceims@gmail.com</strong>
-
+📧 <strong>support@biztraceims.com</strong>
 </p>
 
 <p style="
@@ -2861,7 +2855,8 @@ def verify_email(token):
                 flash(
                     "Your email has been verified successfully. "
                     "Your BizTrace IMS company account has been "
-                    "created. Welcome to BizTrace IMS!",
+                    "created. Welcome to BizTrace IMS! Please follow the welcome guide sent to you via email or WhatsApp to get started. "
+                    "If you don't understand anything, feel free to reach us via the support page or official channels.",
                     "success",
                 )
 
