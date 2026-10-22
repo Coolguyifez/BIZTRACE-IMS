@@ -1662,11 +1662,11 @@ def subscription_view(subscription_id):
 
     if subscription.plan == "monthly":
 
-        base_amount = 30000
+        base_amount = 15000
 
     elif subscription.plan == "annual":
 
-        base_amount = 288000
+        base_amount = 135000
 
     else:
 
