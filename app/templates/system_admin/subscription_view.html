@@ -473,7 +473,7 @@ Subscription #{{ subscription.id }} | System Admin
 
                             <div class="fs-4 fw-bold">
 
-                                ₦{{ "{:,.2f}".format(subscription.amount|float) }}
+                                ₦{{ "{:,.2f}".format((subscription.amount|float) * 1.015) }}
 
                             </div>
 
