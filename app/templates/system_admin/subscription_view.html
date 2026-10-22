@@ -422,6 +422,22 @@ Subscription #{{ subscription.id }} | System Admin
 
                 </div>
 
+                 <!-- PAYSTACK FEE -->
+                <div class="col-md-4">
+
+                    <div class="text-muted small">
+                        Paystack tax Charge
+                    </div>
+
+                    <div class="fs-5 fw-bold text-danger">
+
+                        1.5%
+
+                    </div>
+
+                </div>
+
+
 
                 <!-- EXPECTED TOTAL -->
 
@@ -433,11 +449,12 @@ Subscription #{{ subscription.id }} | System Admin
 
                     <div class="fs-5 fw-bold text-primary">
 
-                        ₦{{ "{:,.2f}".format(expected_total|float) }}
+                        ₦{{ "{:,.2f}".format((expected_total|float) * 1.015) }}
 
                     </div>
 
                 </div>
+
 
 
                 <!-- ACTUAL AMOUNT -->
