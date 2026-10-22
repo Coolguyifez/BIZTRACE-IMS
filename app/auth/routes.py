@@ -1414,7 +1414,7 @@ line-height:1.7;
 
 Your new company receives a
 <strong>7-days trial</strong>,
-after which an active subscription is required.
+after which you need an active subscription.
 
 </p>
 
@@ -1425,6 +1425,9 @@ color:#374151;
 font-size:15px;
 line-height:1.8;
 ">
+
+📖 For how to use BizTrace IMS, 
+please review the Welcome Guide.
 
 </p>
 
