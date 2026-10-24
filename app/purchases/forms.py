@@ -39,7 +39,7 @@ class PurchaseForm(FlaskForm):
     # =====================================================
 
     purchase_date = DateField(
-        "Purchase Date",
+        "Purchase/Order Date",
         default=date.today,
         validators=[
             DataRequired()
@@ -47,7 +47,7 @@ class PurchaseForm(FlaskForm):
     )
 
     expected_delivery_date = DateField(
-        "Expected Delivery Date",
+        "Delivery Date",
         validators=[
             Optional()
         ]
