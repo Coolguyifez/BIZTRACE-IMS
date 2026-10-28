@@ -142,6 +142,7 @@ def create_app(config_class=Config):
     from app.settings import settings_bp
     from app.support import support_bp
     from app.search import search_bp
+    from app.services import services_bp
 
     # ------------------------------------------------------------
     # REGISTER
@@ -166,6 +167,7 @@ def create_app(config_class=Config):
     app.register_blueprint(settings_bp)
     app.register_blueprint(support_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(services_bp)
 
     # ============================================================
     # OFFLINE PAGE
