@@ -1,24 +1,28 @@
-from collections import defaultdict
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from collections import defaultdict
 from urllib.parse import quote
 
 from flask import (
     Blueprint,
-    render_template,
-    redirect,
-    url_for,
+    current_app,
     flash,
+    redirect,
+    render_template,
     request,
-    current_app
+    url_for
 )
 
-from flask_login import login_required, current_user
+from flask_login import (
+    login_required,
+    current_user
+)
 
 from app.extensions import db
 
 from app.models import (
     Product,
+    Service,
     Customer,
     Company,
     Sale,
@@ -33,7 +37,9 @@ from app.notifications.service import (
     check_financial_alerts
 )
 
-from app.company_admin.decorators import company_permission_required
+from app.company_admin.decorators import (
+    company_permission_required
+)
 
 from app.utils.document_numbers import (
     generate_invoice_number
@@ -65,6 +71,7 @@ def parse_decimal(
     default=Decimal("0.00")
 ):
     try:
+
         if (
             value is None
             or str(value).strip() == ""
@@ -91,9 +98,6 @@ def get_sales_company_settings():
     """
     Return the settings belonging to the currently
     authenticated user's company.
-
-    System Administrators do not have a company and
-    therefore do not receive company financial settings.
     """
 
     return get_current_company_settings()
@@ -105,19 +109,7 @@ def get_sales_company_settings():
 
 def company_date_to_utc_start(selected_date):
     """
-    Convert a company-local calendar date to the
-    corresponding UTC start datetime.
-
-    Example:
-
-        Company timezone:
-        Africa/Lagos
-
-        Local:
-        2026-09-25 00:00
-
-        Stored/query boundary:
-        UTC equivalent
+    Convert a company-local calendar date to UTC start.
     """
 
     if not selected_date:
@@ -328,7 +320,7 @@ def get_payment_data():
         references.append("")
 
     # --------------------------------------------------------
-    # VALID PAYMENT METHODS
+    # Valid payment methods
     # --------------------------------------------------------
 
     valid_methods = {
@@ -344,7 +336,7 @@ def get_payment_data():
     total_paid = Decimal("0.00")
 
     # --------------------------------------------------------
-    # PROCESS PAYMENT ROWS
+    # Process payment rows
     # --------------------------------------------------------
 
     for index, (
@@ -517,44 +509,11 @@ def process_sale_notifications(
     Process all notifications after a sale has been
     successfully committed.
 
-    Notification failures must never roll back
-    an already completed sale.
-
-    Notification architecture:
-
-        SALE
-        ----
-        Delivery category = "sale"
-        Sound = "success"
-
-        LOW STOCK
-        ---------
-        Delivery category = "inventory"
-        Sound = "low-stock"
-
-        FINANCIAL LOSS
-        ---------------
-        Delivery category = "financial"
-        Sound = "gross-loss" / "net-loss"
+    Services do not participate in low-stock notifications.
     """
 
     # ========================================================
     # SALE SUCCESS
-    # ========================================================
-    #
-    # IMPORTANT:
-    #
-    # notification_category="sale"
-    #
-    # This controls WHO receives the notification through
-    # NotificationAssignment.
-    #
-    # notify_success() itself supplies:
-    #
-    #     sound="success"
-    #
-    # Therefore sound settings remain completely separate
-    # from notification assignment.
     # ========================================================
 
     try:
@@ -597,15 +556,6 @@ def process_sale_notifications(
     # ========================================================
     # LOW STOCK
     # ========================================================
-    #
-    # notify_low_stock() is responsible for creating:
-    #
-    #     category = "inventory"
-    #     sound    = "low-stock"
-    #
-    # Inventory NotificationAssignment controls delivery.
-    # low_stock_sound_enabled controls only the sound.
-    # ========================================================
 
     checked_products = set()
 
@@ -613,7 +563,16 @@ def process_sale_notifications(
 
         try:
 
-            product = line["product"]
+            # Services do not have inventory.
+            if line.get("item_type") != "product":
+                continue
+
+            product = line.get(
+                "product"
+            )
+
+            if not product:
+                continue
 
             if product.id in checked_products:
                 continue
@@ -671,19 +630,6 @@ def process_sale_notifications(
 
     # ========================================================
     # FINANCIAL LOSS ALERTS
-    # ========================================================
-    #
-    # check_financial_alerts() is responsible for:
-    #
-    #     category = "financial"
-    #
-    # with sounds:
-    #
-    #     gross-loss
-    #     net-loss
-    #
-    # Financial assignment controls delivery.
-    # Sound preferences only control audio.
     # ========================================================
 
     try:
@@ -743,10 +689,7 @@ def process_sale_update_notifications(
     Process notifications after a sale has been
     successfully edited.
 
-    Sale update notification:
-
-        Delivery category = "sale"
-        Sound = "success"
+    Services do not participate in low-stock notifications.
     """
 
     # ========================================================
@@ -799,7 +742,15 @@ def process_sale_update_notifications(
 
         try:
 
-            product = line["product"]
+            if line.get("item_type") != "product":
+                continue
+
+            product = line.get(
+                "product"
+            )
+
+            if not product:
+                continue
 
             if product.id in checked_products:
                 continue
@@ -945,10 +896,6 @@ def sales():
             )
         )
 
-    # IMPORTANT:
-    # Use company-local current date/time instead
-    # of server UTC for period defaults.
-
     now = company_now()
 
     # ========================================================
@@ -1040,7 +987,9 @@ def sales():
 
                 end_date = (
                     start_date
-                    + timedelta(days=7)
+                    + timedelta(
+                        days=7
+                    )
                 )
 
                 query = query.filter(
@@ -1248,6 +1197,18 @@ def new_sale():
         .all()
     )
 
+    services = (
+        Service.query
+        .filter_by(
+            company_id=current_user.company_id,
+            is_active=True
+        )
+        .order_by(
+            Service.name.asc()
+        )
+        .all()
+    )
+
     form.customer_id.choices = [
         (
             0,
@@ -1281,18 +1242,26 @@ def new_sale():
 
     if form.validate_on_submit():
 
-        product_ids = request.form.getlist(
-            "product_id"
+        item_types = request.form.getlist(
+            "item_type"
+        )
+
+        item_ids = request.form.getlist(
+            "item_id"
         )
 
         quantities = request.form.getlist(
             "quantity"
         )
 
-        if not product_ids:
+        # ----------------------------------------------------
+        # At least one item
+        # ----------------------------------------------------
+
+        if not item_types:
 
             flash(
-                "Please add at least one product.",
+                "Please add at least one product or service.",
                 "warning"
             )
 
@@ -1301,14 +1270,23 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
 
-        if len(product_ids) != len(quantities):
+        # ----------------------------------------------------
+        # Arrays must match
+        # ----------------------------------------------------
+
+        if not (
+            len(item_types)
+            == len(item_ids)
+            == len(quantities)
+        ):
 
             flash(
-                "Invalid product information submitted.",
+                "Invalid item information submitted.",
                 "danger"
             )
 
@@ -1317,27 +1295,67 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
 
         # ====================================================
-        # VALIDATE PRODUCTS
+        # VALIDATE ITEMS
         # ====================================================
 
         sale_lines = []
 
         subtotal = Decimal("0.00")
 
-        for product_id, quantity_value in zip(
-            product_ids,
+        for (
+            item_type,
+            item_id_value,
+            quantity_value
+        ) in zip(
+            item_types,
+            item_ids,
             quantities
         ):
 
+            item_type = (
+                item_type
+                .strip()
+                .lower()
+            )
+
+            # ------------------------------------------------
+            # Validate type
+            # ------------------------------------------------
+
+            if item_type not in {
+                "product",
+                "service"
+            }:
+
+                flash(
+                    "Invalid sale item type.",
+                    "danger"
+                )
+
+                return render_template(
+                    "sales/sale_form.html",
+                    form=form,
+                    sale=None,
+                    products=products,
+                    services=services,
+                    customers=customers,
+                    settings=settings
+                )
+
+            # ------------------------------------------------
+            # Parse ID and quantity
+            # ------------------------------------------------
+
             try:
 
-                product_id = int(
-                    product_id
+                item_id = int(
+                    item_id_value
                 )
 
                 quantity = Decimal(
@@ -1351,7 +1369,7 @@ def new_sale():
             ):
 
                 flash(
-                    "Invalid product or quantity.",
+                    "Invalid item or quantity.",
                     "danger"
                 )
 
@@ -1360,14 +1378,19 @@ def new_sale():
                     form=form,
                     sale=None,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
+
+            # ------------------------------------------------
+            # Quantity validation
+            # ------------------------------------------------
 
             if quantity <= 0:
 
                 flash(
-                    "Product quantities must be greater than zero.",
+                    "Item quantities must be greater than zero.",
                     "warning"
                 )
 
@@ -1376,87 +1399,164 @@ def new_sale():
                     form=form,
                     sale=None,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
 
-            product = (
-                Product.query
-                .filter_by(
-                    id=product_id,
-                    company_id=current_user.company_id,
-                    is_active=True
-                )
-                .first()
-            )
+            # =================================================
+            # PRODUCT
+            # =================================================
 
-            if not product:
+            if item_type == "product":
 
-                flash(
-                    "One of the selected products could not be found.",
-                    "danger"
-                )
-
-                return render_template(
-                    "sales/sale_form.html",
-                    form=form,
-                    sale=None,
-                    products=products,
-                    customers=customers,
-                    settings=settings
+                product = (
+                    Product.query
+                    .filter_by(
+                        id=item_id,
+                        company_id=current_user.company_id,
+                        is_active=True
+                    )
+                    .first()
                 )
 
-            available_quantity = (
-                product.available_quantity
-            )
+                if not product:
 
-            if quantity > available_quantity:
+                    flash(
+                        "One of the selected products "
+                        "could not be found.",
+                        "danger"
+                    )
 
-                flash(
-                    f"Insufficient available stock for "
-                    f"{product.name}. "
-                    f"Available stock: "
-                    f"{available_quantity:,.3f} "
-                    f"{product.unit}. "
-                    f"Reserved: "
-                    f"{Decimal(str(product.reserved_quantity or 0)):,.3f} "
-                    f"{product.unit}.",
-                    "warning"
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=None,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
+
+                available_quantity = (
+                    product.available_quantity
                 )
 
-                return render_template(
-                    "sales/sale_form.html",
-                    form=form,
-                    sale=None,
-                    products=products,
-                    customers=customers,
-                    settings=settings
+                if quantity > available_quantity:
+
+                    flash(
+                        f"Insufficient available stock for "
+                        f"{product.name}. "
+                        f"Available stock: "
+                        f"{available_quantity:,.3f} "
+                        f"{product.unit}. "
+                        f"Reserved: "
+                        f"{Decimal(str(product.reserved_quantity or 0)):,.3f} "
+                        f"{product.unit}.",
+                        "warning"
+                    )
+
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=None,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
+
+                unit_price = Decimal(
+                    str(
+                        product.selling_price or 0
+                    )
                 )
 
-            unit_price = Decimal(
-                str(
-                    product.selling_price or 0
+                line_total = (
+                    quantity
+                    * unit_price
                 )
-            )
 
-            line_total = (
-                quantity
-                * unit_price
-            )
+                sale_lines.append({
 
-            subtotal += line_total
+                    "item_type": "product",
 
-            sale_lines.append({
+                    "product": product,
 
-                "product": product,
+                    "service": None,
 
-                "quantity": quantity,
+                    "quantity": quantity,
 
-                "unit_price": unit_price,
+                    "unit_price": unit_price,
 
-                "total": line_total
+                    "total": line_total
 
-            })
+                })
+
+                subtotal += line_total
+
+            # =================================================
+            # SERVICE
+            # =================================================
+
+            else:
+
+                service = (
+                    Service.query
+                    .filter_by(
+                        id=item_id,
+                        company_id=current_user.company_id,
+                        is_active=True
+                    )
+                    .first()
+                )
+
+                if not service:
+
+                    flash(
+                        "One of the selected services "
+                        "could not be found.",
+                        "danger"
+                    )
+
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=None,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
+
+                unit_price = Decimal(
+                    str(
+                        service.price or 0
+                    )
+                )
+
+                line_total = (
+                    quantity
+                    * unit_price
+                )
+
+                sale_lines.append({
+
+                    "item_type": "service",
+
+                    "product": None,
+
+                    "service": service,
+
+                    "quantity": quantity,
+
+                    "unit_price": unit_price,
+
+                    "total": line_total
+
+                })
+
+                subtotal += line_total
 
         # ====================================================
         # FINANCIAL CALCULATIONS
@@ -1486,6 +1586,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1502,6 +1603,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1518,6 +1620,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1548,6 +1651,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1594,6 +1698,7 @@ def new_sale():
                     form=form,
                     sale=None,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -1615,6 +1720,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1674,6 +1780,7 @@ def new_sale():
                     form=form,
                     sale=None,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -1729,6 +1836,7 @@ def new_sale():
                     form=form,
                     sale=None,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -1743,7 +1851,6 @@ def new_sale():
 
             customer_id=customer_id,
 
-            # DO NOT CHANGE NUMBERING.
             invoice_number=generate_invoice_number(),
 
             sale_date=form.sale_date.data,
@@ -1781,71 +1888,128 @@ def new_sale():
         db.session.flush()
 
         # ====================================================
-        # SALE ITEMS + STOCK
+        # SALE ITEMS
         # ====================================================
 
         for line in sale_lines:
 
-            product = line["product"]
+            if line["item_type"] == "product":
 
-            quantity = line["quantity"]
+                product = line["product"]
 
-            sale_item = SaleItem(
+                quantity = line["quantity"]
 
-                sale_id=sale.id,
+                sale_item = SaleItem(
 
-                product_id=product.id,
+                    sale_id=sale.id,
 
-                quantity=quantity,
+                    item_type="product",
 
-                unit_price=line["unit_price"],
+                    product_id=product.id,
 
-                discount=Decimal("0.00"),
+                    service_id=None,
 
-                tax=Decimal("0.00"),
+                    item_name=product.name,
 
-                total=line["total"]
+                    item_code=product.sku,
 
-            )
+                    quantity=quantity,
 
-            db.session.add(
-                sale_item
-            )
+                    unit_price=line["unit_price"],
 
-            product.quantity = (
-                Decimal(
-                    str(
-                        product.quantity or 0
-                    )
+                    discount=Decimal("0.00"),
+
+                    tax=Decimal("0.00"),
+
+                    total=line["total"]
+
                 )
-                - quantity
-            )
 
-            transaction = InventoryTransaction(
+                db.session.add(
+                    sale_item
+                )
 
-                company_id=current_user.company_id,
+                # --------------------------------------------
+                # Deduct product inventory
+                # --------------------------------------------
 
-                product_id=product.id,
+                product.quantity = (
+                    Decimal(
+                        str(
+                            product.quantity or 0
+                        )
+                    )
+                    - quantity
+                )
 
-                transaction_type="Sale",
+                transaction = InventoryTransaction(
 
-                quantity=-quantity,
+                    company_id=current_user.company_id,
 
-                reference_type="Sale",
+                    product_id=product.id,
 
-                reference_id=sale.id,
+                    transaction_type="Sale",
 
-                notes=(
-                    f"Sale {sale.invoice_number}"
-                ),
+                    quantity=-quantity,
 
-                created_by=current_user.id
+                    reference_type="Sale",
 
-            )
+                    reference_id=sale.id,
 
-            db.session.add(
-                transaction
-            )
+                    notes=(
+                        f"Sale {sale.invoice_number}"
+                    ),
+
+                    created_by=current_user.id
+
+                )
+
+                db.session.add(
+                    transaction
+                )
+
+            else:
+
+                service = line["service"]
+
+                quantity = line["quantity"]
+
+                sale_item = SaleItem(
+
+                    sale_id=sale.id,
+
+                    item_type="service",
+
+                    product_id=None,
+
+                    service_id=service.id,
+
+                    item_name=service.name,
+
+                    item_code=service.service_code,
+
+                    quantity=quantity,
+
+                    unit_price=line["unit_price"],
+
+                    discount=Decimal("0.00"),
+
+                    tax=Decimal("0.00"),
+
+                    total=line["total"]
+
+                )
+
+                db.session.add(
+                    sale_item
+                )
+
+                # ------------------------------------------------
+                # IMPORTANT:
+                #
+                # Services DO NOT change inventory.
+                # No InventoryTransaction is created.
+                # ------------------------------------------------
 
         # ====================================================
         # PAYMENTS
@@ -1871,7 +2035,6 @@ def new_sale():
 
                 reference=payment_data["reference"],
 
-                # DATABASE STORAGE REMAINS UTC.
                 payment_date=datetime.now(
                     timezone.utc
                 ),
@@ -1898,6 +2061,10 @@ def new_sale():
 
             db.session.rollback()
 
+            current_app.logger.exception(
+                "Unable to complete sale."
+            )
+
             flash(
                 f"Unable to complete sale: {error}",
                 "danger"
@@ -1908,6 +2075,7 @@ def new_sale():
                 form=form,
                 sale=None,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -1927,7 +2095,7 @@ def new_sale():
         )
 
         # ====================================================
-        # SUCCESS MESSAGE
+        # SUCCESS
         # ====================================================
 
         flash(
@@ -1948,6 +2116,7 @@ def new_sale():
         form=form,
         sale=None,
         products=products,
+        services=services,
         customers=customers,
         settings=settings
     )
@@ -2071,6 +2240,18 @@ def edit_sale(sale_id):
         .all()
     )
 
+    services = (
+        Service.query
+        .filter_by(
+            company_id=current_user.company_id,
+            is_active=True
+        )
+        .order_by(
+            Service.name.asc()
+        )
+        .all()
+    )
+
     form.customer_id.choices = [
         (
             0,
@@ -2119,18 +2300,22 @@ def edit_sale(sale_id):
 
     if form.validate_on_submit():
 
-        product_ids = request.form.getlist(
-            "product_id"
+        item_types = request.form.getlist(
+            "item_type"
+        )
+
+        item_ids = request.form.getlist(
+            "item_id"
         )
 
         quantities = request.form.getlist(
             "quantity"
         )
 
-        if not product_ids:
+        if not item_types:
 
             flash(
-                "Please add at least one product.",
+                "Please add at least one product or service.",
                 "warning"
             )
 
@@ -2139,14 +2324,19 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
 
-        if len(product_ids) != len(quantities):
+        if not (
+            len(item_types)
+            == len(item_ids)
+            == len(quantities)
+        ):
 
             flash(
-                "Invalid product information submitted.",
+                "Invalid item information submitted.",
                 "danger"
             )
 
@@ -2155,23 +2345,35 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
 
         # ====================================================
-        # ORIGINAL QUANTITIES
+        # ORIGINAL ITEMS
         # ====================================================
 
         original_items = list(
             sale.items
         )
 
+        # ====================================================
+        # ORIGINAL PRODUCT QUANTITIES
+        # ====================================================
+
         original_quantities = defaultdict(
             lambda: Decimal("0")
         )
 
         for item in original_items:
+
+            # Services have no inventory.
+            if item.item_type != "product":
+                continue
+
+            if not item.product_id:
+                continue
 
             original_quantities[
                 item.product_id
@@ -2182,22 +2384,55 @@ def edit_sale(sale_id):
             )
 
         # ====================================================
-        # VALIDATE NEW PRODUCTS
+        # VALIDATE NEW ITEMS
         # ====================================================
 
         sale_lines = []
 
         subtotal = Decimal("0.00")
 
-        for product_id, quantity_value in zip(
-            product_ids,
+        for (
+            item_type,
+            item_id_value,
+            quantity_value
+        ) in zip(
+            item_types,
+            item_ids,
             quantities
         ):
 
+            item_type = (
+                item_type
+                .strip()
+                .lower()
+            )
+
+            if item_type not in {
+                "product",
+                "service"
+            }:
+
+                db.session.rollback()
+
+                flash(
+                    "Invalid sale item type.",
+                    "danger"
+                )
+
+                return render_template(
+                    "sales/sale_form.html",
+                    form=form,
+                    sale=sale,
+                    products=products,
+                    services=services,
+                    customers=customers,
+                    settings=settings
+                )
+
             try:
 
-                product_id = int(
-                    product_id
+                item_id = int(
+                    item_id_value
                 )
 
                 quantity = Decimal(
@@ -2213,7 +2448,7 @@ def edit_sale(sale_id):
                 db.session.rollback()
 
                 flash(
-                    "Invalid product or quantity.",
+                    "Invalid item or quantity.",
                     "danger"
                 )
 
@@ -2222,6 +2457,7 @@ def edit_sale(sale_id):
                     form=form,
                     sale=sale,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -2231,7 +2467,7 @@ def edit_sale(sale_id):
                 db.session.rollback()
 
                 flash(
-                    "Product quantities must be greater than zero.",
+                    "Item quantities must be greater than zero.",
                     "warning"
                 )
 
@@ -2240,116 +2476,197 @@ def edit_sale(sale_id):
                     form=form,
                     sale=sale,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
 
-            product = (
-                Product.query
-                .filter_by(
-                    id=product_id,
-                    company_id=current_user.company_id,
-                    is_active=True
-                )
-                .first()
-            )
+            # =================================================
+            # PRODUCT
+            # =================================================
 
-            if not product:
+            if item_type == "product":
 
-                db.session.rollback()
-
-                flash(
-                    "One of the selected products could not be found.",
-                    "danger"
+                product = (
+                    Product.query
+                    .filter_by(
+                        id=item_id,
+                        company_id=current_user.company_id,
+                        is_active=True
+                    )
+                    .first()
                 )
 
-                return render_template(
-                    "sales/sale_form.html",
-                    form=form,
-                    sale=sale,
-                    products=products,
-                    customers=customers,
-                    settings=settings
+                if not product:
+
+                    db.session.rollback()
+
+                    flash(
+                        "One of the selected products "
+                        "could not be found.",
+                        "danger"
+                    )
+
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=sale,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
+
+                physical_quantity = Decimal(
+                    str(
+                        product.quantity or 0
+                    )
                 )
 
-            physical_quantity = Decimal(
-                str(
-                    product.quantity or 0
-                )
-            )
-
-            reserved_quantity = Decimal(
-                str(
-                    product.reserved_quantity or 0
-                )
-            )
-
-            original_quantity = (
-                original_quantities.get(
-                    product.id,
-                    Decimal("0")
-                )
-            )
-
-            available_for_edit = (
-                physical_quantity
-                + original_quantity
-                - reserved_quantity
-            )
-
-            if available_for_edit < 0:
-
-                available_for_edit = Decimal("0")
-
-            if quantity > available_for_edit:
-
-                db.session.rollback()
-
-                flash(
-                    f"Insufficient available stock for "
-                    f"{product.name}. "
-                    f"Available for this sale: "
-                    f"{available_for_edit:,.3f} "
-                    f"{product.unit}. "
-                    f"Reserved: "
-                    f"{reserved_quantity:,.3f} "
-                    f"{product.unit}.",
-                    "warning"
+                reserved_quantity = Decimal(
+                    str(
+                        product.reserved_quantity or 0
+                    )
                 )
 
-                return render_template(
-                    "sales/sale_form.html",
-                    form=form,
-                    sale=sale,
-                    products=products,
-                    customers=customers,
-                    settings=settings
+                original_quantity = (
+                    original_quantities.get(
+                        product.id,
+                        Decimal("0")
+                    )
                 )
 
-            unit_price = Decimal(
-                str(
-                    product.selling_price or 0
+                available_for_edit = (
+                    physical_quantity
+                    + original_quantity
+                    - reserved_quantity
                 )
-            )
 
-            line_total = (
-                quantity
-                * unit_price
-            )
+                if available_for_edit < 0:
 
-            subtotal += line_total
+                    available_for_edit = (
+                        Decimal("0")
+                    )
 
-            sale_lines.append({
+                if quantity > available_for_edit:
 
-                "product": product,
+                    db.session.rollback()
 
-                "quantity": quantity,
+                    flash(
+                        f"Insufficient available stock for "
+                        f"{product.name}. "
+                        f"Available for this sale: "
+                        f"{available_for_edit:,.3f} "
+                        f"{product.unit}. "
+                        f"Reserved: "
+                        f"{reserved_quantity:,.3f} "
+                        f"{product.unit}.",
+                        "warning"
+                    )
 
-                "unit_price": unit_price,
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=sale,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
 
-                "total": line_total
+                unit_price = Decimal(
+                    str(
+                        product.selling_price or 0
+                    )
+                )
 
-            })
+                line_total = (
+                    quantity
+                    * unit_price
+                )
+
+                sale_lines.append({
+
+                    "item_type": "product",
+
+                    "product": product,
+
+                    "service": None,
+
+                    "quantity": quantity,
+
+                    "unit_price": unit_price,
+
+                    "total": line_total
+
+                })
+
+                subtotal += line_total
+
+            # =================================================
+            # SERVICE
+            # =================================================
+
+            else:
+
+                service = (
+                    Service.query
+                    .filter_by(
+                        id=item_id,
+                        company_id=current_user.company_id,
+                        is_active=True
+                    )
+                    .first()
+                )
+
+                if not service:
+
+                    db.session.rollback()
+
+                    flash(
+                        "One of the selected services "
+                        "could not be found.",
+                        "danger"
+                    )
+
+                    return render_template(
+                        "sales/sale_form.html",
+                        form=form,
+                        sale=sale,
+                        products=products,
+                        services=services,
+                        customers=customers,
+                        settings=settings
+                    )
+
+                unit_price = Decimal(
+                    str(
+                        service.price or 0
+                    )
+                )
+
+                line_total = (
+                    quantity
+                    * unit_price
+                )
+
+                sale_lines.append({
+
+                    "item_type": "service",
+
+                    "product": None,
+
+                    "service": service,
+
+                    "quantity": quantity,
+
+                    "unit_price": unit_price,
+
+                    "total": line_total
+
+                })
+
+                subtotal += line_total
 
         # ====================================================
         # FINANCIAL CALCULATIONS
@@ -2381,6 +2698,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2399,6 +2717,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2417,6 +2736,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2449,6 +2769,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2509,6 +2830,7 @@ def edit_sale(sale_id):
                     form=form,
                     sale=sale,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -2532,6 +2854,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2593,6 +2916,7 @@ def edit_sale(sale_id):
                     form=form,
                     sale=sale,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -2654,6 +2978,7 @@ def edit_sale(sale_id):
                     form=form,
                     sale=sale,
                     products=products,
+                    services=services,
                     customers=customers,
                     settings=settings
                 )
@@ -2687,12 +3012,19 @@ def edit_sale(sale_id):
         )
 
         # ====================================================
-        # RESTORE ORIGINAL STOCK
+        # RESTORE ORIGINAL PRODUCT STOCK
         # ====================================================
 
         for item in original_items:
 
+            # Services have no inventory.
+            if item.item_type != "product":
+                continue
+
             product = item.product
+
+            if not product:
+                continue
 
             original_quantity = Decimal(
                 str(
@@ -2750,72 +3082,134 @@ def edit_sale(sale_id):
         db.session.flush()
 
         # ====================================================
-        # CREATE UPDATED ITEMS + STOCK
+        # CREATE UPDATED ITEMS
         # ====================================================
 
         for line in sale_lines:
 
-            product = line["product"]
+            # =================================================
+            # PRODUCT
+            # =================================================
 
-            quantity = line["quantity"]
+            if line["item_type"] == "product":
 
-            sale_item = SaleItem(
+                product = line["product"]
 
-                sale_id=sale.id,
+                quantity = line["quantity"]
 
-                product_id=product.id,
+                sale_item = SaleItem(
 
-                quantity=quantity,
+                    sale_id=sale.id,
 
-                unit_price=line["unit_price"],
+                    item_type="product",
 
-                discount=Decimal("0.00"),
+                    product_id=product.id,
 
-                tax=Decimal("0.00"),
+                    service_id=None,
 
-                total=line["total"]
+                    item_name=product.name,
 
-            )
+                    item_code=product.sku,
 
-            db.session.add(
-                sale_item
-            )
+                    quantity=quantity,
 
-            product.quantity = (
-                Decimal(
-                    str(
-                        product.quantity or 0
-                    )
+                    unit_price=line["unit_price"],
+
+                    discount=Decimal("0.00"),
+
+                    tax=Decimal("0.00"),
+
+                    total=line["total"]
+
                 )
-                - quantity
-            )
 
-            transaction = InventoryTransaction(
+                db.session.add(
+                    sale_item
+                )
 
-                company_id=current_user.company_id,
+                # --------------------------------------------
+                # Deduct inventory
+                # --------------------------------------------
 
-                product_id=product.id,
+                product.quantity = (
+                    Decimal(
+                        str(
+                            product.quantity or 0
+                        )
+                    )
+                    - quantity
+                )
 
-                transaction_type="Sale Edit",
+                transaction = InventoryTransaction(
 
-                quantity=-quantity,
+                    company_id=current_user.company_id,
 
-                reference_type="Sale",
+                    product_id=product.id,
 
-                reference_id=sale.id,
+                    transaction_type="Sale Edit",
 
-                notes=(
-                    f"Applied updated quantity "
-                    f"to sale {sale.invoice_number}"
-                ),
+                    quantity=-quantity,
 
-                created_by=current_user.id
+                    reference_type="Sale",
 
-            )
+                    reference_id=sale.id,
 
-            db.session.add(
-                transaction
-            )
+                    notes=(
+                        f"Applied updated quantity "
+                        f"to sale {sale.invoice_number}"
+                    ),
+
+                    created_by=current_user.id
+
+                )
+
+                db.session.add(
+                    transaction
+                )
+
+            # =================================================
+            # SERVICE
+            # =================================================
+
+            else:
+
+                service = line["service"]
+
+                quantity = line["quantity"]
+
+                sale_item = SaleItem(
+
+                    sale_id=sale.id,
+
+                    item_type="service",
+
+                    product_id=None,
+
+                    service_id=service.id,
+
+                    item_name=service.name,
+
+                    item_code=service.service_code,
+
+                    quantity=quantity,
+
+                    unit_price=line["unit_price"],
+
+                    discount=Decimal("0.00"),
+
+                    tax=Decimal("0.00"),
+
+                    total=line["total"]
+
+                )
+
+                db.session.add(
+                    sale_item
+                )
+
+                # ------------------------------------------------
+                # Services do not affect inventory.
+                # ------------------------------------------------
 
         # ====================================================
         # UPDATE PAYMENTS
@@ -2860,6 +3254,7 @@ def edit_sale(sale_id):
                         form=form,
                         sale=sale,
                         products=products,
+                        services=services,
                         customers=customers,
                         settings=settings
                     )
@@ -2912,7 +3307,6 @@ def edit_sale(sale_id):
 
                     reference=payment_data["reference"],
 
-                    # STORE UTC.
                     payment_date=datetime.now(
                         timezone.utc
                     ),
@@ -2951,6 +3345,10 @@ def edit_sale(sale_id):
 
             db.session.rollback()
 
+            current_app.logger.exception(
+                "Unable to update sale."
+            )
+
             flash(
                 f"Unable to update sale: {error}",
                 "danger"
@@ -2961,6 +3359,7 @@ def edit_sale(sale_id):
                 form=form,
                 sale=sale,
                 products=products,
+                services=services,
                 customers=customers,
                 settings=settings
             )
@@ -2980,7 +3379,7 @@ def edit_sale(sale_id):
         )
 
         # ====================================================
-        # SUCCESS MESSAGE
+        # SUCCESS
         # ====================================================
 
         flash(
@@ -3005,6 +3404,7 @@ def edit_sale(sale_id):
         form=form,
         sale=sale,
         products=products,
+        services=services,
         customers=customers,
         settings=settings
     )
@@ -3034,12 +3434,19 @@ def delete_sale(sale_id):
     try:
 
         # ====================================================
-        # RESTORE PHYSICAL STOCK
+        # RESTORE PRODUCT STOCK ONLY
         # ====================================================
 
         for item in sale.items:
 
+            # Services have no inventory.
+            if item.item_type != "product":
+                continue
+
             product = item.product
+
+            if not product:
+                continue
 
             quantity = Decimal(
                 str(
@@ -3087,6 +3494,10 @@ def delete_sale(sale_id):
             sale.invoice_number
         )
 
+        # ====================================================
+        # DELETE SALE
+        # ====================================================
+
         db.session.delete(
             sale
         )
@@ -3095,13 +3506,18 @@ def delete_sale(sale_id):
 
         flash(
             f"Sale {invoice_number} deleted "
-            f"and inventory restored.",
+            ,
             "success"
         )
 
     except Exception as error:
 
         db.session.rollback()
+
+        current_app.logger.exception(
+            "Unable to delete sale %s.",
+            sale_id
+        )
 
         flash(
             f"Unable to delete sale: {error}",
