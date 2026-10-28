@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-0">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="page-header mb-4">
+
+        <div>
+
+            <div class="page-eyebrow">
+                SERVICE MANAGEMENT
+            </div>
+
+            <h1 class="page-title">
+                {{ title }}
+            </h1>
+
+            <p class="page-subtitle">
+                {% if "Edit" in title %}
+                    Update the service information below.
+                {% else %}
+                    Add a service your business provides.
+                {% endif %}
+            </p>
+
+        </div>
+
+        <a
+            href="{{ url_for('services.services') }}"
+            class="btn btn-light border rounded-pill px-4"
+        >
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Services
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         SERVICE FORM
+    ====================================================== -->
+
+    <div class="row justify-content-center">
+
+        <div class="col-12 col-xl-8">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-transparent border-0 py-3">
+
+                    <h5 class="fw-bold mb-0">
+                        Service Information
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <form
+                        method="POST"
+                        novalidate
+                    >
+
+                        {{ form.hidden_tag() }}
+
+
+                        <!-- SERVICE NAME -->
+
+                        <div class="mb-3">
+
+                            {{ form.name.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.name(
+                                class="form-control",
+                                placeholder="e.g. Laptop Repair"
+                            ) }}
+
+                            {% if form.name.errors %}
+
+                                {% for error in form.name.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- SERVICE CODE -->
+
+                        <div class="mb-3">
+
+                            {{ form.service_code.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.service_code(
+                                class="form-control",
+                                placeholder="e.g. SRV-001"
+                            ) }}
+
+                            <div class="form-text text-muted">
+                                A unique code used to identify this service.
+                            </div>
+
+                            {% if form.service_code.errors %}
+
+                                {% for error in form.service_code.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- DESCRIPTION -->
+
+                        <div class="mb-3">
+
+                            {{ form.description.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            {{ form.description(
+                                class="form-control",
+                                rows="4",
+                                placeholder="Describe the service..."
+                            ) }}
+
+                            {% if form.description.errors %}
+
+                                {% for error in form.description.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- PRICE -->
+
+                        <div class="mb-4">
+
+                            {{ form.price.label(
+                                class="form-label fw-semibold"
+                            ) }}
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    {{ get_currency_symbol() }}
+                                </span>
+
+                                {{ form.price(
+                                    class="form-control",
+                                    placeholder="0.00",
+                                    min="0",
+                                    step="0.01"
+                                ) }}
+
+                            </div>
+
+                            <div class="form-text text-muted">
+                                The default selling price of this service.
+                            </div>
+
+                            {% if form.price.errors %}
+
+                                {% for error in form.price.errors %}
+
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- ACTIONS -->
+
+                        <div class="d-flex flex-wrap gap-2">
+
+                            <a
+                                href="{{ url_for('services.services') }}"
+                                class="btn btn-outline-secondary"
+                            >
+                                Cancel
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                <i class="bi bi-check-lg me-1"></i>
+                                {{ form.submit.label.text }}
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
