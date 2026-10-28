@@ -921,6 +921,81 @@ class Product(db.Model):
 
 
 # =========================================================
+# SERVICE
+# =========================================================
+
+class Service(db.Model):
+    __tablename__ = "services"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    company_id = db.Column(
+        db.Integer,
+        db.ForeignKey("companies.id"),
+        nullable=False,
+        index=True
+    )
+
+    name = db.Column(
+        db.String(150),
+        nullable=False
+    )
+
+    service_code = db.Column(
+        db.String(80),
+        nullable=False
+    )
+
+    description = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    price = db.Column(
+        db.Numeric(14, 2),
+        default=0,
+        nullable=False
+    )
+
+    is_active = db.Column(
+        db.Boolean,
+        default=True,
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    # =====================================================
+    # CONSTRAINTS
+    # =====================================================
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "company_id",
+            "service_code",
+            name="uq_service_company_code"
+        ),
+    )
+
+    def __repr__(self):
+        return f"<Service {self.name}>"
+
+
+# =========================================================
 # CUSTOMER
 # =========================================================
 
@@ -1301,10 +1376,55 @@ class SaleItem(db.Model):
         nullable=False
     )
 
+    # =====================================================
+    # ITEM TYPE
+    #
+    # product = physical/inventory product
+    # service = non-inventory service
+    # =====================================================
+
+    item_type = db.Column(
+        db.String(20),
+        nullable=False,
+        default="product"
+    )
+
+    # =====================================================
+    # PRODUCT
+    # =====================================================
+
     product_id = db.Column(
         db.Integer,
         db.ForeignKey("products.id"),
+        nullable=True
+    )
+
+    # =====================================================
+    # SERVICE
+    # =====================================================
+
+    service_id = db.Column(
+        db.Integer,
+        db.ForeignKey("services.id"),
+        nullable=True
+    )
+
+    # =====================================================
+    # TRANSACTION SNAPSHOT
+    #
+    # Keep the original name/code used when the sale occurred.
+    # This protects historical invoices if the product/service
+    # is later renamed, edited or deactivated.
+    # =====================================================
+
+    item_name = db.Column(
+        db.String(150),
         nullable=False
+    )
+
+    item_code = db.Column(
+        db.String(100),
+        nullable=True
     )
 
     quantity = db.Column(
@@ -1334,15 +1454,38 @@ class SaleItem(db.Model):
         nullable=False
     )
 
+    # =====================================================
+    # RELATIONSHIPS
+    # =====================================================
+
     product = db.relationship(
         "Product",
         backref="sale_items"
     )
 
+    service = db.relationship(
+        "Service",
+        backref="sale_items"
+    )
+
+    # =====================================================
+    # HELPERS
+    # =====================================================
+
+    @property
+    def is_product(self):
+        return self.item_type == "product"
+
+    @property
+    def is_service(self):
+        return self.item_type == "service"
+
+    @property
+    def display_name(self):
+        return self.item_name
+
     def __repr__(self):
-        return f"<SaleItem {self.id}>"
-
-
+        return f"<SaleItem {self.id} {self.item_type}>"
 # =========================================================
 # PAYMENT
 # =========================================================
