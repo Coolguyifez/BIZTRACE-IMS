@@ -662,7 +662,7 @@
                                                 <form
                                                     method="POST"
                                                     action="{{ url_for('sales.delete_sale', sale_id=sale.id) }}"
-                                                    onsubmit="return confirm('Are you sure you want to delete {{ sale.invoice_number }}? The sold quantities will be returned to inventory.');"
+                                                    onsubmit="return confirm('Are you sure you want to delete {{ sale.invoice_number }}? Any sold product quantities will be returned to inventory. Services will not affect inventory.');"
                                                 >
 
                                                     <input
