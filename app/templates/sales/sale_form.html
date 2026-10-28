@@ -131,14 +131,14 @@ New Sale
 
 
                 <!-- =================================================
-                     PRODUCTS
+                    PRODUCTS & SERVICES
                 ================================================== -->
 
                 <div class="card border-0 shadow-sm mb-4">
 
                     <div class="card-body p-4">
 
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
                             <div class="d-flex align-items-center gap-3">
 
@@ -147,15 +147,13 @@ New Sale
                                 </div>
 
                                 <div>
-
                                     <h5 class="fw-semibold mb-1">
-                                        Products
+                                        Products & Services
                                     </h5>
 
                                     <p class="text-muted small mb-0">
-                                        Add one or more products to this sale.
+                                        Add products, services, or both to this sale.
                                     </p>
-
                                 </div>
 
                             </div>
@@ -170,70 +168,149 @@ New Sale
                         </div>
 
 
-                        <!-- =================================================
-                             ADD PRODUCT
-                        ================================================== -->
+                        <!-- ITEM TYPE TABS -->
 
-                        <div class="row g-2 align-items-end mb-4">
+                        <ul class="nav nav-pills sale-item-tabs mb-4" role="tablist">
 
-                            <div class="col-md-7">
+                            <li class="nav-item" role="presentation">
 
-                                <label class="form-label fw-semibold">
-                                    Product
-                                </label>
+                                <button
+                                    class="nav-link active"
+                                    id="product-tab"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#product-pane"
+                                    type="button"
+                                >
+                                    <i class="bi bi-box-seam me-1"></i>
+                                    Products
+                                </button>
 
-                                <div class="product-selector-wrapper">
+                            </li>
 
-                                    <div class="product-select-with-scan">
+                            <li class="nav-item" role="presentation">
 
-                                        <select
-                                            id="productSelector"
-                                            class="form-select"
+                                <button
+                                    class="nav-link"
+                                    id="service-tab"
+                                    data-bs-toggle="pill"
+                                    data-bs-target="#service-pane"
+                                    type="button"
+                                >
+                                    <i class="bi bi-tools me-1"></i>
+                                    Services
+                                </button>
+
+                            </li>
+
+                        </ul>
+
+
+                        <div class="tab-content">
+
+                            <!-- =================================================
+                                PRODUCT TAB
+                            ================================================== -->
+
+                            <div
+                                class="tab-pane fade show active"
+                                id="product-pane"
+                            >
+
+                                <div class="row g-2 align-items-end mb-4">
+
+                                    <div class="col-md-7">
+
+                                        <label class="form-label fw-semibold">
+                                            Product
+                                        </label>
+
+                                        <div class="product-selector-wrapper">
+
+                                            <div class="product-select-with-scan">
+
+                                                <select
+                                                    id="productSelector"
+                                                    class="form-select"
+                                                >
+
+                                                    <option value="">
+                                                        Select a product...
+                                                    </option>
+
+                                                    {% for product in products %}
+
+                                                    <option
+                                                        value="{{ product.id }}"
+                                                        data-name="{{ product.name }}"
+                                                        data-code="{{ product.sku }}"
+                                                        data-sku="{{ product.sku }}"
+                                                        data-barcode="{{ product.barcode or '' }}"
+                                                        data-price="{{ product.selling_price }}"
+                                                        data-stock="{{ product.available_quantity }}"
+                                                        data-unit="{{ product.unit }}"
+                                                    >
+                                                        {{ product.name }}
+                                                        — {{ product.sku }}
+
+                                                        {% if product.barcode %}
+                                                            — {{ product.barcode }}
+                                                        {% endif %}
+
+                                                        — {{ format_currency(product.selling_price) }}
+                                                        — Available: {{ product.available_quantity }} {{ product.unit }}
+                                                    </option>
+
+                                                    {% endfor %}
+
+                                                </select>
+
+                                                <button
+                                                    type="button"
+                                                    id="openScannerBtn"
+                                                    class="btn btn-outline-primary product-scan-btn"
+                                                    title="Scan barcode or QR code"
+                                                >
+                                                    <i class="bi bi-camera"></i>
+
+                                                    <span class="d-none d-lg-inline">
+                                                        Scan
+                                                    </span>
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="col-md-3">
+
+                                        <label class="form-label fw-semibold">
+                                            Quantity
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            id="productQuantity"
+                                            class="form-control"
+                                            value="1"
+                                            min="0.001"
+                                            step="0.001"
                                         >
 
-                                            <option value="">
-                                                Select a product...
-                                            </option>
+                                    </div>
 
-                                            {% for product in products %}
 
-                                            <option
-                                                value="{{ product.id }}"
-                                                data-name="{{ product.name }}"
-                                                data-sku="{{ product.sku }}"
-                                                data-barcode="{{ product.barcode or '' }}"
-                                                data-price="{{ product.selling_price }}"
-                                                data-stock="{{ product.available_quantity }}"
-                                                data-unit="{{ product.unit }}"
-                                            >
-
-                                                {{ product.name }}
-                                                — {{ product.sku }}
-
-                                                {% if product.barcode %}
-                                                    — {{ product.barcode }}
-                                                {% endif %}
-
-                                                — {{ format_currency(product.selling_price) }}
-                                                — Available: {{ product.available_quantity }} {{ product.unit }}
-
-                                            </option>
-
-                                            {% endfor %}
-
-                                        </select>
+                                    <div class="col-md-2">
 
                                         <button
                                             type="button"
-                                            id="openScannerBtn"
-                                            class="btn btn-outline-primary product-scan-btn"
-                                            title="Scan barcode or QR code"
+                                            id="addProductBtn"
+                                            class="btn btn-primary rounded-pill w-100"
                                         >
-                                            <i class="bi bi-camera"></i>
-
-                                            <span class="d-none d-lg-inline">
-                                                Scan
-                                            </span>
+                                            <i class="bi bi-plus-lg"></i>
+                                            Add
                                         </button>
 
                                     </div>
@@ -243,43 +320,97 @@ New Sale
                             </div>
 
 
-                            <div class="col-md-3">
+                            <!-- =================================================
+                                SERVICE TAB
+                            ================================================== -->
 
-                                <label class="form-label fw-semibold">
-                                    Quantity
-                                </label>
+                            <div
+                                class="tab-pane fade"
+                                id="service-pane"
+                            >
 
-                                <input
-                                    type="number"
-                                    id="productQuantity"
-                                    class="form-control"
-                                    value="1"
-                                    min="0.001"
-                                    step="0.001"
-                                >
+                                <div class="row g-2 align-items-end mb-4">
 
-                            </div>
+                                    <div class="col-md-7">
+
+                                        <label class="form-label fw-semibold">
+                                            Service
+                                        </label>
+
+                                        <div class="service-selector-wrapper">
+
+                                            <select
+                                                id="serviceSelector"
+                                                class="form-select"
+                                            >
+
+                                                <option value="">
+                                                    Select a service...
+                                                </option>
+
+                                                {% for service in services %}
+
+                                                <option
+                                                    value="{{ service.id }}"
+                                                    data-name="{{ service.name }}"
+                                                    data-code="{{ service.service_code }}"
+                                                    data-price="{{ service.price }}"
+                                                >
+                                                    {{ service.name }}
+                                                    — {{ service.service_code }}
+                                                    — {{ format_currency(service.price) }}
+                                                </option>
+
+                                                {% endfor %}
+
+                                            </select>
+
+                                        </div>
+
+                                    </div>
 
 
-                            <div class="col-md-2">
+                                    <div class="col-md-3">
 
-                                <button
-                                    type="button"
-                                    id="addProductBtn"
-                                    class="btn btn-primary rounded-pill w-100"
-                                >
+                                        <label class="form-label fw-semibold">
+                                            Quantity
+                                        </label>
 
-                                    <i class="bi bi-plus-lg"></i>
-                                    Add
+                                        <input
+                                            type="number"
+                                            id="serviceQuantity"
+                                            class="form-control"
+                                            value="1"
+                                            min="0.001"
+                                            step="0.001"
+                                        >
 
-                                </button>
+                                    </div>
+
+
+                                    <div class="col-md-2">
+
+                                        <button
+                                            type="button"
+                                            id="addServiceBtn"
+                                            class="btn btn-primary rounded-pill w-100"
+                                        >
+                                            <i class="bi bi-plus-lg"></i>
+                                            Add
+                                        </button>
+
+                                    </div>
+
+                                </div>
 
                             </div>
 
                         </div>
 
 
-                        <!-- CART -->
+                        <!-- =================================================
+                            CART
+                        ================================================== -->
 
                         <div class="table-responsive">
 
@@ -293,7 +424,11 @@ New Sale
                                     <tr>
 
                                         <th>
-                                            Product
+                                            Item
+                                        </th>
+
+                                        <th>
+                                            Type
                                         </th>
 
                                         <th style="width: 130px;">
@@ -308,8 +443,7 @@ New Sale
                                             Total
                                         </th>
 
-                                        <th style="width: 50px;">
-                                        </th>
+                                        <th style="width: 50px;"></th>
 
                                     </tr>
 
@@ -320,14 +454,12 @@ New Sale
                                     <tr id="emptyCart">
 
                                         <td
-                                            colspan="5"
+                                            colspan="6"
                                             class="text-center py-5 text-muted"
                                         >
-
                                             <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
 
-                                            No products added yet.
-
+                                            No products or services added yet.
                                         </td>
 
                                     </tr>
@@ -1291,6 +1423,119 @@ New Sale
 
 
 /* ============================================================
+   PRODUCTS & SERVICES
+============================================================ */
+
+.sale-item-tabs {
+    gap: 8px;
+}
+
+.sale-item-tabs .nav-link {
+    border-radius: 999px;
+    padding: 9px 18px;
+    color: var(--bs-body-color);
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+}
+
+.sale-item-tabs .nav-link.active {
+    color: #fff;
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.service-selector-wrapper,
+.product-selector-wrapper {
+    width: 100%;
+}
+
+.service-selector-wrapper .choices,
+.product-selector-wrapper .choices {
+    margin-bottom: 0;
+}
+
+.service-selector-wrapper .choices__inner,
+.product-selector-wrapper .choices__inner {
+    min-height: 38px;
+    border-radius: 0.375rem;
+    padding: 5px 10px;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-size: 1rem;
+}
+
+.service-selector-wrapper .choices.is-focused .choices__inner,
+.service-selector-wrapper .choices.is-open .choices__inner,
+.product-selector-wrapper .choices.is-focused .choices__inner,
+.product-selector-wrapper .choices.is-open .choices__inner {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.service-selector-wrapper .choices__list--dropdown,
+.service-selector-wrapper .choices__list[aria-expanded],
+.product-selector-wrapper .choices__list--dropdown,
+.product-selector-wrapper .choices__list[aria-expanded] {
+    z-index: 1060;
+    background: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+
+.service-selector-wrapper .choices__input,
+.product-selector-wrapper .choices__input {
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-bottom-color: var(--bs-border-color);
+}
+
+.service-selector-wrapper .choices__item--choice,
+.product-selector-wrapper .choices__item--choice {
+    color: var(--bs-body-color);
+}
+
+.service-selector-wrapper .choices__item--choice.is-highlighted,
+.product-selector-wrapper .choices__item--choice.is-highlighted {
+    background: rgba(13, 110, 253, 0.10);
+}
+
+.cart-item-name {
+    font-weight: 600;
+}
+
+.cart-item-code {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.item-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.item-type-product {
+    background: rgba(13, 110, 253, 0.10);
+    color: var(--bs-primary);
+}
+
+.item-type-service {
+    background: rgba(25, 135, 84, 0.10);
+    color: #198754;
+}
+
+@media (max-width: 768px) {
+    #cartTable {
+        min-width: 820px;
+    }
+}
+
+/* ============================================================
    CAMERA PLACEHOLDER
 ============================================================ */
 
@@ -1926,8 +2171,8 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
 
-    /* =========================================================
-       PRODUCT ELEMENTS
+   /* =========================================================
+    PRODUCT & SERVICE ELEMENTS
     ========================================================= */
 
     const productSelector =
@@ -1938,6 +2183,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const addProductBtn =
         document.getElementById("addProductBtn");
+
+    const serviceSelector =
+        document.getElementById("serviceSelector");
+
+    const serviceQuantity =
+        document.getElementById("serviceQuantity");
+
+    const addServiceBtn =
+        document.getElementById("addServiceBtn");
 
     const cartBody =
         document.getElementById("cartBody");
@@ -1950,7 +2204,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const taxInput =
         document.getElementById("taxInput");
-
 
     /* =========================================================
        TOTAL ELEMENTS
@@ -1999,7 +2252,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       EXISTING SALE ITEMS
+    EXISTING SALE ITEMS
     ========================================================= */
 
     {% if sale %}
@@ -2009,36 +2262,61 @@ document.addEventListener("DOMContentLoaded", function () {
         {% for item in sale.items %}
 
         {
+            itemType:
+                {{ item.item_type|tojson }},
 
-            id: {{ item.product_id }},
+            id:
+                {% if item.item_type == "service" %}
+                    {{ item.service_id or 0 }}
+                {% else %}
+                    {{ item.product_id or 0 }}
+                {% endif %},
 
             name:
-                {{ item.product.name|tojson }},
+                {{ item.item_name|tojson }},
+
+            code:
+                {{ (item.item_code or "")|tojson }},
 
             sku:
-                {{ item.product.sku|tojson }},
+                {% if item.item_type == "product" and item.product %}
+                    {{ item.product.sku|tojson }}
+                {% else %}
+                    ""
+                {% endif %},
 
             barcode:
-                {{ (item.product.barcode or "")|tojson }},
+                {% if item.item_type == "product" and item.product %}
+                    {{ (item.product.barcode or "")|tojson }}
+                {% else %}
+                    ""
+                {% endif %},
 
             price:
                 {{ item.unit_price|float }},
 
             stock:
-                {{
-                    (
-                        item.product.quantity
-                        + item.quantity
-                        - item.product.reserved_quantity
-                    )|float
-                }},
+                {% if item.item_type == "product" and item.product %}
+                    {{
+                        (
+                            item.product.quantity
+                            + item.quantity
+                            - item.product.reserved_quantity
+                        )|float
+                    }}
+                {% else %}
+                    null
+                {% endif %},
 
             quantity:
                 {{ item.quantity|float }},
 
             unit:
-                {{ item.product.unit|tojson }}
-
+                {% if item.item_type == "product" and item.product %}
+                    {{ item.product.unit|tojson }}
+                {% else %}
+                    "service"
+                {% endif %}
         }
 
         {% if not loop.last %},{% endif %}
@@ -2050,7 +2328,6 @@ document.addEventListener("DOMContentLoaded", function () {
     cart = existingSaleItems;
 
     {% endif %}
-
 
     /* =========================================================
        EXISTING PAYMENTS
@@ -2185,7 +2462,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       RENDER PRODUCT CART
+    RENDER CART
     ========================================================= */
 
     function renderCart() {
@@ -2199,15 +2476,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 <tr>
 
                     <td
-                        colspan="5"
+                        colspan="6"
                         class="text-center py-5 text-muted"
                     >
 
-                        <i
-                            class="bi bi-cart-x fs-2 d-block mb-2"
-                        ></i>
+                        <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
 
-                        No products added yet.
+                        No products or services added yet.
 
                     </td>
 
@@ -2224,36 +2499,80 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.createElement("tr");
 
 
+            const isProduct =
+                item.itemType === "product";
+
+
+            const typeBadge =
+                isProduct
+                    ? `
+                        <span class="item-type-badge item-type-product">
+                            <i class="bi bi-box-seam"></i>
+                            Product
+                        </span>
+                    `
+                    : `
+                        <span class="item-type-badge item-type-service">
+                            <i class="bi bi-tools"></i>
+                            Service
+                        </span>
+                    `;
+
+
+            let extraInfo = "";
+
+            if (isProduct && item.barcode) {
+
+                extraInfo = `
+
+                    <div class="cart-item-code text-muted">
+                        Barcode:
+                        <code>${item.barcode}</code>
+                    </div>
+
+                `;
+
+            }
+
+
+            const maxAttribute =
+                isProduct && item.stock !== null
+                    ? `max="${item.stock}"`
+                    : "";
+
+
             row.innerHTML = `
 
                 <td>
 
-                    <div class="cart-product-name text-dark">
+                    <div class="cart-item-name text-dark">
                         ${item.name}
                     </div>
 
-                    <div class="cart-product-sku text-muted">
-                        SKU:
-                        <code>${item.sku || "—"}</code>
+                    <div class="cart-item-code text-muted">
+                        ${isProduct ? "SKU" : "Code"}:
+                        <code>${item.code || "—"}</code>
                     </div>
 
-                    ${
-                        item.barcode
-                            ? `
-                                <div class="cart-product-sku text-muted">
-                                    Barcode:
-                                    <code>${item.barcode}</code>
-                                </div>
-                              `
-                            : ""
-                    }
+                    ${extraInfo}
 
                     <input
                         type="hidden"
-                        name="product_id"
+                        name="item_type"
+                        value="${item.itemType}"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="item_id"
                         value="${item.id}"
                     >
 
+                </td>
+
+
+                <td>
+                    ${typeBadge}
                 </td>
 
 
@@ -2265,7 +2584,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         class="form-control form-control-sm quantity-input"
                         value="${item.quantity}"
                         min="0.001"
-                        max="${item.stock}"
+                        ${maxAttribute}
                         step="0.001"
                         data-index="${index}"
                     >
@@ -2292,9 +2611,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <button
                         type="button"
-                        class="btn btn-sm btn-outline-danger remove-product"
+                        class="btn btn-sm btn-outline-danger remove-item"
                         data-index="${index}"
-                        title="Remove product"
+                        title="Remove item"
                     >
 
                         <i class="bi bi-trash"></i>
@@ -2323,7 +2642,6 @@ document.addEventListener("DOMContentLoaded", function () {
         calculateTotals();
 
     }
-
 
     /* =========================================================
        CALCULATE SALE TOTALS
@@ -3066,6 +3384,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
+    SERVICE SELECTOR
+    ========================================================= */
+
+    let serviceChoices = null;
+
+
+    if (
+        serviceSelector &&
+        typeof Choices !== "undefined"
+    ) {
+
+        serviceChoices =
+            new Choices(
+                serviceSelector,
+                {
+                    searchEnabled: true,
+
+                    searchChoices: true,
+
+                    searchFields: [
+                        "label",
+                        "value"
+                    ],
+
+                    shouldSort: false,
+
+                    itemSelectText: "",
+
+                    searchPlaceholderValue:
+                        "Search service name or code...",
+
+                    noResultsText:
+                        "No service found",
+
+                    noChoicesText:
+                        "No services available",
+
+                    allowHTML: false,
+
+                    removeItemButton: false,
+
+                    placeholder: true,
+
+                    placeholderValue:
+                        "Select a service..."
+                }
+            );
+
+    }
+
+
+
+
+
+    /* =========================================================
        NORMALIZE SCANNER VALUE
     ========================================================= */
 
@@ -3185,7 +3558,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       ADD SELECTED PRODUCT
+    ADD SELECTED PRODUCT
     ========================================================= */
 
     function addSelectedProduct() {
@@ -3217,7 +3590,11 @@ document.addEventListener("DOMContentLoaded", function () {
             selected.dataset.name;
 
         const sku =
-            selected.dataset.sku;
+            selected.dataset.sku || "";
+
+        const code =
+            selected.dataset.code ||
+            sku;
 
         const barcode =
             selected.dataset.barcode || "";
@@ -3264,7 +3641,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const existing =
             cart.find(function (item) {
 
-                return item.id === id;
+                return (
+                    item.itemType === "product" &&
+                    item.id === id
+                );
 
             });
 
@@ -3294,9 +3674,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             cart.push({
 
+                itemType: "product",
+
                 id: id,
 
                 name: name,
+
+                code: code,
 
                 sku: sku,
 
@@ -3339,6 +3723,131 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    /* =========================================================
+    ADD SELECTED SERVICE
+    ========================================================= */
+
+    function addSelectedService() {
+
+        const selected =
+            serviceSelector.options[
+                serviceSelector.selectedIndex
+            ];
+
+
+        if (
+            !selected ||
+            !selected.value
+        ) {
+
+            alert(
+                "Please select a service."
+            );
+
+            return false;
+
+        }
+
+
+        const id =
+            Number(selected.value);
+
+        const name =
+            selected.dataset.name;
+
+        const code =
+            selected.dataset.code || "";
+
+        const price =
+            Number(selected.dataset.price);
+
+        const quantity =
+            Number(serviceQuantity.value);
+
+
+        if (
+            !quantity ||
+            quantity <= 0
+        ) {
+
+            alert(
+                "Enter a valid service quantity."
+            );
+
+            return false;
+
+        }
+
+
+        const existing =
+            cart.find(function (item) {
+
+                return (
+                    item.itemType === "service" &&
+                    item.id === id
+                );
+
+            });
+
+
+        if (existing) {
+
+            existing.quantity =
+                Number(existing.quantity) +
+                quantity;
+
+        } else {
+
+            cart.push({
+
+                itemType: "service",
+
+                id: id,
+
+                name: name,
+
+                code: code,
+
+                sku: "",
+
+                barcode: "",
+
+                price: price,
+
+                stock: null,
+
+                unit: "service",
+
+                quantity: quantity
+
+            });
+
+        }
+
+
+        if (serviceChoices) {
+
+            serviceChoices.removeActiveItems();
+
+            serviceChoices.setChoiceByValue("");
+
+        } else {
+
+            serviceSelector.value =
+                "";
+
+        }
+
+
+        serviceQuantity.value =
+            1;
+
+
+        renderCart();
+
+        return true;
+
+    }
 
     /* =========================================================
        ADD PRODUCT BUTTON
@@ -3349,6 +3858,19 @@ document.addEventListener("DOMContentLoaded", function () {
         function () {
 
             addSelectedProduct();
+
+        }
+    );
+
+    /* =========================================================
+    ADD SERVICE BUTTON
+    ========================================================= */
+
+    addServiceBtn.addEventListener(
+        "click",
+        function () {
+
+            addSelectedService();
 
         }
     );
@@ -5083,7 +5605,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =========================================================
-       REMOVE PRODUCT
+    REMOVE SALE ITEM
     ========================================================= */
 
     cartBody.addEventListener(
@@ -5092,7 +5614,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const button =
                 event.target.closest(
-                    ".remove-product"
+                    ".remove-item"
                 );
 
 
@@ -5120,13 +5642,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
-
     /* =========================================================
-       CHANGE PRODUCT QUANTITY
+    CHANGE ITEM QUANTITY
     ========================================================= */
 
     cartBody.addEventListener(
-        "input",
+        "change",
         function (event) {
 
             if (
@@ -5146,9 +5667,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            if (
-                !cart[index]
-            ) {
+            if (!cart[index]) {
 
                 return;
 
@@ -5172,26 +5691,35 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
-            const stock =
-                Number(
-                    cart[index].stock
-                );
+            const item =
+                cart[index];
 
 
             if (
-                quantity > stock
+                item.itemType === "product"
             ) {
 
-                quantity =
-                    stock;
+                const stock =
+                    Number(item.stock);
 
-                event.target.value =
-                    stock;
+
+                if (
+                    quantity > stock
+                ) {
+
+                    quantity =
+                        stock;
+
+                    alert(
+                        `Only ${stock} ${item.unit}(s) are available in stock.`
+                    );
+
+                }
 
             }
 
 
-            cart[index].quantity =
+            item.quantity =
                 quantity;
 
 
@@ -5199,7 +5727,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
     );
-
 
     /* =========================================================
        DISCOUNT
@@ -5244,7 +5771,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
 
                 alert(
-                    "Please add at least one product before completing the sale."
+                    "Please add at least one product or service before completing the sale."
                 );
 
                 return;
@@ -5321,11 +5848,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     {% if sale %}
 
-                    "Update this sale and inventory?"
+                    "Update this sale?"
 
                     {% else %}
 
-                    "Complete this sale and update inventory?"
+                    "Complete this sale?"
 
                     {% endif %}
 

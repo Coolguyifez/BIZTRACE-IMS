@@ -8,8 +8,6 @@
 
     <!-- =========================================================
          SCREEN VIEW
-         Uses the existing BizTrace IMS base layout, navigation
-         and theme. Nothing here controls the navbar/sidebar/theme.
     ========================================================== -->
     <div class="screen-sale">
 
@@ -58,7 +56,6 @@
             </div>
 
         </div>
-
 
 
         <!-- =====================================================
@@ -124,7 +121,6 @@
                     </div>
 
 
-
                     <!-- DATE -->
                     <div class="sale-info-item">
 
@@ -137,7 +133,6 @@
                         </div>
 
                     </div>
-
 
 
                     <!-- STATUS -->
@@ -173,7 +168,6 @@
                 </div>
 
 
-
                 <!-- =================================================
                      ITEMS
                 ================================================== -->
@@ -192,7 +186,11 @@
                                     </th>
 
                                     <th>
-                                        Product
+                                        Item
+                                    </th>
+
+                                    <th class="sale-type-col">
+                                        Type
                                     </th>
 
                                     <th class="text-end sale-qty-col">
@@ -223,17 +221,26 @@
                                     </td>
 
 
+                                    <!-- ITEM -->
                                     <td>
 
                                         <div class="fw-semibold sale-product-name">
-                                            {{ item.product.name }}
+                                            {{ item.item_name }}
                                         </div>
 
 
-                                        {% if item.product.sku %}
+                                        {% if item.item_code %}
 
                                         <div class="small text-body-secondary">
-                                            SKU: <code>{{ item.product.sku }}</code>
+
+                                            {% if item.item_type == "product" %}
+                                                SKU:
+                                            {% else %}
+                                                Code:
+                                            {% endif %}
+
+                                            <code>{{ item.item_code }}</code>
+
                                         </div>
 
                                         {% endif %}
@@ -241,14 +248,21 @@
                                     </td>
 
 
-                                    <td class="text-end sale-qty-col">
+                                    <!-- TYPE -->
+                                    <td class="sale-type-col">
 
-                                        {{ "{:,.1f}".format(item.quantity) }}
+                                        {% if item.item_type == "service" %}
 
-                                        {% if item.product.unit %}
+                                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis sale-item-type-badge">
+                                                <i class="bi bi-tools me-1"></i>
+                                                Service
+                                            </span>
 
-                                            <span class="text-body-secondary">
-                                                {{ item.product.unit }}
+                                        {% else %}
+
+                                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis sale-item-type-badge">
+                                                <i class="bi bi-box-seam me-1"></i>
+                                                Product
                                             </span>
 
                                         {% endif %}
@@ -256,6 +270,29 @@
                                     </td>
 
 
+                                    <!-- QUANTITY -->
+                                    <td class="text-end sale-qty-col">
+
+                                        {{ "{:,.1f}".format(item.quantity) }}
+
+                                        {% if item.item_type == "product" and item.product and item.product.unit %}
+
+                                            <span class="text-body-secondary">
+                                                {{ item.product.unit }}
+                                            </span>
+
+                                        {% elif item.item_type == "service" %}
+
+                                            <span class="text-body-secondary">
+                                                service
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- UNIT PRICE -->
                                     <td class="text-end sale-price-col">
 
                                         {{ format_currency(item.unit_price) }}
@@ -263,6 +300,7 @@
                                     </td>
 
 
+                                    <!-- TOTAL -->
                                     <td class="text-end fw-semibold sale-total-col">
 
                                         {{ format_currency(item.total) }}
@@ -280,7 +318,6 @@
                     </div>
 
                 </div>
-
 
 
                 <!-- =================================================
@@ -373,7 +410,6 @@
                     </div>
 
                 </div>
-
 
 
                 <!-- =================================================
@@ -495,7 +531,6 @@
                                 {% endif %}
 
 
-
                             <!-- POS -->
                             {% elif payment.method == "POS" %}
 
@@ -528,6 +563,26 @@
 
                                 {% endif %}
 
+
+                            <!-- OTHER METHODS -->
+                            {% else %}
+
+                                {% if payment.reference %}
+
+                                <div>
+
+                                    <div class="small text-body-secondary">
+                                        Reference
+                                    </div>
+
+                                    <div class="fw-semibold sale-break-text">
+                                        {{ payment.reference }}
+                                    </div>
+
+                                </div>
+
+                                {% endif %}
+
                             {% endif %}
 
                         </div>
@@ -539,7 +594,6 @@
                 </div>
 
                 {% endif %}
-
 
 
                 <!-- =================================================
@@ -562,7 +616,6 @@
                 {% endif %}
 
 
-
                 <!-- =================================================
                      SOLD BY
                 ================================================== -->
@@ -573,16 +626,35 @@
                     </div>
 
                     <div class="fw-semibold sale-break-text">
+
                         {{ sale.created_by_user.username if sale.created_by_user else '—' }}
 
-                        <br><code>{% if sale.created_by_user %}
-                        {% for user_role in sale.created_by_user.user_roles %}
-                            {% if user_role.role and user_role.role.is_active %}
-                                    {{ user_role.role.name }}
+                        {% if sale.created_by_user %}
+
+                            {% set active_roles = [] %}
+
+                            {% for user_role in sale.created_by_user.user_roles %}
+
+                                {% if user_role.role and user_role.role.is_active %}
+                                    {% set _ = active_roles.append(user_role.role.name) %}
+                                {% endif %}
+
+                            {% endfor %}
+
+                            {% if active_roles %}
+
+                                <br>
+
+                                <code>
+                                    {{ active_roles | join(', ') }}
+                                </code>
+
                             {% endif %}
-                        {% endfor %}
-                    {% endif %}</code>
+
+                        {% endif %}
+
                     </div>
+
 
                     {% if sale.created_by_user and sale.created_by_user.email %}
 
@@ -601,10 +673,8 @@
     </div>
 
 
-
     <!-- =========================================================
          PRINT INVOICE
-         Completely separate from the screen view.
     ========================================================== -->
     <div class="print-invoice">
 
@@ -622,44 +692,94 @@
         </header>
 
 
-
-        <!-- INVOICE META -->
+        <!-- =====================================================
+             INVOICE META
+        ====================================================== -->
         <section class="receipt-meta">
 
             <div class="receipt-meta-row">
-                <span>Invoice</span>
-                <strong>{{ sale.invoice_number }}</strong>
+
+                <span>
+                    Invoice
+                </span>
+
+                <strong>
+                    {{ sale.invoice_number }}
+                </strong>
+
             </div>
 
 
             <div class="receipt-meta-row">
-                <span>Date</span>
+
+                <span>
+                    Date
+                </span>
+
                 <strong>
                     {{ format_company_date(sale.sale_date) }}
                 </strong>
+
             </div>
 
 
             <div class="receipt-meta-row">
-                <span>Status</span>
-                <strong>{{ sale.payment_status }}</strong>
-            </div>
 
+                <span>
+                    Status
+                </span>
 
-            <div class="receipt-meta-row">
-                <span>Sold By</span>
                 <strong>
-                    {{ sale.created_by_user.username if sale.created_by_user else '—' }} 
-                    <br> <span class="small text-muted">{{ sale.created_by_user.role }}</span>
+                    {{ sale.payment_status }}
                 </strong>
-                
+
+            </div>
+
+
+            <div class="receipt-meta-row">
+
+                <span>
+                    Sold By
+                </span>
+
+                <strong>
+
+                    {{ sale.created_by_user.username if sale.created_by_user else '—' }}
+
+                    {% if sale.created_by_user %}
+
+                        {% set print_roles = [] %}
+
+                        {% for user_role in sale.created_by_user.user_roles %}
+
+                            {% if user_role.role and user_role.role.is_active %}
+                                {% set _ = print_roles.append(user_role.role.name) %}
+                            {% endif %}
+
+                        {% endfor %}
+
+                        {% if print_roles %}
+
+                            <br>
+
+                            <span class="receipt-role">
+                                {{ print_roles | join(', ') }}
+                            </span>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </strong>
+
             </div>
 
         </section>
 
 
-
-        <!-- CUSTOMER -->
+        <!-- =====================================================
+             CUSTOMER
+        ====================================================== -->
         <section class="receipt-customer">
 
             <div class="receipt-section-label">
@@ -711,8 +831,9 @@
         </section>
 
 
-
-        <!-- ITEMS -->
+        <!-- =====================================================
+             ITEMS
+        ====================================================== -->
         <section class="receipt-items">
 
             <table class="receipt-table">
@@ -723,6 +844,10 @@
 
                         <th class="receipt-description">
                             Item
+                        </th>
+
+                        <th class="receipt-type">
+                            Type
                         </th>
 
                         <th class="receipt-qty">
@@ -748,17 +873,28 @@
 
                     <tr>
 
+                        <!-- ITEM -->
                         <td class="receipt-description">
 
                             <strong>
-                                {{ item.product.name }}
+                                {{ item.item_name }}
                             </strong>
 
 
-                            {% if item.product.sku %}
+                            {% if item.item_code %}
 
                             <span class="receipt-sku">
-                                <code class="text-dark">{{ item.product.sku }}</code>
+
+                                {% if item.item_type == "product" %}
+                                    SKU:
+                                {% else %}
+                                    Code:
+                                {% endif %}
+
+                                <code class="text-dark">
+                                    {{ item.item_code }}
+                                </code>
+
                             </span>
 
                             {% endif %}
@@ -766,26 +902,47 @@
                         </td>
 
 
+                        <!-- TYPE -->
+                        <td class="receipt-type">
+
+                            {% if item.item_type == "service" %}
+                                Service
+                            {% else %}
+                                Product
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- QUANTITY -->
                         <td class="receipt-qty">
 
                             {{ "{:,.1f}".format(item.quantity) }}
 
-                            {% if item.product.unit %}
+                            {% if item.item_type == "product" and item.product and item.product.unit %}
 
                             <span class="receipt-unit">
                                 {{ item.product.unit }}
                             </span>
 
+                            {% elif item.item_type == "service" %}
+
+                            <span class="receipt-unit">
+                                service
+                            </span>
+
                             {% endif %}
 
                         </td>
 
 
+                        <!-- PRICE -->
                         <td class="receipt-price">
                             {{ format_currency(item.unit_price) }}
                         </td>
 
 
+                        <!-- AMOUNT -->
                         <td class="receipt-amount">
                             {{ format_currency(item.total) }}
                         </td>
@@ -801,8 +958,9 @@
         </section>
 
 
-
-        <!-- TOTALS -->
+        <!-- =====================================================
+             TOTALS
+        ====================================================== -->
         <section class="receipt-totals">
 
             <div class="receipt-total-row">
@@ -893,8 +1051,9 @@
         </section>
 
 
-
-        <!-- PAYMENT -->
+        <!-- =====================================================
+             PAYMENT
+        ====================================================== -->
         {% if sale.payments %}
 
         <section class="receipt-payments">
@@ -926,7 +1085,10 @@
                     {% if payment.bank_name %}
 
                     <div class="receipt-payment-detail">
-                        <span class="fw-semibold">Bank Paid Into:</span> {{ payment.bank_name }}
+                        <span class="fw-semibold">
+                            Bank Paid Into:
+                        </span>
+                        {{ payment.bank_name }}
                     </div>
 
                     {% endif %}
@@ -935,7 +1097,10 @@
                     {% if payment.account_name %}
 
                     <div class="receipt-payment-detail">
-                        <span class="fw-semibold">Account:</span> {{ payment.account_name }}
+                        <span class="fw-semibold">
+                            Account:
+                        </span>
+                        {{ payment.account_name }}
                     </div>
 
                     {% endif %}
@@ -944,7 +1109,10 @@
                     {% if payment.account_number %}
 
                     <div class="receipt-payment-detail">
-                        <span class="fw-semibold">Account No:</span> {{ payment.account_number }}
+                        <span class="fw-semibold">
+                            Account No:
+                        </span>
+                        {{ payment.account_number }}
                     </div>
 
                     {% endif %}
@@ -953,7 +1121,10 @@
                     {% if payment.reference %}
 
                     <div class="receipt-payment-detail">
-                        <span class="fw-semibold">Ref:</span> {{ payment.reference }}
+                        <span class="fw-semibold">
+                            Ref:
+                        </span>
+                        {{ payment.reference }}
                     </div>
 
                     {% endif %}
@@ -964,7 +1135,10 @@
                     {% if payment.bank_name %}
 
                     <div class="receipt-payment-detail">
-                       <span class="fw-semibold">Paid Into:</span> {{ payment.bank_name }}
+                        <span class="fw-semibold">
+                            Paid Into:
+                        </span>
+                        {{ payment.bank_name }}
                     </div>
 
                     {% endif %}
@@ -973,7 +1147,10 @@
                     {% if payment.reference %}
 
                     <div class="receipt-payment-detail">
-                        <span class="fw-semibold">Ref:</span> {{ payment.reference }}
+                        <span class="fw-semibold">
+                            Ref:
+                        </span>
+                        {{ payment.reference }}
                     </div>
 
                     {% endif %}
@@ -1000,8 +1177,9 @@
         {% endif %}
 
 
-
-        <!-- NOTES -->
+        <!-- =====================================================
+             NOTES
+        ====================================================== -->
         {% if sale.notes %}
 
         <section class="receipt-notes">
@@ -1019,8 +1197,9 @@
         {% endif %}
 
 
-
-        <!-- QR -->
+        <!-- =====================================================
+             QR
+        ====================================================== -->
         {% if qr_image_url %}
 
         <section class="receipt-qr">
@@ -1039,8 +1218,9 @@
         {% endif %}
 
 
-
-        <!-- THANK YOU -->
+        <!-- =====================================================
+             THANK YOU
+        ====================================================== -->
         <section class="receipt-thanks">
 
             <strong>
@@ -1050,8 +1230,9 @@
         </section>
 
 
-
-        <!-- FOOTER -->
+        <!-- =====================================================
+             FOOTER
+        ====================================================== -->
         <footer class="receipt-footer">
 
             <div>
@@ -1069,26 +1250,7 @@
 </div>
 
 
-
 <style>
-
-/* ============================================================
-   IMPORTANT
-   ------------------------------------------------------------
-   This page deliberately DOES NOT style:
-   .navbar
-   .sidebar
-   .topbar
-   .offcanvas
-   .collapse
-   html
-   body
-   [data-theme]
-   .theme-*
-
-   Those belong to base.html and your existing theme system.
-============================================================ */
-
 
 /* ============================================================
    SCREEN PAGE
@@ -1275,7 +1437,7 @@
 .sale-items-table {
     width: 100%;
 
-    min-width: 650px;
+    min-width: 760px;
 
     margin: 0 !important;
 
@@ -1325,8 +1487,13 @@
 }
 
 
+.sale-type-col {
+    width: 120px;
+}
+
+
 .sale-qty-col {
-    width: 90px;
+    width: 120px;
 }
 
 
@@ -1337,6 +1504,11 @@
 
 .sale-total-col {
     width: 145px;
+}
+
+
+.sale-item-type-badge {
+    font-weight: 600;
 }
 
 
@@ -1480,15 +1652,13 @@
 }
 
 
-
 /* ============================================================
-   PRINT IS HIDDEN ON SCREEN
+   PRINT HIDDEN ON SCREEN
 ============================================================ */
 
 .print-invoice {
     display: none;
 }
-
 
 
 /* ============================================================
@@ -1511,17 +1681,11 @@
 }
 
 
-
 /* ============================================================
    PHONE
 ============================================================ */
 
 @media (max-width: 767.98px) {
-
-    /*
-       Do not touch navbar/sidebar here.
-       This page only controls its own content.
-    */
 
     .sale-page {
         padding-left: 10px !important;
@@ -1611,7 +1775,6 @@
 }
 
 
-
 /* ============================================================
    VERY SMALL PHONES
 ============================================================ */
@@ -1662,7 +1825,6 @@
 }
 
 
-
 /* ============================================================
    PRINT
 ============================================================ */
@@ -1700,13 +1862,6 @@
         print-color-adjust: exact !important;
     }
 
-
-    /*
-       Hide only the normal application UI.
-
-       These selectors affect PRINT ONLY.
-       They do not affect your mobile navigation during normal use.
-    */
 
     .screen-sale,
     .navbar,
@@ -1845,6 +2000,13 @@
     }
 
 
+    .receipt-role {
+        font-size: 6.5pt;
+
+        font-weight: 400;
+    }
+
+
     /* ========================================================
        CUSTOMER
     ======================================================== */
@@ -1971,28 +2133,35 @@
 
 
     .receipt-description {
-        width: 40%;
+        width: 34%;
 
         text-align: left;
     }
 
 
+    .receipt-type {
+        width: 13%;
+
+        text-align: center;
+    }
+
+
     .receipt-qty {
-        width: 14%;
+        width: 12%;
 
         text-align: center;
     }
 
 
     .receipt-price {
-        width: 22%;
+        width: 19%;
 
         text-align: right;
     }
 
 
     .receipt-amount {
-        width: 24%;
+        width: 22%;
 
         text-align: right;
     }
@@ -2274,7 +2443,6 @@
 }
 
 
-
 /* ============================================================
    SMALL RECEIPT
 ============================================================ */
@@ -2337,22 +2505,27 @@
 
 
     .receipt-description {
-        width: 38% !important;
+        width: 32% !important;
+    }
+
+
+    .receipt-type {
+        width: 14% !important;
     }
 
 
     .receipt-qty {
-        width: 13% !important;
+        width: 12% !important;
     }
 
 
     .receipt-price {
-        width: 23% !important;
+        width: 19% !important;
     }
 
 
     .receipt-amount {
-        width: 26% !important;
+        width: 23% !important;
     }
 
 
@@ -2398,7 +2571,6 @@
     }
 
 }
-
 
 
 /* ============================================================
@@ -2456,7 +2628,8 @@
     .receipt-secondary {
         font-size: 6pt !important;
     }
-    
+
+
     .receipt-sku {
         display: none !important;
     }
@@ -2468,36 +2641,41 @@
 
 
     .receipt-table th {
-        font-size: 5.5pt !important;
+        font-size: 5.2pt !important;
 
         padding: 2px 1px !important;
     }
 
 
     .receipt-table td {
-        font-size: 6pt !important;
+        font-size: 5.8pt !important;
 
         padding: 3px 1px !important;
     }
 
 
     .receipt-description {
-        width: 39% !important;
+        width: 33% !important;
+    }
+
+
+    .receipt-type {
+        width: 14% !important;
     }
 
 
     .receipt-qty {
-        width: 12% !important;
+        width: 11% !important;
     }
 
 
     .receipt-price {
-        width: 23% !important;
+        width: 19% !important;
     }
 
 
     .receipt-amount {
-        width: 26% !important;
+        width: 23% !important;
     }
 
 
@@ -2597,22 +2775,10 @@
 </style>
 
 
-
 <script>
 
 /* ============================================================
    PRINT FUNCTION
-   ------------------------------------------------------------
-   This intentionally does NOT modify:
-   - navbar
-   - sidebar
-   - theme
-   - dark mode
-   - system mode
-   - localStorage
-   - Bootstrap navigation
-
-   It only opens the browser print dialog.
 ============================================================ */
 
 function printSaleInvoice() {
@@ -2624,9 +2790,6 @@ function printSaleInvoice() {
 
 /* ============================================================
    AFTER PRINT
-   ------------------------------------------------------------
-   Make sure the normal page remains exactly as it was before
-   printing. No theme or navigation state is changed.
 ============================================================ */
 
 window.addEventListener("afterprint", function () {
@@ -2635,7 +2798,7 @@ window.addEventListener("afterprint", function () {
      * Intentionally empty.
      *
      * The print layout is controlled entirely by CSS.
-     * Nothing needs to be changed after printing.
+     * No navigation, theme or application state is modified.
      */
 
 });
