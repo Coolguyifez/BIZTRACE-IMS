@@ -22,6 +22,7 @@
 >
 
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/1.png') }}">
+
 <link rel="shortcut icon" href="{{ url_for('static', filename='icons/1.png') }}">
 
 <meta
@@ -1161,6 +1162,50 @@
                     {% endif %}
 
 
+                    {% if current_user.has_permission("view_customers") %}
+
+                    <a
+                        href="{{ url_for('products.customers') }}"
+                        class="nav-item {% if request.endpoint in [
+                            'products.customers',
+                            'products.new_customer',
+                            'products.edit_customer'
+                        ] %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-people"></i>
+
+                        <span>
+                            Customers
+                        </span>
+
+                    </a>
+
+                    {% endif %}
+
+
+                    {% if current_user.has_permission("view_sales") %}
+
+                        <a
+                            href="{{ url_for('services.services') }}"
+                            class="nav-item {% if request.endpoint in [
+                                'services.services',
+                                'services.new_service',
+                                'services.edit_service'
+                            ] %}active{% endif %}"
+                        >
+
+                            <i class="bi bi-tools"></i>
+
+                            <span>
+                                Services
+                            </span>
+
+                        </a>
+
+                    {% endif %}
+
+
                     {% if current_user.has_permission("view_purchases") %}
 
                     <a
@@ -1190,28 +1235,6 @@
 
                         <span>
                             Inventory
-                        </span>
-
-                    </a>
-
-                    {% endif %}
-
-
-                    {% if current_user.has_permission("view_customers") %}
-
-                    <a
-                        href="{{ url_for('products.customers') }}"
-                        class="nav-item {% if request.endpoint in [
-                            'products.customers',
-                            'products.new_customer',
-                            'products.edit_customer'
-                        ] %}active{% endif %}"
-                    >
-
-                        <i class="bi bi-people"></i>
-
-                        <span>
-                            Customers
                         </span>
 
                     </a>
@@ -1419,6 +1442,7 @@
                     {% endif %}
 
                     {% if current_user.has_permission("manage_users") %}
+
 
                     <a
                         href="{{ url_for('company_admin.roles') }}"
