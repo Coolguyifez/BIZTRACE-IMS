@@ -7,6 +7,7 @@ import secrets
 import hmac
 import hashlib
 import uuid
+import click
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -22,9 +23,7 @@ from flask import (
     url_for,
 )
 
-from flask_login import (
-    current_user,
-)
+from flask_login import current_user
 
 from app.extensions import (
     db,
@@ -44,11 +43,11 @@ from . import subscription_bp
 # SUBSCRIPTION CONSTANTS
 # ============================================================
 
-MONTHLY_AMOUNT = Decimal("15000.00")
+MONTHLY_AMOUNT = Decimal("8000.00")
 
-ANNUAL_AMOUNT = Decimal("135000.00")
+ANNUAL_AMOUNT = Decimal("86400.00")
 
-MAINTENANCE_FEE_PER_DAY = Decimal("500.00")
+MAINTENANCE_FEE_PER_DAY = Decimal("150.00")
 
 TRIAL_DURATION_DAYS = 7
 
@@ -84,10 +83,35 @@ SUBSCRIPTION_PLANS = {
 
 def utc_now():
     """
-    Return the current UTC datetime.
+    Return the current timezone-aware UTC datetime.
     """
 
     return datetime.now(
+        timezone.utc
+    )
+
+
+def ensure_utc_datetime(value):
+    """
+    Normalize a datetime value to a timezone-aware UTC datetime.
+
+    SQLite may return DateTime values without timezone information,
+    even when the SQLAlchemy column was defined with timezone=True.
+
+    PostgreSQL may return timezone-aware values.
+
+    This helper makes both database backends behave consistently.
+    """
+
+    if value is None:
+        return None
+
+    if value.tzinfo is None:
+        return value.replace(
+            tzinfo=timezone.utc
+        )
+
+    return value.astimezone(
         timezone.utc
     )
 
@@ -151,6 +175,15 @@ def get_plan(plan):
 # ============================================================
 
 def get_latest_subscription(company_id):
+    """
+    Return the most recently created subscription record.
+
+    Useful for displaying the latest payment/subscription record.
+
+    Do NOT use this alone for lifecycle decisions because a newer
+    pending payment can exist while an older paid subscription
+    is still the valid lifecycle subscription.
+    """
 
     return (
         Subscription.query
@@ -162,6 +195,279 @@ def get_latest_subscription(company_id):
         )
         .first()
     )
+
+
+# ============================================================
+# GET LATEST PAID SUBSCRIPTION
+# ============================================================
+
+def get_latest_paid_subscription(company_id):
+    """
+    Return the most recent successfully paid monthly or annual
+    subscription.
+
+    Trial, pending, failed and cancelled subscriptions are
+    excluded.
+
+    This record is the basis for maintenance calculations.
+    """
+
+    return (
+        Subscription.query
+        .filter(
+            Subscription.company_id == company_id,
+            Subscription.plan.in_(
+                (
+                    "monthly",
+                    "annual",
+                )
+            ),
+            Subscription.payment_status == "paid",
+            Subscription.end_date.isnot(None),
+        )
+        .order_by(
+            Subscription.end_date.desc(),
+            Subscription.created_at.desc(),
+        )
+        .first()
+    )
+
+
+# ============================================================
+# GET LIFECYCLE SUBSCRIPTION
+# ============================================================
+
+def get_lifecycle_subscription(company_id):
+    """
+    Return the subscription record that should control the
+    company's automatic subscription lifecycle.
+
+    Priority:
+
+    1. Manual activation
+    2. Manual deactivation
+    3. Currently active paid subscription
+    4. Currently active trial
+    5. Most recent expired paid subscription
+    6. Most recent expired trial
+
+    Pending, failed and cancelled payment records do not
+    automatically take control of the company's lifecycle.
+    """
+
+    subscriptions = (
+        Subscription.query
+        .filter_by(
+            company_id=company_id
+        )
+        .order_by(
+            Subscription.created_at.desc()
+        )
+        .all()
+    )
+
+    if not subscriptions:
+        return None
+
+    now = utc_now()
+
+    # ========================================================
+    # 1. MANUAL ACTIVATION
+    # ========================================================
+
+    for subscription in subscriptions:
+
+        if subscription.manually_activated:
+
+            return subscription
+
+    # ========================================================
+    # 2. MANUAL DEACTIVATION
+    # ========================================================
+
+    for subscription in subscriptions:
+
+        if subscription.manually_deactivated:
+
+            return subscription
+
+    # ========================================================
+    # 3. CURRENTLY ACTIVE PAID SUBSCRIPTION
+    # ========================================================
+
+    active_paid = []
+
+    for subscription in subscriptions:
+
+        if subscription.plan not in (
+            "monthly",
+            "annual",
+        ):
+            continue
+
+        if subscription.payment_status != "paid":
+            continue
+
+        if subscription.status not in (
+            "active",
+            "manually_active",
+        ):
+            continue
+
+        end_date = ensure_utc_datetime(
+            subscription.end_date
+        )
+
+        if end_date is None:
+            continue
+
+        if end_date > now:
+
+            active_paid.append(
+                subscription
+            )
+
+    if active_paid:
+
+        return max(
+            active_paid,
+            key=lambda subscription: (
+                ensure_utc_datetime(
+                    subscription.end_date
+                )
+                or datetime.min.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+        )
+
+    # ========================================================
+    # 4. CURRENTLY ACTIVE TRIAL
+    # ========================================================
+
+    active_trials = []
+
+    for subscription in subscriptions:
+
+        if subscription.plan != "trial":
+            continue
+
+        if subscription.status not in (
+            "trial",
+            "active",
+        ):
+            continue
+
+        trial_expires_at = ensure_utc_datetime(
+            subscription.trial_expires_at
+        )
+
+        if trial_expires_at is None:
+            continue
+
+        if trial_expires_at > now:
+
+            active_trials.append(
+                subscription
+            )
+
+    if active_trials:
+
+        return max(
+            active_trials,
+            key=lambda subscription: (
+                ensure_utc_datetime(
+                    subscription.trial_expires_at
+                )
+                or datetime.min.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+        )
+
+    # ========================================================
+    # 5. MOST RECENT EXPIRED PAID SUBSCRIPTION
+    # ========================================================
+
+    expired_paid = []
+
+    for subscription in subscriptions:
+
+        if subscription.plan not in (
+            "monthly",
+            "annual",
+        ):
+            continue
+
+        if subscription.payment_status != "paid":
+            continue
+
+        end_date = ensure_utc_datetime(
+            subscription.end_date
+        )
+
+        if end_date is None:
+            continue
+
+        if end_date <= now:
+
+            expired_paid.append(
+                subscription
+            )
+
+    if expired_paid:
+
+        return max(
+            expired_paid,
+            key=lambda subscription: (
+                ensure_utc_datetime(
+                    subscription.end_date
+                )
+                or datetime.min.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+        )
+
+    # ========================================================
+    # 6. MOST RECENT EXPIRED TRIAL
+    # ========================================================
+
+    expired_trials = []
+
+    for subscription in subscriptions:
+
+        if subscription.plan != "trial":
+            continue
+
+        trial_expires_at = ensure_utc_datetime(
+            subscription.trial_expires_at
+        )
+
+        if trial_expires_at is None:
+            continue
+
+        if trial_expires_at <= now:
+
+            expired_trials.append(
+                subscription
+            )
+
+    if expired_trials:
+
+        return max(
+            expired_trials,
+            key=lambda subscription: (
+                ensure_utc_datetime(
+                    subscription.trial_expires_at
+                )
+                or datetime.min.replace(
+                    tzinfo=timezone.utc
+                )
+            )
+        )
+
+    return None
 
 
 # ============================================================
@@ -192,60 +498,149 @@ def calculate_maintenance_days(
     now=None,
 ):
     """
-    Maintenance starts 30 days after the trial expires.
+    Calculate maintenance days for an expired PAID subscription.
 
-    Example:
+    Rules:
 
-        Trial expires:
-            January 1
-
-        Grace period:
-            January 1 - January 31
-
-        Maintenance starts:
-            February 1
-
-        Maintenance:
-            ₦500 per day
+    - Trial subscriptions never incur maintenance.
+    - Manual activation/deactivation never incurs maintenance.
+    - Only successfully paid monthly/annual subscriptions qualify.
+    - First 30 days after paid expiry = grace period.
+    - Maintenance starts after the grace period.
+    - Maintenance stops at the 60-day takedown point.
+    - Maximum maintenance period = 30 days.
     """
+
+    if subscription is None:
+
+        return 0
 
     if now is None:
 
         now = utc_now()
 
-    if not subscription:
-
-        return 0
-
-    trial_expiry = (
-        subscription.trial_expires_at
+    now = ensure_utc_datetime(
+        now
     )
 
-    if not trial_expiry:
+    # ========================================================
+    # MANUAL OVERRIDES
+    # ========================================================
+
+    if subscription.manually_activated:
 
         return 0
 
-    maintenance_start = (
-        trial_expiry
+    if subscription.manually_deactivated:
+
+        return 0
+
+    # ========================================================
+    # ONLY PAID MONTHLY/ANNUAL SUBSCRIPTIONS
+    # ========================================================
+
+    if subscription.plan not in (
+        "monthly",
+        "annual",
+    ):
+
+        return 0
+
+    if subscription.payment_status != "paid":
+
+        return 0
+
+    # ========================================================
+    # SUBSCRIPTION EXPIRY
+    # ========================================================
+
+    subscription_expiry = ensure_utc_datetime(
+        subscription.end_date
+    )
+
+    if subscription_expiry is None:
+
+        return 0
+
+    # ========================================================
+    # NOT YET EXPIRED
+    # ========================================================
+
+    if now <= subscription_expiry:
+
+        return 0
+
+    # ========================================================
+    # GRACE PERIOD END
+    # ========================================================
+
+    grace_end = (
+        subscription_expiry
         + timedelta(
             days=GRACE_PERIOD_DAYS
         )
     )
 
-    if now <= maintenance_start:
+    # ========================================================
+    # STILL IN GRACE PERIOD
+    # ========================================================
+
+    if now <= grace_end:
 
         return 0
 
-    days = (
+    # ========================================================
+    # TAKEDOWN DATE
+    # ========================================================
+
+    takedown_date = (
+        subscription_expiry
+        + timedelta(
+            days=TAKEDOWN_PERIOD_DAYS
+        )
+    )
+
+    # ========================================================
+    # MAXIMUM MAINTENANCE DAYS
+    # ========================================================
+
+    max_maintenance_days = max(
+        TAKEDOWN_PERIOD_DAYS
+        - GRACE_PERIOD_DAYS,
+        0,
+    )
+
+    # ========================================================
+    # TAKEDOWN REACHED
+    #
+    # Freeze maintenance.
+    # Do not allow the amount to increase any further.
+    # ========================================================
+
+    if now >= takedown_date:
+
+        return max_maintenance_days
+
+    # ========================================================
+    # CALCULATE CURRENT MAINTENANCE DAYS
+    # ========================================================
+
+    maintenance_days = (
         now.date()
-        - maintenance_start.date()
+        - grace_end.date()
     ).days
 
-    if days < 0:
+    if maintenance_days < 0:
 
-        return 0
+        maintenance_days = 0
 
-    return days
+    if maintenance_days > max_maintenance_days:
+
+        maintenance_days = (
+            max_maintenance_days
+        )
+
+    return maintenance_days
 
 
 # ============================================================
@@ -257,71 +652,30 @@ def calculate_maintenance_fee(
     now=None,
 ):
     """
-    Calculate the current maintenance fee.
+    Calculate maintenance fee.
 
-    ₦500 per maintenance day.
+    Maintenance fee is:
+
+        maintenance_days × ₦500
     """
-
-    days = calculate_maintenance_days(
-        subscription,
-        now,
-    )
-
-    return (
-        Decimal(days)
-        * MAINTENANCE_FEE_PER_DAY
-    )
-
-
-# ============================================================
-# UPDATE MAINTENANCE INFORMATION
-# ============================================================
-
-def update_maintenance_information(
-    subscription,
-    now=None,
-):
-    """
-    Update maintenance_days and maintenance_fee
-    using backend-controlled dates.
-
-    The browser never supplies these values.
-    """
-
-    if now is None:
-
-        now = utc_now()
 
     maintenance_days = (
         calculate_maintenance_days(
             subscription,
-            now,
+            now=now,
         )
     )
 
-    maintenance_fee = (
+    return (
         Decimal(
             maintenance_days
         )
         * MAINTENANCE_FEE_PER_DAY
     )
 
-    subscription.maintenance_days = (
-        maintenance_days
-    )
-
-    subscription.maintenance_fee = (
-        maintenance_fee
-    )
-
-    return (
-        maintenance_days,
-        maintenance_fee,
-    )
-
 
 # ============================================================
-# TWO-MONTH TAKEDOWN CHECK
+# TAKEDOWN CHECK
 # ============================================================
 
 def is_company_due_for_takedown(
@@ -329,40 +683,86 @@ def is_company_due_for_takedown(
     now=None,
 ):
     """
-    Determine whether the company has passed the
-    two-month period after trial expiry.
+    Determine whether a PAID subscription has reached
+    the 60-day takedown point after paid subscription expiry.
 
     IMPORTANT:
-    This function does NOT delete data.
 
-    Actual permanent deletion should be handled separately
-    after reviewing all company-related models and records.
+    Trial expiry is NOT used here.
+
+    Trial expiry does not start the takedown countdown.
+
+    Only a successfully paid monthly/annual subscription
+    can reach takedown.
+
+    This function does NOT delete company data.
     """
+
+    if subscription is None:
+
+        return False
 
     if now is None:
 
         now = utc_now()
 
-    if not subscription:
-
-        return False
-
-    trial_expiry = (
-        subscription.trial_expires_at
+    now = ensure_utc_datetime(
+        now
     )
 
-    if not trial_expiry:
+    # ========================================================
+    # MANUAL OVERRIDES
+    # ========================================================
+
+    if subscription.manually_activated:
 
         return False
 
+    if subscription.manually_deactivated:
+
+        return False
+
+    # ========================================================
+    # ONLY PAID MONTHLY/ANNUAL SUBSCRIPTIONS
+    # ========================================================
+
+    if subscription.plan not in (
+        "monthly",
+        "annual",
+    ):
+
+        return False
+
+    if subscription.payment_status != "paid":
+
+        return False
+
+    # ========================================================
+    # PAID EXPIRY
+    # ========================================================
+
+    subscription_expiry = ensure_utc_datetime(
+        subscription.end_date
+    )
+
+    if subscription_expiry is None:
+
+        return False
+
+    # ========================================================
+    # TAKEDOWN DATE
+    # ========================================================
+
     takedown_date = (
-        trial_expiry
+        subscription_expiry
         + timedelta(
             days=TAKEDOWN_PERIOD_DAYS
         )
     )
 
-    return now >= takedown_date
+    return (
+        now >= takedown_date
+    )
 
 
 # ============================================================
@@ -377,25 +777,103 @@ def update_subscription_lifecycle(
     """
     Apply automatic subscription lifecycle rules.
 
-    Rules:
+    ============================================================
+    TRIAL
+    ============================================================
 
-        1. Trial remains active for 7 days.
-        2. After trial expiry, company enters a 30-day
-           grace period.
-        3. After the grace period, maintenance is ₦500/day.
-        4. After 60 days from trial expiry, company is due
-           for takedown.
-        5. Manual activation bypasses automatic expiry.
+    Trial:
+        7 days active.
+
+    After trial expiry:
+        - company inactive
+        - maintenance = ₦0
+        - no grace period
+        - no takedown countdown
+
+    ============================================================
+    PAID SUBSCRIPTION
+    ============================================================
+
+    Monthly/annual:
+
+        Active
+           ↓
+        Expired
+           ↓
+        30-day grace
+           ↓
+        Maintenance
+           ↓
+        60-day takedown due
+
+    Maximum maintenance:
+
+        30 days × ₦500
+        = ₦15,000
+
+    After takedown due:
+        - company remains inactive
+        - maintenance stops increasing
+        - accumulated maintenance remains
+        - payment remains available
+        - no automatic deletion
+
+    ============================================================
+    MANUAL OVERRIDES
+    ============================================================
+
+    Manual activation:
+        company remains active.
+
+    Manual deactivation:
+        company remains inactive.
+
+    Successful Paystack payment clears manual overrides.
     """
 
     if now is None:
 
         now = utc_now()
 
-    if not subscription:
+    now = ensure_utc_datetime(
+        now
+    )
+
+    # ========================================================
+    # NO SUBSCRIPTION
+    # ========================================================
+
+    if subscription is None:
 
         return {
             "state": "none",
+            "maintenance_days": 0,
+            "maintenance_fee": Decimal("0.00"),
+            "due_for_takedown": False,
+        }
+
+    # ========================================================
+    # MANUAL DEACTIVATION
+    # ========================================================
+
+    if subscription.manually_deactivated:
+
+        subscription.status = (
+            "manually_deactivated"
+        )
+
+        subscription.maintenance_days = 0
+
+        subscription.maintenance_fee = (
+            Decimal("0.00")
+        )
+
+        if company is not None:
+
+            company.is_active = False
+
+        return {
+            "state": "manually_deactivated",
             "maintenance_days": 0,
             "maintenance_fee": Decimal("0.00"),
             "due_for_takedown": False,
@@ -429,14 +907,144 @@ def update_subscription_lifecycle(
         }
 
     # ========================================================
-    # CURRENT ACTIVE PAID SUBSCRIPTION
+    # TRIAL
     # ========================================================
 
-    if (
-        subscription.status == "active"
-        and subscription.end_date
-        and subscription.end_date > now
+    if subscription.plan == "trial":
+
+        trial_expiry = ensure_utc_datetime(
+            subscription.trial_expires_at
+        )
+
+        # ----------------------------------------------------
+        # TRIAL HAS NO EXPIRY
+        # ----------------------------------------------------
+
+        if trial_expiry is None:
+
+            subscription.maintenance_days = 0
+
+            subscription.maintenance_fee = (
+                Decimal("0.00")
+            )
+
+            return {
+                "state": subscription.status,
+                "maintenance_days": 0,
+                "maintenance_fee": Decimal("0.00"),
+                "due_for_takedown": False,
+            }
+
+        # ----------------------------------------------------
+        # TRIAL ACTIVE
+        # ----------------------------------------------------
+
+        if trial_expiry > now:
+
+            subscription.status = "trial"
+
+            subscription.maintenance_days = 0
+
+            subscription.maintenance_fee = (
+                Decimal("0.00")
+            )
+
+            if company is not None:
+
+                company.is_active = True
+
+            return {
+                "state": "trial",
+                "maintenance_days": 0,
+                "maintenance_fee": Decimal("0.00"),
+                "due_for_takedown": False,
+            }
+
+        # ----------------------------------------------------
+        # TRIAL EXPIRED
+        #
+        # STOP HERE.
+        #
+        # Trial expiry does NOT create:
+        #
+        # - maintenance
+        # - maintenance debt
+        # - grace period
+        # - takedown
+        # ----------------------------------------------------
+
+        subscription.status = "expired"
+
+        subscription.maintenance_days = 0
+
+        subscription.maintenance_fee = (
+            Decimal("0.00")
+        )
+
+        if company is not None:
+
+            company.is_active = False
+
+        return {
+            "state": "trial_expired",
+            "maintenance_days": 0,
+            "maintenance_fee": Decimal("0.00"),
+            "due_for_takedown": False,
+        }
+
+    # ========================================================
+    # ONLY MONTHLY / ANNUAL CONTINUE
+    # ========================================================
+
+    if subscription.plan not in (
+        "monthly",
+        "annual",
     ):
+
+        return {
+            "state": subscription.status,
+            "maintenance_days": 0,
+            "maintenance_fee": Decimal("0.00"),
+            "due_for_takedown": False,
+        }
+
+    # ========================================================
+    # ONLY SUCCESSFULLY PAID SUBSCRIPTIONS
+    # ========================================================
+
+    if subscription.payment_status != "paid":
+
+        return {
+            "state": subscription.status,
+            "maintenance_days": 0,
+            "maintenance_fee": Decimal("0.00"),
+            "due_for_takedown": False,
+        }
+
+    # ========================================================
+    # PAID EXPIRY
+    # ========================================================
+
+    subscription_expiry = ensure_utc_datetime(
+        subscription.end_date
+    )
+
+    if subscription_expiry is None:
+
+        return {
+            "state": subscription.status,
+            "maintenance_days": 0,
+            "maintenance_fee": Decimal("0.00"),
+            "due_for_takedown": False,
+        }
+
+    # ========================================================
+    # PAID SUBSCRIPTION STILL ACTIVE
+    # ========================================================
+
+    if subscription_expiry > now:
+
+        subscription.status = "active"
 
         subscription.maintenance_days = 0
 
@@ -456,16 +1064,42 @@ def update_subscription_lifecycle(
         }
 
     # ========================================================
-    # ACTIVE TRIAL
+    # PAID SUBSCRIPTION HAS EXPIRED
     # ========================================================
 
-    if (
-        subscription.plan == "trial"
-        and subscription.trial_expires_at
-        and subscription.trial_expires_at > now
-    ):
+    grace_end = (
+        subscription_expiry
+        + timedelta(
+            days=GRACE_PERIOD_DAYS
+        )
+    )
 
-        subscription.status = "trial"
+    takedown_date = (
+        subscription_expiry
+        + timedelta(
+            days=TAKEDOWN_PERIOD_DAYS
+        )
+    )
+
+    due_for_takedown = (
+        now >= takedown_date
+    )
+
+    # ========================================================
+    # COMPANY MUST BE INACTIVE AFTER PAID EXPIRY
+    # ========================================================
+
+    if company is not None:
+
+        company.is_active = False
+
+    # ========================================================
+    # GRACE PERIOD
+    # ========================================================
+
+    if now < grace_end:
+
+        subscription.status = "expired"
 
         subscription.maintenance_days = 0
 
@@ -473,44 +1107,12 @@ def update_subscription_lifecycle(
             Decimal("0.00")
         )
 
-        if company is not None:
-
-            company.is_active = True
-
         return {
-            "state": "trial",
+            "state": "grace_period",
             "maintenance_days": 0,
             "maintenance_fee": Decimal("0.00"),
             "due_for_takedown": False,
         }
-
-    # ========================================================
-    # TRIAL HAS EXPIRED
-    # ========================================================
-
-    trial_expiry = (
-        subscription.trial_expires_at
-    )
-
-    if not trial_expiry:
-
-        return {
-            "state": subscription.status,
-            "maintenance_days": 0,
-            "maintenance_fee": Decimal("0.00"),
-            "due_for_takedown": False,
-        }
-
-    # ========================================================
-    # TWO-MONTH TAKEDOWN CHECK
-    # ========================================================
-
-    due_for_takedown = (
-        is_company_due_for_takedown(
-            subscription,
-            now,
-        )
-    )
 
     # ========================================================
     # MAINTENANCE
@@ -519,7 +1121,7 @@ def update_subscription_lifecycle(
     maintenance_days = (
         calculate_maintenance_days(
             subscription,
-            now,
+            now=now,
         )
     )
 
@@ -530,6 +1132,8 @@ def update_subscription_lifecycle(
         * MAINTENANCE_FEE_PER_DAY
     )
 
+    subscription.status = "maintenance"
+
     subscription.maintenance_days = (
         maintenance_days
     )
@@ -539,50 +1143,27 @@ def update_subscription_lifecycle(
     )
 
     # ========================================================
-    # GRACE PERIOD
+    # TAKEDOWN DUE
     # ========================================================
 
-    grace_end = (
-        trial_expiry
-        + timedelta(
-            days=GRACE_PERIOD_DAYS
-        )
-    )
-
-    if now < grace_end:
-
-        subscription.status = "expired"
-
-        if company is not None:
-
-            company.is_active = False
+    if due_for_takedown:
 
         return {
-            "state": "grace_period",
-            "maintenance_days": 0,
-            "maintenance_fee": Decimal("0.00"),
-            "due_for_takedown": False,
+            "state": "takedown_due",
+            "maintenance_days": maintenance_days,
+            "maintenance_fee": maintenance_fee,
+            "due_for_takedown": True,
         }
 
     # ========================================================
-    # MAINTENANCE PERIOD
+    # NORMAL MAINTENANCE
     # ========================================================
 
-    subscription.status = "maintenance"
-
-    if company is not None:
-
-        company.is_active = False
-
     return {
-        "state": (
-            "takedown_due"
-            if due_for_takedown
-            else "maintenance"
-        ),
+        "state": "maintenance",
         "maintenance_days": maintenance_days,
         "maintenance_fee": maintenance_fee,
-        "due_for_takedown": due_for_takedown,
+        "due_for_takedown": False,
     }
 
 
@@ -596,16 +1177,15 @@ def calculate_payment_total(
     now=None,
 ):
     """
-    Calculate the complete amount the company must pay.
+    Calculate the total amount payable.
 
-    Monthly:
-        ₦30,000
+    Total:
 
-    Annual:
-        ₦288,000
+        subscription plan
+        +
+        accumulated maintenance
 
-    Maintenance:
-        ₦500 per maintenance day
+    Maintenance is capped at the takedown point.
     """
 
     if now is None:
@@ -622,24 +1202,26 @@ def calculate_payment_total(
             "Invalid subscription plan."
         )
 
-    base_amount = (
-        Decimal(
-            str(
-                plan["amount"]
-            )
+    base_amount = Decimal(
+        str(
+            plan["amount"]
         )
+    ).quantize(
+        Decimal("0.01")
     )
 
     maintenance_fee = (
         calculate_maintenance_fee(
             subscription,
-            now,
+            now=now,
         )
     )
 
     total_amount = (
         base_amount
         + maintenance_fee
+    ).quantize(
+        Decimal("0.01")
     )
 
     return (
@@ -677,7 +1259,7 @@ def clear_deactivated_payment_session():
 
 
 # ============================================================
-# DEACTIVATED COMPANY PAYMENT SESSION
+# GET DEACTIVATED COMPANY PAYMENT SESSION
 # ============================================================
 
 def get_deactivated_payment_session():
@@ -699,23 +1281,19 @@ def get_deactivated_payment_session():
     )
 
     if not user_id:
-
         return None
 
     if not company_id:
-
         return None
 
     if not email:
-
         return None
 
     if not created_at:
-
         return None
 
     # ========================================================
-    # CHECK SESSION TIMESTAMP
+    # SESSION TIMESTAMP
     # ========================================================
 
     try:
@@ -735,17 +1313,9 @@ def get_deactivated_payment_session():
 
         return None
 
-    # ========================================================
-    # MAKE SURE DATETIME IS TIMEZONE-AWARE
-    # ========================================================
-
-    if created_datetime.tzinfo is None:
-
-        created_datetime = (
-            created_datetime.replace(
-                tzinfo=timezone.utc
-            )
-        )
+    created_datetime = ensure_utc_datetime(
+        created_datetime
+    )
 
     # ========================================================
     # SESSION EXPIRES AFTER 15 MINUTES
@@ -801,7 +1371,7 @@ def get_deactivated_payment_session():
         return None
 
     # ========================================================
-    # EMAIL MUST MATCH DATABASE
+    # EMAIL SECURITY CHECK
     # ========================================================
 
     database_email = (
@@ -854,10 +1424,11 @@ def get_deactivated_payment_session():
 def initialize_payment():
 
     # ========================================================
-    # DETERMINE PAYMENT CUSTOMER
+    # PAYMENT CUSTOMER
     # ========================================================
 
     payment_user = None
+
     company = None
 
     # ========================================================
@@ -884,7 +1455,7 @@ def initialize_payment():
             )
 
         # ----------------------------------------------------
-        # COMPANY CHECK
+        # COMPANY ID
         # ----------------------------------------------------
 
         if current_user.company_id is None:
@@ -901,6 +1472,10 @@ def initialize_payment():
             )
 
         payment_user = current_user
+
+        # ----------------------------------------------------
+        # COMPANY
+        # ----------------------------------------------------
 
         company = db.session.get(
             Company,
@@ -921,7 +1496,7 @@ def initialize_payment():
             )
 
         # ----------------------------------------------------
-        # USER CHECK
+        # USER ACTIVE CHECK
         # ----------------------------------------------------
 
         if not current_user.is_active:
@@ -1022,20 +1597,22 @@ def initialize_payment():
         )
 
     # ========================================================
-    # UPDATE EXISTING SUBSCRIPTION LIFECYCLE
+    # UPDATE CURRENT LIFECYCLE
     # ========================================================
 
     try:
 
-        latest_subscription = (
-            get_latest_subscription(
+        lifecycle_subscription = (
+            get_lifecycle_subscription(
                 company.id
             )
         )
 
-        update_subscription_lifecycle(
-            latest_subscription,
-            company=company,
+        lifecycle_result = (
+            update_subscription_lifecycle(
+                lifecycle_subscription,
+                company=company,
+            )
         )
 
         db.session.flush()
@@ -1045,7 +1622,8 @@ def initialize_payment():
         db.session.rollback()
 
         current_app.logger.exception(
-            "SUBSCRIPTION LIFECYCLE ERROR"
+            "SUBSCRIPTION LIFECYCLE ERROR "
+            "BEFORE PAYMENT INITIALIZATION"
         )
 
         flash(
@@ -1061,11 +1639,19 @@ def initialize_payment():
         )
 
     # ========================================================
-    # GET ORIGINAL TRIAL
+    # GET LATEST SUCCESSFULLY PAID SUBSCRIPTION
+    # ========================================================
+    #
+    # IMPORTANT:
+    #
+    # Maintenance is NEVER calculated from the trial.
+    #
+    # Only a successfully paid monthly/annual subscription
+    # can create maintenance.
     # ========================================================
 
-    trial_subscription = (
-        get_trial_subscription(
+    paid_subscription = (
+        get_latest_paid_subscription(
             company.id
         )
     )
@@ -1082,17 +1668,17 @@ def initialize_payment():
 
     try:
 
-        if trial_subscription:
+        if paid_subscription is not None:
 
             maintenance_days = (
                 calculate_maintenance_days(
-                    trial_subscription
+                    paid_subscription
                 )
             )
 
             maintenance_fee = (
                 calculate_maintenance_fee(
-                    trial_subscription
+                    paid_subscription
                 )
             )
 
@@ -1176,7 +1762,7 @@ def initialize_payment():
         )
 
     # ========================================================
-    # GENERATE UNIQUE REFERENCES
+    # GENERATE REFERENCES
     # ========================================================
 
     transaction_reference = (
@@ -1198,8 +1784,6 @@ def initialize_payment():
 
         plan=plan_code,
 
-        # Store the exact amount that Paystack will charge.
-        # This includes maintenance where applicable.
         amount=total_amount,
 
         currency="NGN",
@@ -1244,6 +1828,12 @@ def initialize_payment():
 
         manually_activated_at=None,
 
+        manually_deactivated=False,
+
+        manually_deactivated_by=None,
+
+        manually_deactivated_at=None,
+
         maintenance_fee=maintenance_fee,
 
         maintenance_days=maintenance_days,
@@ -1254,7 +1844,7 @@ def initialize_payment():
     )
 
     # ========================================================
-    # FLUSH SO SUBSCRIPTION GETS ID
+    # FLUSH
     # ========================================================
 
     try:
@@ -1329,7 +1919,7 @@ def initialize_payment():
     )
 
     # ========================================================
-    # PAYSTACK CALLBACK URL
+    # CALLBACK URL
     # ========================================================
 
     callback_url = url_for(
@@ -1405,7 +1995,8 @@ def initialize_payment():
 
         response = requests.post(
 
-            f"{paystack_base_url}/transaction/initialize",
+            f"{paystack_base_url}"
+            "/transaction/initialize",
 
             json=payload,
 
@@ -1445,7 +2036,7 @@ def initialize_payment():
         )
 
     # ========================================================
-    # PARSE PAYSTACK RESPONSE
+    # PARSE RESPONSE
     # ========================================================
 
     try:
@@ -1477,7 +2068,7 @@ def initialize_payment():
         )
 
     # ========================================================
-    # CHECK PAYSTACK RESPONSE
+    # CHECK RESPONSE
     # ========================================================
 
     if (
@@ -1513,7 +2104,7 @@ def initialize_payment():
         )
 
     # ========================================================
-    # EXTRACT PAYSTACK DATA
+    # PAYSTACK DATA
     # ========================================================
 
     paystack_data = (
@@ -1546,7 +2137,8 @@ def initialize_payment():
         db.session.rollback()
 
         current_app.logger.error(
-            "PAYSTACK DID NOT RETURN AN AUTHORIZATION URL: %s",
+            "PAYSTACK DID NOT RETURN "
+            "AN AUTHORIZATION URL: %s",
             paystack_response,
         )
 
@@ -1585,7 +2177,7 @@ def initialize_payment():
     )
 
     # ========================================================
-    # SAVE DATABASE
+    # COMMIT
     # ========================================================
 
     try:
@@ -1597,7 +2189,8 @@ def initialize_payment():
         db.session.rollback()
 
         current_app.logger.exception(
-            "SUBSCRIPTION PAYMENT DATABASE COMMIT FAILED"
+            "SUBSCRIPTION PAYMENT DATABASE "
+            "COMMIT FAILED"
         )
 
         flash(
@@ -1613,13 +2206,13 @@ def initialize_payment():
         )
 
     # ========================================================
-    # CLEAR PAYMENT AUTHORIZATION SESSION
+    # CLEAR PAYMENT SESSION
     # ========================================================
 
     clear_deactivated_payment_session()
 
     # ========================================================
-    # REDIRECT TO PAYSTACK CHECKOUT
+    # REDIRECT TO PAYSTACK
     # ========================================================
 
     return redirect(
@@ -1663,17 +2256,20 @@ def payment_callback():
     # FIND SUBSCRIPTION
     # ========================================================
 
-    subscription = Subscription.query.filter(
-        (
-            Subscription.paystack_reference
-            == reference
+    subscription = (
+        Subscription.query.filter(
+            (
+                Subscription.paystack_reference
+                == reference
+            )
+            |
+            (
+                Subscription.transaction_reference
+                == reference
+            )
         )
-        |
-        (
-            Subscription.transaction_reference
-            == reference
-        )
-    ).first()
+        .first()
+    )
 
     if subscription is None:
 
@@ -1691,7 +2287,7 @@ def payment_callback():
     try:
 
         # ====================================================
-        # VERIFY WITH PAYSTACK
+        # VERIFY PAYMENT
         # ====================================================
 
         verified = (
@@ -1741,6 +2337,8 @@ def payment_callback():
 
         db.session.commit()
 
+        clear_deactivated_payment_session()
+
         flash(
             "Payment successful. "
             "Your company account has been reactivated.",
@@ -1760,7 +2358,7 @@ def payment_callback():
             )
 
         # ====================================================
-        # DEACTIVATED USER WAS NOT LOGGED IN
+        # DEACTIVATED COMPANY USER
         # ====================================================
 
         return redirect(
@@ -1810,7 +2408,8 @@ def verify_paystack_transaction(
 
         response = requests.get(
 
-            f"{base_url}/transaction/verify/"
+            f"{base_url}"
+            "/transaction/verify/"
             f"{reference}",
 
             headers={
@@ -1840,7 +2439,8 @@ def verify_paystack_transaction(
     except ValueError:
 
         current_app.logger.error(
-            "PAYSTACK VERIFICATION RETURNED INVALID JSON"
+            "PAYSTACK VERIFICATION "
+            "RETURNED INVALID JSON"
         )
 
         return None
@@ -1859,8 +2459,10 @@ def verify_paystack_transaction(
 
         return None
 
-    data = result.get(
-        "data"
+    data = (
+        result.get(
+            "data"
+        )
     )
 
     if not data:
@@ -1878,6 +2480,21 @@ def process_successful_payment(
     subscription,
     payment_data,
 ):
+    """
+    Process a verified successful Paystack payment.
+
+    This function:
+
+    - verifies transaction status
+    - verifies amount
+    - verifies currency
+    - verifies reference
+    - prevents duplicate fulfillment
+    - activates the subscription
+    - reactivates the company
+    - clears maintenance
+    - clears manual overrides
+    """
 
     # ========================================================
     # PAYMENT STATUS
@@ -1933,7 +2550,8 @@ def process_successful_payment(
     ):
 
         current_app.logger.exception(
-            "INVALID SUBSCRIPTION AMOUNT DURING PAYMENT VERIFICATION"
+            "INVALID SUBSCRIPTION AMOUNT "
+            "DURING PAYMENT VERIFICATION"
         )
 
         return False
@@ -1959,16 +2577,69 @@ def process_successful_payment(
         paid_amount = 0
 
     # ========================================================
-    # AMOUNT SECURITY CHECK
+    # PAYSTACK FEES
     # ========================================================
 
-    if paid_amount != expected_amount:
+    try:
+
+        paystack_fees = int(
+            payment_data.get(
+                "fees",
+                0,
+            )
+            or 0
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ):
+
+        paystack_fees = 0
+
+    # ========================================================
+    # NET BUSINESS AMOUNT
+    # ========================================================
+
+    net_paid_amount = (
+        paid_amount
+        - paystack_fees
+    )
+
+    # ========================================================
+    # AMOUNT SECURITY CHECK
+    # ========================================================
+    #
+    # Accept:
+    #
+    # 1. Exact amount
+    #
+    # OR
+    #
+    # 2. Customer-paid Paystack fee:
+    #
+    #     paid amount - Paystack fee
+    #     =
+    #     BizTrace amount
+    #
+    # ========================================================
+
+    amount_is_valid = (
+        paid_amount == expected_amount
+        or
+        net_paid_amount == expected_amount
+    )
+
+    if not amount_is_valid:
 
         current_app.logger.error(
             "PAYSTACK AMOUNT MISMATCH: "
-            "expected=%s paid=%s subscription_id=%s",
+            "expected=%s paid=%s fees=%s "
+            "net_paid=%s subscription_id=%s",
             expected_amount,
             paid_amount,
+            paystack_fees,
+            net_paid_amount,
             subscription.id,
         )
 
@@ -2118,12 +2789,16 @@ def process_successful_payment(
     )
 
     # ========================================================
-    # START DATE
+    # CURRENT END DATE
     # ========================================================
 
-    current_end = (
+    current_end = ensure_utc_datetime(
         subscription.end_date
     )
+
+    # ========================================================
+    # START DATE
+    # ========================================================
 
     if (
         current_end
@@ -2250,20 +2925,28 @@ def process_successful_payment(
     subscription.maintenance_days = 0
 
     # ========================================================
-    # REMOVE MANUAL ACTIVATION OVERRIDE
+    # CLEAR MANUAL ACTIVATION
     # ========================================================
 
-    subscription.manually_activated = (
-        False
-    )
+    subscription.manually_activated = False
 
-    subscription.manually_activated_by = (
-        None
-    )
+    subscription.manually_activated_by = None
 
-    subscription.manually_activated_at = (
-        None
-    )
+    subscription.manually_activated_at = None
+
+    # ========================================================
+    # CLEAR MANUAL DEACTIVATION
+    # ========================================================
+
+    subscription.manually_deactivated = False
+
+    subscription.manually_deactivated_by = None
+
+    subscription.manually_deactivated_at = None
+
+    # ========================================================
+    # SAVE
+    # ========================================================
 
     db.session.add(
         subscription
@@ -2326,7 +3009,7 @@ def paystack_webhook():
         )
 
     # ========================================================
-    # VERIFY RAW REQUEST SIGNATURE
+    # RAW REQUEST BODY
     # ========================================================
 
     raw_body = (
@@ -2365,21 +3048,12 @@ def paystack_webhook():
     # PARSE EVENT
     # ========================================================
 
-    try:
-
-        event = (
-            request.get_json(
-                silent=True
-            )
-            or {}
+    event = (
+        request.get_json(
+            silent=True
         )
-
-    except Exception:
-
-        return (
-            "Bad Request",
-            400,
-        )
+        or {}
+    )
 
     event_name = (
         event.get(
@@ -2395,7 +3069,7 @@ def paystack_webhook():
     )
 
     # ========================================================
-    # ONLY PROCESS SUCCESSFUL CHARGES
+    # ONLY SUCCESSFUL CHARGES
     # ========================================================
 
     if event_name != "charge.success":
@@ -2406,7 +3080,7 @@ def paystack_webhook():
         )
 
     # ========================================================
-    # PAYMENT REFERENCE
+    # REFERENCE
     # ========================================================
 
     reference = (
@@ -2426,17 +3100,20 @@ def paystack_webhook():
     # FIND SUBSCRIPTION
     # ========================================================
 
-    subscription = Subscription.query.filter(
-        (
-            Subscription.paystack_reference
-            == reference
+    subscription = (
+        Subscription.query.filter(
+            (
+                Subscription.paystack_reference
+                == reference
+            )
+            |
+            (
+                Subscription.transaction_reference
+                == reference
+            )
         )
-        |
-        (
-            Subscription.transaction_reference
-            == reference
-        )
-    ).first()
+        .first()
+    )
 
     if subscription is None:
 
@@ -2524,10 +3201,340 @@ def paystack_webhook():
         )
 
     # ========================================================
-    # ALWAYS ACKNOWLEDGE PAYSTACK
+    # ACKNOWLEDGE PAYSTACK
     # ========================================================
 
     return (
         "OK",
         200,
+    )
+
+
+# ============================================================
+# AUTOMATIC SUBSCRIPTION LIFECYCLE CHECKER
+# ============================================================
+
+def run_subscription_lifecycle():
+    """
+    Run the automatic subscription lifecycle checker.
+
+    It checks every company and:
+
+        - activates valid active subscriptions
+        - deactivates expired subscriptions
+        - starts maintenance after grace
+        - freezes maintenance at takedown
+        - reports takedown-due companies
+        - respects manual activation
+        - respects manual deactivation
+
+    It does NOT delete company data.
+    """
+
+    now = utc_now()
+
+    companies = (
+        Company.query
+        .order_by(
+            Company.id.asc()
+        )
+        .all()
+    )
+
+    results = {
+
+        "checked": 0,
+
+        "activated": 0,
+
+        "deactivated": 0,
+
+        "maintenance": 0,
+
+        "takedown_due": 0,
+
+        "manual_active": 0,
+
+        "manual_deactivated": 0,
+
+        "no_subscription": 0,
+
+        "errors": 0,
+    }
+
+    for company in companies:
+
+        results["checked"] += 1
+
+        try:
+
+            subscription = (
+                get_lifecycle_subscription(
+                    company.id
+                )
+            )
+
+            if subscription is None:
+
+                results[
+                    "no_subscription"
+                ] += 1
+
+                continue
+
+            # ------------------------------------------------
+            # PREVIOUS COMPANY STATUS
+            # ------------------------------------------------
+
+            previous_company_active = bool(
+                company.is_active
+            )
+
+            # ------------------------------------------------
+            # UPDATE LIFECYCLE
+            # ------------------------------------------------
+
+            result = (
+                update_subscription_lifecycle(
+                    subscription=subscription,
+                    company=company,
+                    now=now,
+                )
+            )
+
+            state = (
+                result.get(
+                    "state"
+                )
+            )
+
+            # ------------------------------------------------
+            # COUNT RESULT
+            # ------------------------------------------------
+
+            if state == "manually_active":
+
+                results[
+                    "manual_active"
+                ] += 1
+
+            elif state == "manually_deactivated":
+
+                results[
+                    "manual_deactivated"
+                ] += 1
+
+            elif state in (
+                "active",
+                "trial",
+            ):
+
+                if not previous_company_active:
+
+                    results[
+                        "activated"
+                    ] += 1
+
+            elif state == "trial_expired":
+
+                if previous_company_active:
+
+                    results[
+                        "deactivated"
+                    ] += 1
+
+            elif state == "grace_period":
+
+                if previous_company_active:
+
+                    results[
+                        "deactivated"
+                    ] += 1
+
+            elif state == "maintenance":
+
+                results[
+                    "maintenance"
+                ] += 1
+
+                if previous_company_active:
+
+                    results[
+                        "deactivated"
+                    ] += 1
+
+            elif state == "takedown_due":
+
+                results[
+                    "takedown_due"
+                ] += 1
+
+                if previous_company_active:
+
+                    results[
+                        "deactivated"
+                    ] += 1
+
+            # ------------------------------------------------
+            # SAVE
+            # ------------------------------------------------
+
+            db.session.add(
+                company
+            )
+
+            db.session.add(
+                subscription
+            )
+
+        except Exception:
+
+            results[
+                "errors"
+            ] += 1
+
+            db.session.rollback()
+
+            current_app.logger.exception(
+                "SUBSCRIPTION LIFECYCLE ERROR "
+                "FOR COMPANY %s",
+                company.id,
+            )
+
+    # ========================================================
+    # COMMIT ALL CHANGES
+    # ========================================================
+
+    try:
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        current_app.logger.exception(
+            "SUBSCRIPTION LIFECYCLE COMMIT FAILED"
+        )
+
+        raise
+
+    return results
+
+
+# ============================================================
+# CLI LIFECYCLE COMMAND
+# ============================================================
+
+@subscription_bp.cli.command(
+    "lifecycle"
+)
+def subscription_lifecycle():
+    """
+    Manually run the automatic subscription lifecycle checker.
+    """
+
+    click.echo(
+        "============================================================"
+    )
+
+    click.echo(
+        "BizTrace IMS Subscription Lifecycle Checker"
+    )
+
+    click.echo(
+        f"Started: {utc_now().isoformat()}"
+    )
+
+    try:
+
+        results = (
+            run_subscription_lifecycle()
+        )
+
+    except Exception as exc:
+
+        click.echo(
+            "============================================================"
+        )
+
+        click.echo(
+            f"[FATAL ERROR] {exc}"
+        )
+
+        click.echo(
+            "Lifecycle changes were rolled back."
+        )
+
+        click.echo(
+            "============================================================"
+        )
+
+        raise click.ClickException(
+            "Subscription lifecycle check failed."
+        )
+
+    click.echo(
+        "============================================================"
+    )
+
+    click.echo(
+        "Subscription Lifecycle Summary"
+    )
+
+    click.echo(
+        "============================================================"
+    )
+
+    click.echo(
+        f"Companies checked:       "
+        f"{results['checked']}"
+    )
+
+    click.echo(
+        f"Newly activated:         "
+        f"{results['activated']}"
+    )
+
+    click.echo(
+        f"Newly deactivated:       "
+        f"{results['deactivated']}"
+    )
+
+    click.echo(
+        f"Maintenance accounts:    "
+        f"{results['maintenance']}"
+    )
+
+    click.echo(
+        f"Takedown due:            "
+        f"{results['takedown_due']}"
+    )
+
+    click.echo(
+        f"Manual active:           "
+        f"{results['manual_active']}"
+    )
+
+    click.echo(
+        f"Manual deactivated:      "
+        f"{results['manual_deactivated']}"
+    )
+
+    click.echo(
+        f"No subscription:         "
+        f"{results['no_subscription']}"
+    )
+
+    click.echo(
+        f"Errors:                  "
+        f"{results['errors']}"
+    )
+
+    click.echo(
+        f"Finished: {utc_now().isoformat()}"
+    )
+
+    click.echo(
+        "============================================================"
     )
