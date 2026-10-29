@@ -8,6 +8,8 @@ from flask import (
     request,
 )
 
+import time
+
 from flask_login import current_user, logout_user
 
 from config import Config
@@ -26,6 +28,7 @@ from .models import (
     User,
     Company,
     SystemSetting,
+    Subscription,
 )
 
 from .utils.company_settings import (
@@ -55,6 +58,26 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # ============================================================
+    # AUTOMATIC SUBSCRIPTION LIFECYCLE SETTINGS
+    # ============================================================
+    #
+    # The subscription lifecycle is checked at most once every
+    # hour by the running web application.
+    #
+    # 3600 seconds = 1 hour.
+    #
+    # The timestamp is kept in application memory so that the
+    # lifecycle checker does not run on every request.
+    #
+    # ============================================================
+
+    app.config["SUBSCRIPTION_LIFECYCLE_INTERVAL"] = 60
+
+    app.config[
+        "SUBSCRIPTION_LIFECYCLE_LAST_RUN"
+    ] = 0.0
+
+    # ============================================================
     # DATABASE DEBUG
     # ============================================================
 
@@ -64,10 +87,14 @@ def create_app(config_class=Config):
     )
 
     if database_uri.startswith("sqlite"):
-        print("DATABASE: SQLite (Local Development)")
+        print(
+            "DATABASE: SQLite (Local Development)"
+        )
 
     elif database_uri.startswith("postgresql"):
-        print("DATABASE: PostgreSQL")
+        print(
+            "DATABASE: PostgreSQL"
+        )
 
     else:
         print(
@@ -114,9 +141,11 @@ def create_app(config_class=Config):
     # ============================================================
 
     login_manager.login_view = "auth.login"
+
     login_manager.login_message = (
         "Please log in to access this page."
     )
+
     login_manager.login_message_category = "info"
 
     # ============================================================
@@ -144,9 +173,9 @@ def create_app(config_class=Config):
     from app.search import search_bp
     from app.services import services_bp
 
-    # ------------------------------------------------------------
-    # REGISTER
-    # ------------------------------------------------------------
+    # ============================================================
+    # REGISTER BLUEPRINTS
+    # ============================================================
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -175,6 +204,7 @@ def create_app(config_class=Config):
 
     @app.route("/offline")
     def offline():
+
         return render_template(
             "offline.html"
         )
@@ -193,7 +223,9 @@ def create_app(config_class=Config):
         )
 
         # Allow the worker to control the entire application.
-        response.headers["Service-Worker-Allowed"] = "/"
+        response.headers[
+            "Service-Worker-Allowed"
+        ] = "/"
 
         # Always allow the browser to check for a new worker.
         response.headers[
@@ -254,9 +286,11 @@ def create_app(config_class=Config):
             return
 
         click.echo("")
+
         click.echo(
             "=== BizTrace IMS System Administrator Setup ==="
         )
+
         click.echo("")
 
         username = click.prompt(
@@ -356,15 +390,19 @@ def create_app(config_class=Config):
         db.session.commit()
 
         click.echo("")
+
         click.echo(
             "System Administrator created successfully."
         )
+
         click.echo(
             f"Username: {username}"
         )
+
         click.echo(
             f"Email: {email}"
         )
+
         click.echo("")
 
     # ============================================================
@@ -380,15 +418,19 @@ def create_app(config_class=Config):
         from .rbac import seed_all_rbac
 
         click.echo("")
+
         click.echo(
             "=============================================="
         )
+
         click.echo(
             "      BizTrace IMS RBAC Synchronization"
         )
+
         click.echo(
             "=============================================="
         )
+
         click.echo("")
 
         try:
@@ -396,9 +438,11 @@ def create_app(config_class=Config):
             result = seed_all_rbac()
 
             click.echo("")
+
             click.echo(
                 "RBAC synchronization completed successfully."
             )
+
             click.echo("")
 
             if isinstance(result, dict):
@@ -414,26 +458,33 @@ def create_app(config_class=Config):
             click.echo(
                 "=============================================="
             )
+
             click.echo(
                 "              RBAC COMPLETE"
             )
+
             click.echo(
                 "=============================================="
             )
+
             click.echo("")
 
         except Exception as e:
 
             click.echo("")
+
             click.echo(
                 "=============================================="
             )
+
             click.echo(
                 "          RBAC SYNCHRONIZATION FAILED"
             )
+
             click.echo(
                 "=============================================="
             )
+
             click.echo("")
 
             click.echo(
@@ -457,16 +508,8 @@ def create_app(config_class=Config):
         # PUBLIC / SPECIAL ROUTES
         # ========================================================
         #
-        # These routes MUST be allowed before authentication and
+        # These routes must be allowed before authentication and
         # company checks.
-        #
-        # This prevents redirect loops such as:
-        #
-        # /login -> /login -> /login
-        #
-        # and:
-        #
-        # /maintenance -> /maintenance
         #
         # ========================================================
 
@@ -492,6 +535,89 @@ def create_app(config_class=Config):
             return None
 
         # ========================================================
+        # AUTOMATIC SUBSCRIPTION LIFECYCLE CHECK
+        # ========================================================
+        #
+        # Run the subscription lifecycle at most once every hour.
+        #
+        # This is deliberately placed BEFORE:
+        #
+        # - subscription route exclusion
+        # - public authentication routes
+        # - authentication checks
+        #
+        # This means even a visit to /login can trigger the
+        # hourly lifecycle check.
+        #
+        # ========================================================
+
+        now_timestamp = time.time()
+
+        last_run = app.config.get(
+            "SUBSCRIPTION_LIFECYCLE_LAST_RUN",
+            0.0,
+        )
+
+        lifecycle_interval = app.config.get(
+            "SUBSCRIPTION_LIFECYCLE_INTERVAL",
+            60,
+        )
+
+        if (
+            now_timestamp - last_run
+            >= lifecycle_interval
+        ):
+
+            try:
+
+                from app.subscription.routes import (
+                    run_subscription_lifecycle
+                )
+
+                results = (
+                    run_subscription_lifecycle()
+                )
+
+                app.config[
+                    "SUBSCRIPTION_LIFECYCLE_LAST_RUN"
+                ] = now_timestamp
+
+                app.logger.info(
+                    "Automatic subscription lifecycle "
+                    "check completed. "
+                    "Checked=%s, Activated=%s, "
+                    "Deactivated=%s, Maintenance=%s, "
+                    "TakedownDue=%s, Errors=%s",
+                    results.get("checked", 0),
+                    results.get("activated", 0),
+                    results.get("deactivated", 0),
+                    results.get("maintenance", 0),
+                    results.get("takedown_due", 0),
+                    results.get("errors", 0),
+                )
+
+            except Exception:
+
+                db.session.rollback()
+
+                app.logger.exception(
+                    "Automatic subscription lifecycle "
+                    "check failed."
+                )
+
+                # ------------------------------------------------
+                # IMPORTANT
+                # ------------------------------------------------
+                #
+                # Do not block the current request if the
+                # automatic lifecycle check fails.
+                #
+                # The next request after the interval will try
+                # again because LAST_RUN was not updated.
+                #
+                # ------------------------------------------------
+
+        # ========================================================
         # SUBSCRIPTION / PAYMENT ROUTES
         # ========================================================
 
@@ -506,8 +632,6 @@ def create_app(config_class=Config):
         # --------------------------------------------------------
         # PUBLIC AUTHENTICATION ROUTES
         # --------------------------------------------------------
-        #
-        # IMPORTANT:
         #
         # Do NOT force these routes through company validation.
         #

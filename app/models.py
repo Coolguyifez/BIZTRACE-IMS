@@ -2581,6 +2581,7 @@ class Subscription(db.Model):
     # failed
     # cancelled
     # manually_active
+    # manually_deactivated
 
     # =====================================================
     # PAYMENT STATUS
@@ -2717,7 +2718,7 @@ class Subscription(db.Model):
     # manual
 
     # =====================================================
-    # SYSTEM ADMIN MANUAL OVERRIDE
+    # SYSTEM ADMIN MANUAL ACTIVATION
     # =====================================================
 
     manually_activated = db.Column(
@@ -2734,6 +2735,28 @@ class Subscription(db.Model):
     )
 
     manually_activated_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    # =====================================================
+    # SYSTEM ADMIN MANUAL DEACTIVATION
+    # =====================================================
+
+    manually_deactivated = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        index=True
+    )
+
+    manually_deactivated_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    manually_deactivated_at = db.Column(
         db.DateTime(timezone=True),
         nullable=True
     )
@@ -2789,6 +2812,11 @@ class Subscription(db.Model):
         foreign_keys=[manually_activated_by]
     )
 
+    deactivated_by_user = db.relationship(
+        "User",
+        foreign_keys=[manually_deactivated_by]
+    )
+
     # =====================================================
     # CURRENTLY ACTIVE
     # =====================================================
@@ -2796,14 +2824,33 @@ class Subscription(db.Model):
     @property
     def is_currently_active(self):
         """
-        Returns True when the subscription is currently valid.
+        Determines whether this subscription should currently
+        be considered active.
 
-        System Administrator manual activation can bypass
-        normal subscription expiry.
+        Manual deactivation always takes priority.
+
+        Manual activation can bypass normal subscription expiry.
+
+        Otherwise, the normal subscription/trial dates are used.
         """
+
+        # -------------------------------------------------
+        # MANUAL DEACTIVATION ALWAYS WINS
+        # -------------------------------------------------
+
+        if self.manually_deactivated:
+            return False
+
+        # -------------------------------------------------
+        # MANUAL ACTIVATION BY SYSTEM ADMIN
+        # -------------------------------------------------
 
         if self.manually_activated:
             return True
+
+        # -------------------------------------------------
+        # NORMAL SUBSCRIPTION
+        # -------------------------------------------------
 
         if self.status not in (
             "active",
@@ -2825,11 +2872,19 @@ class Subscription(db.Model):
     @property
     def is_expired(self):
         """
-        Returns True when the subscription has passed
-        its end date.
+        Returns True when the normal subscription period
+        has passed.
+
+        Manual activation prevents the subscription from being
+        treated as expired for access purposes.
+
+        Manual deactivation is not considered an expiry.
         """
 
         if self.manually_activated:
+            return False
+
+        if self.manually_deactivated:
             return False
 
         if not self.end_date:
@@ -2845,9 +2900,17 @@ class Subscription(db.Model):
     def days_remaining(self):
         """
         Number of whole days remaining on the subscription.
+
+        Manual activation has no expiry date from the normal
+        subscription system, so None is returned.
+
+        Manual deactivation also returns None.
         """
 
         if self.manually_activated:
+            return None
+
+        if self.manually_deactivated:
             return None
 
         if not self.end_date:
@@ -2926,13 +2989,87 @@ class Subscription(db.Model):
             "maintenance": "Maintenance",
             "failed": "Payment Failed",
             "cancelled": "Cancelled",
-            "manually_active": "Manually Activated"
+            "manually_active": "Manually Activated",
+            "manually_deactivated": "Manually Deactivated"
         }
 
         return names.get(
             self.status,
             self.status.title()
         )
+
+    # =====================================================
+    # ACTIVATE MANUALLY
+    # =====================================================
+
+    def activate_manually(self, admin_user):
+        """
+        System Administrator manually activates the
+        subscription/company.
+        """
+
+        now = datetime.now(timezone.utc)
+
+        self.manually_activated = True
+        self.manually_activated_by = admin_user.id
+        self.manually_activated_at = now
+
+        # Clear manual deactivation
+        self.manually_deactivated = False
+        self.manually_deactivated_by = None
+        self.manually_deactivated_at = None
+
+        self.status = "manually_active"
+        self.activation_source = "system_admin"
+
+        if self.company:
+            self.company.is_active = True
+
+    # =====================================================
+    # DEACTIVATE MANUALLY
+    # =====================================================
+
+    def deactivate_manually(self, admin_user):
+        """
+        System Administrator manually deactivates the
+        subscription/company.
+        """
+
+        now = datetime.now(timezone.utc)
+
+        self.manually_deactivated = True
+        self.manually_deactivated_by = admin_user.id
+        self.manually_deactivated_at = now
+
+        # Clear manual activation
+        self.manually_activated = False
+        self.manually_activated_by = None
+        self.manually_activated_at = None
+
+        self.status = "manually_deactivated"
+
+        if self.company:
+            self.company.is_active = False
+
+    # =====================================================
+    # CLEAR MANUAL OVERRIDE
+    # =====================================================
+
+    def clear_manual_override(self):
+        """
+        Removes both System Administrator manual overrides.
+
+        This returns the subscription to normal automatic
+        subscription control.
+        """
+
+        self.manually_activated = False
+        self.manually_activated_by = None
+        self.manually_activated_at = None
+
+        self.manually_deactivated = False
+        self.manually_deactivated_by = None
+        self.manually_deactivated_at = None
 
     # =====================================================
     # REPRESENTATION
@@ -2946,7 +3083,6 @@ class Subscription(db.Model):
             f"plan={self.plan} "
             f"status={self.status}>"
         )
-
 class NotificationAssignment(db.Model):
     __tablename__ = "notification_assignments"
 
